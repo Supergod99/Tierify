@@ -1,6 +1,6 @@
 {
     "replace": false,
     "values": [
-        "tiered:nether_star"
+        "minecraft:nether_star"
     ]
 }
