@@ -44,6 +44,12 @@ public class ReforgeAddition extends Item {
             case 4:
                 qualities = Tierify.CONFIG.tier_4_qualities;
                 break;
+            case 5:
+                qualities = Tierify.CONFIG.tier_5_qualities;
+                break;
+            case 6:
+                qualities = Tierify.CONFIG.tier_6_qualities;
+                break;
         }
 
         if (qualities.size() == 0) return;
