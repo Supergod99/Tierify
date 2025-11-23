@@ -1,5 +1,7 @@
 ### This Fork adds 3 more tiers for a total of 6 reforge tiers, effectively allowing you to gate entire tiers behind specific items.
 
+The current config has each tier in its own, meaning you will never recieve a higher or lower tier than whats listed in config from that specific item(limestone only rolls commons, etc). In the future, may add a way to add or remove as many tiers as you like. 
+
 # Tierify
 
 **Tierify** is a flavor of **Tiered** made with the purpose of fitting my own personal vision, and to fix some issues it had. It is a fork of **TieredZ** by **Globox_Z**, which is an MIT licensed **Tiered** fork.
