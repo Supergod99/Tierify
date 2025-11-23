@@ -13,6 +13,8 @@ public class TieredItemTags {
     public static final TagKey<Item> TIER_2_ITEM = register("reforge_tier_2");
     public static final TagKey<Item> TIER_3_ITEM = register("reforge_tier_3");
     public static final TagKey<Item> TIER_4_ITEM = register("reforge_tier_4");
+    public static final TagKey<Item> TIER_5_ITEM = register("reforge_tier_5");
+    public static final TagKey<Item> TIER_6_ITEM = register("reforge_tier_6");
 
     private TieredItemTags() {
     }
