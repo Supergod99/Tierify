@@ -61,4 +61,13 @@ public class CommonConfig {
             "Mythic"
         )
     );
+    
+    @Comment("Tier 4 of Reforging (Nether Star)")
+    @Comment("Qualities here will be able to be reforged onto items while using the Tier 4 reforge material, Nether Star by default. Can be changed via the item tag tiered:reforge_tier_4")
+    public ArrayList<String> tier_3_qualities = new ArrayList<>(
+        List.of(
+            "Legendary",
+            "Mythic"
+        )
+    );
 }
