@@ -34,9 +34,7 @@ public class CommonConfig {
     @Comment("Qualities here will be able to be reforged onto items while using the Tier 1 reforge material, Limestone by default. Can be changed via the item tag tiered:reforge_tier_1")
     public ArrayList<String> tier_1_qualities = new ArrayList<>(
         List.of(
-            "Common",
-            "Uncommon",
-            "Rare"
+            "Common"
         )
     );
 
@@ -44,10 +42,7 @@ public class CommonConfig {
     @Comment("Qualities here will be able to be reforged onto items while using the Tier 2 reforge material, Pyrite by default. Can be changed via the item tag tiered:reforge_tier_2")
     public ArrayList<String> tier_2_qualities = new ArrayList<>(
         List.of(
-            "Uncommon",
-            "Rare",
-            "Epic",
-            "Legendary"
+            "Uncommon"
         )
     );
 
@@ -55,10 +50,7 @@ public class CommonConfig {
     @Comment("Qualities here will be able to be reforged onto items while using the Tier 3 reforge material, Galena by default. Can be changed via the item tag tiered:reforge_tier_3")
     public ArrayList<String> tier_3_qualities = new ArrayList<>(
         List.of(
-            "Rare",
-            "Epic",
-            "Legendary",
-            "Mythic"
+            "Rare"
         )
     );
     
@@ -66,7 +58,22 @@ public class CommonConfig {
     @Comment("Qualities here will be able to be reforged onto items while using the Tier 4 reforge material, Nether Star by default. Can be changed via the item tag tiered:reforge_tier_4")
     public ArrayList<String> tier_4_qualities = new ArrayList<>(
         List.of(
-            "Legendary",
+            "Epic"
+        )
+    );
+
+        @Comment("Tier 5 of Reforging (End Crystal)")
+    @Comment("Qualities here will be able to be reforged onto items while using the Tier 4 reforge material, Nether Star by default. Can be changed via the item tag tiered:reforge_tier_4")
+    public ArrayList<String> tier_5_qualities = new ArrayList<>(
+        List.of(
+            "Legendary"
+        )
+    );
+
+        @Comment("Tier 6 of Reforging (Dragon Head)")
+    @Comment("Qualities here will be able to be reforged onto items while using the Tier 4 reforge material, Nether Star by default. Can be changed via the item tag tiered:reforge_tier_4")
+    public ArrayList<String> tier_6_qualities = new ArrayList<>(
+        List.of(
             "Mythic"
         )
     );
