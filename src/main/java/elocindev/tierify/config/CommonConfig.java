@@ -63,7 +63,7 @@ public class CommonConfig {
     );
 
         @Comment("Tier 5 of Reforging (End Crystal)")
-    @Comment("Qualities here will be able to be reforged onto items while using the Tier 4 reforge material, Nether Star by default. Can be changed via the item tag tiered:reforge_tier_4")
+    @Comment("Qualities here will be able to be reforged onto items while using the Tier 5 reforge material, Nether Star by default. Can be changed via the item tag tiered:reforge_tier_5")
     public ArrayList<String> tier_5_qualities = new ArrayList<>(
         List.of(
             "Legendary"
@@ -71,7 +71,7 @@ public class CommonConfig {
     );
 
         @Comment("Tier 6 of Reforging (Dragon Head)")
-    @Comment("Qualities here will be able to be reforged onto items while using the Tier 4 reforge material, Nether Star by default. Can be changed via the item tag tiered:reforge_tier_4")
+    @Comment("Qualities here will be able to be reforged onto items while using the Tier 6 reforge material, Nether Star by default. Can be changed via the item tag tiered:reforge_tier_6")
     public ArrayList<String> tier_6_qualities = new ArrayList<>(
         List.of(
             "Mythic"
