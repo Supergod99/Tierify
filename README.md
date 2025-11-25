@@ -1,11 +1,11 @@
-### This Fork adds 3 more tiers for a total of 6 reforge tiers, effectively allowing you to gate entire tiers behind specific items.
+### This Fork adds 3 more tiers for a total of 6 reforge tiers, effectively allowing you to gate entire tiers behind specific items. This is made for the pack linggango
 
 The current config has each tier in its own, meaning you will never recieve a higher or lower tier than whats listed in config from that specific item(limestone only rolls commons, etc). In the future, may add a way to add or remove as many tiers as you like. 
 
-### You must rename either the common or uncommon attributes via datapacks if you want to have commons in their own separate tier w/reforge item! or else you will roll commons and uncommons for tier 1
+### You must rename either the common or uncommon attributes via datapacks if you want to have commons in their own separate tier w/reforge item! or else you will roll commons and uncommons for tier 1 (if the entirety of one string is in another, that modifier will also be considered)
 
 Example: 
-change all "uncommon_melee_#" to "uncom_melee_#" (also change ids in file, and update lang)
+change all "uncommon_melee_#" to "uncom_melee_#" (also change ids in file, update lang/config)
 
 # Tierify
 
