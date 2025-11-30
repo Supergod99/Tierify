@@ -1,14 +1,11 @@
-### This Fork does two things currently:
+### This Fork does three things currently:
 **1. Adds 3 more tiers for a total of 6 reforge tiers, effectively allowing you to gate entire tiers behind specific items**
 
-**2. Allows custom reforge names to have spaces or formatting codes in lang (previously would throw error within sound method, which caused other problems during reforging)**
+**2. Allows custom reforge names to have spaces or formatting codes in lang (previously would throw error, which caused other problems during reforging)**
+
+**3. Adds a "perfect roll" mechanic with a 1% chance, in which a reforge will roll with no downside. It will prepend "perfect" to the item, and have a custom tooltip border**
 
 The current config has each tier in its own, meaning you will never recieve a higher or lower tier than whats listed in config from that specific item(limestone only rolls commons, etc).
-
-### You must rename either the common or uncommon attributes via datapacks if you want to have commons in their own separate tier w/reforge item! or else you will roll commons and uncommons for tier 1 (if the entirety of one string is in another, that modifier will also be considered)
-
-Example: 
-change all "uncommon_melee_#" to "uncom_melee_#" (also change ids in file, update lang/config)
 
 # Tierify
 
