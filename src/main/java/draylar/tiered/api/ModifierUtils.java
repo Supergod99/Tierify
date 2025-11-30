@@ -212,7 +212,7 @@ public class ModifierUtils {
     public static void setItemStackAttribute(@Nullable PlayerEntity playerEntity, ItemStack stack, boolean reforge, ItemStack reforgeMaterial) {
         if (reforge && reforgeMaterial != null) {
             List<String> qualities = null;
-
+    
             if (reforgeMaterial.isIn(TieredItemTags.TIER_1_ITEM)) {
                 qualities = Tierify.CONFIG.tier_1_qualities;
             } else if (reforgeMaterial.isIn(TieredItemTags.TIER_2_ITEM)) {
@@ -226,16 +226,28 @@ public class ModifierUtils {
             } else if (reforgeMaterial.isIn(TieredItemTags.TIER_6_ITEM)) {
                 qualities = Tierify.CONFIG.tier_6_qualities;
             }
-
+    
             if (qualities != null) {
                 Identifier possibleAttribute = getRandomAttributeForQuality(qualities, stack.getItem(), reforge);
                 if (possibleAttribute != null) {
+    
+                    // 🌟 1% chance for a “perfect” roll (no downside)
+                    boolean isPerfect = new java.util.Random().nextDouble() < 0.10D;
+    
+                    NbtCompound tierTag = stack.getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY);
+                    if (isPerfect) {
+                        tierTag.putBoolean("Perfect", true);
+                    } else {
+                        tierTag.remove("Perfect");
+                    }
+    
                     setItemStackAttribute(possibleAttribute, stack);
                     return;
                 }
             }
         }
-
+    
+        // Fallback for non-reforge behavior
         setItemStackAttribute(playerEntity, stack, reforge);
     }
 
