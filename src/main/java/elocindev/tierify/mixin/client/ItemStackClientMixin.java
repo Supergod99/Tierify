@@ -222,7 +222,7 @@ public abstract class ItemStackClientMixin {
         if (this.hasNbt()) {
             NbtCompound tierTag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             if (tierTag != null && tierTag.getBoolean("Perfect")) {
-                tierTag.putString(Tierify.NBT_SUBTAG_DATA_KEY, "tiered:perfect");
+                tierTag.putString("BorderTier", "tiered:perfect");
             }
         }
         // ------------------------------------
