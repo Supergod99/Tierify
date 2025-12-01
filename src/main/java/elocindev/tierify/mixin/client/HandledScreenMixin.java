@@ -33,7 +33,48 @@ public abstract class HandledScreenMixin extends Screen {
     @Inject(method = "drawMouseoverTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;Ljava/util/Optional;II)V"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
     protected void drawMouseoverTooltipMixin(DrawContext context, int x, int y, CallbackInfo info, ItemStack stack) {
         if (Tierify.CLIENT_CONFIG.tieredTooltip && stack.hasNbt() && stack.getNbt().contains("Tiered")) {
+            //  perfect border override
+            NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+            if (tierTag != null && tierTag.getBoolean("Perfect")) {
 
+                for (int p = 0; p < TierifyClient.BORDER_TEMPLATES.size(); p++) {
+                    BorderTemplate template = TierifyClient.BORDER_TEMPLATES.get(p);
+
+                    // Matches the perfect decider defined in TooltipBorderLoader
+                    if (template.containsDecider("{BorderTier:\"tiered:perfect\"}")) {
+
+                        // Register this stack to this template
+                        if (!template.containsStack(stack)) {
+                            template.addStack(stack);
+                        }
+
+                        // Render directly with perfect border
+                        List<Text> text = Screen.getTooltipFromItem(client, stack);
+                        List<TooltipComponent> list = text.stream()
+                                .map(Text::asOrderedText)
+                                .map(TooltipComponent::of)
+                                .collect(Collectors.toList());
+
+                        stack.getTooltipData().ifPresent(data -> 
+                            list.add(1, TooltipComponent.of(data))
+                        );
+
+                        TieredTooltip.renderTieredTooltipFromComponents(
+                                context,
+                                this.textRenderer,
+                                list,
+                                x,
+                                y,
+                                HoveredTooltipPositioner.INSTANCE,
+                                template
+                        );
+
+                        info.cancel();
+                        return;
+                    }
+                }
+            }
+            //end override
             String nbtString = stack.getNbt().getCompound("Tiered").asString();
             for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
                 if (!TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack) && TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(nbtString)) {
