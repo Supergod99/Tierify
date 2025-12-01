@@ -217,6 +217,15 @@ public abstract class ItemStackClientMixin {
     @Inject(method = "getTooltip", at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/item/ItemStack;getAttributeModifiers(Lnet/minecraft/entity/EquipmentSlot;)Lcom/google/common/collect/Multimap;"), locals = LocalCapture.CAPTURE_FAILSOFT)
     private void getTooltipMixin(PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> info, List list, MutableText mutableText, int i, EquipmentSlot var6[], int var7,
             int var8, EquipmentSlot equipmentSlot, Multimap multimap) {
+
+                // --- Perfect Border Tier Override ---
+        if (this.hasNbt()) {
+            NbtCompound tierTag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+            if (tierTag != null && tierTag.getBoolean("Perfect")) {
+                tierTag.putString(Tierify.NBT_SUBTAG_DATA_KEY, "tiered:perfect");
+            }
+        }
+        // ------------------------------------
         if (this.isTiered && !multimap.isEmpty() && equipmentSlot == EquipmentSlot.OFFHAND && this.getAttributeModifiers(EquipmentSlot.MAINHAND) != null
                 && !this.getAttributeModifiers(EquipmentSlot.MAINHAND).isEmpty()) {
             try {
