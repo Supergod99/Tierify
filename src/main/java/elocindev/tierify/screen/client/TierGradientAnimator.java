@@ -158,15 +158,19 @@ public class TierGradientAnimator {
         if (percentage < 0) percentage = 0;
         if (percentage > 100) percentage = 100;
 
-        int segments = colors.length - 1;
+        int segments = colors.length;
         double segmentLength = 100.0 / segments;
-
-        int segmentIndex = (int) Math.min(segments - 1, Math.floor(percentage / segmentLength));
+        
+        int segmentIndex = (int) Math.floor(percentage / segmentLength);
+        if (segmentIndex >= segments) segmentIndex = segments - 1;
+        
+        int nextIndex = (segmentIndex + 1) % segments;  // Wrap to first color
+        
         double localStart = segmentIndex * segmentLength;
-        double t = (percentage - localStart) / segmentLength; // 0..1
-
+        double t = (percentage - localStart) / segmentLength;
+        
         int[] c1 = colors[segmentIndex];
-        int[] c2 = colors[segmentIndex + 1];
+        int[] c2 = colors[nextIndex];
 
         int r = lerp(c1[0], c2[0], t);
         int g = lerp(c1[1], c2[1], t);
