@@ -1,84 +1,199 @@
 package elocindev.tierify.screen.client;
 
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
-import java.util.HashMap;
-import java.util.Map;
+import net.minecraft.text.TextColor;
 
 public class TierGradientAnimator {
 
+    // We keep this so you can tick it from your client init if you want,
+    // but the animation here uses System.currentTimeMillis().
     private static int tick = 0;
     private static final int INTERVAL = 2;
 
-    // ---- 16-frame gradients per tier ----
+    // ---- Gradient anchor colors per tier (RGB) ----
 
-    private static final String[] COMMON = {
-        "A0A0A0","9A9A9A","959595","8F8F8F","8A8A8A","858585","7F7F7F","7A7A7A",
-        "757575","6F6F6F","6A6A6A","656565","5F5F5F","5A5A5A","555555","505050"
+    // Common: steel/gunmetal greys
+    private static final int[][] COMMON_COLORS = new int[][]{
+            {140, 140, 140},
+            {90, 90, 90},
+            {160, 160, 160}
     };
 
-    private static final String[] UNCOMMON = {
-        "55FF55","50F250","4CE64C","47D947","42CC42","3DBF3D","39B339","34A634",
-        "309A30","2B8D2B","268126","227422","1D671D","185B18","144E14","0F420F"
+    // Uncommon: green shimmer
+    private static final int[][] UNCOMMON_COLORS = new int[][]{
+            {90, 200, 90},
+            {0, 120, 0},
+            {140, 255, 140}
     };
 
-    private static final String[] RARE = {
-        "5555FF","5050F2","4C4CE6","4747D9","4242CC","3D3DBF","3939B3","3434A6",
-        "30309A","2B2B8D","262681","222274","1D1D67","18185B","14144E","0F0F42"
+    // Rare: deep blue → cyan pulse
+    private static final int[][] RARE_COLORS = new int[][]{
+            {80, 150, 255},
+            {0, 60, 160},
+            {120, 220, 255}
     };
 
-    private static final String[] EPIC = {
-        "AA00FF","A000F2","9600E6","8C00D9","8200CC","7800BF","6E00B3","6400A6",
-        "5A009A","50008D","460081","3C0074","320067","28005B","1E004E","140042"
+    // Epic: purple / magenta wave
+    private static final int[][] EPIC_COLORS = new int[][]{
+            {180, 70, 255},
+            {100, 0, 180},
+            {230, 150, 255}
     };
 
-    private static final String[] LEGENDARY = {
-        "FFB000","F7A600","EF9C00","E69200","DE8800","D67E00","CE7400","C46A00",
-        "BC6000","B25600","AA4C00","A04200","983800","8E2E00","862400","7C1A00"
+    // Legendary: hot gold → amber
+    private static final int[][] LEGENDARY_COLORS = new int[][]{
+            {255, 180, 0},
+            {255, 220, 80},
+            {255, 140, 0}
     };
 
-    private static final String[] MYTHIC = {
-        "FF3A3A","F23232","E62929","D92020","CC1818","BF1010","B30808","A60000",
-        "9A0000","8D0000","810000","740000","670000","5B0000","4E0000","420000"
+    // Mythic: crimson → eldritch magenta
+    private static final int[][] MYTHIC_COLORS = new int[][]{
+            {255, 60, 60},
+            {180, 0, 80},
+            {255, 120, 180}
     };
-
-    private static final Map<String, String[]> TABLE = new HashMap<>();
-
-    static {
-        TABLE.put("common", COMMON);
-        TABLE.put("uncommon", UNCOMMON);
-        TABLE.put("rare", RARE);
-        TABLE.put("epic", EPIC);
-        TABLE.put("legendary", LEGENDARY);
-        TABLE.put("mythic", MYTHIC);
-    }
 
     public static void clientTick() {
-        if (++tick >= INTERVAL) tick = 0;
+        // Kept for API compatibility if you’re ticking this from elsewhere.
+        tick++;
+        if (tick >= INTERVAL) {
+            tick = 0;
+        }
     }
 
+    // Infer tier from the attribute id string (same as before conceptually)
     public static String getTierFromId(String id) {
-        if (id.contains("common")) return "common";
-        if (id.contains("uncommon")) return "uncommon";
-        if (id.contains("rare")) return "rare";
-        if (id.contains("epic")) return "epic";
-        if (id.contains("legendary")) return "legendary";
-        if (id.contains("mythic")) return "mythic";
+        if (id == null) return "common";
+        String lower = id.toLowerCase();
+        if (lower.contains("mythic")) return "mythic";
+        if (lower.contains("legendary")) return "legendary";
+        if (lower.contains("epic")) return "epic";
+        if (lower.contains("rare")) return "rare";
+        if (lower.contains("uncomon")) return "uncomon";
         return "common";
     }
 
-    public static String animate(String base, String tier) {
-        String[] frames = TABLE.getOrDefault(tier, COMMON);
-        int idx = (int)((System.currentTimeMillis() / 75) % frames.length);
-        String hex = frames[idx];
+    // MAIN ENTRY:
+    // base  = original label text component (e.g. "Brutal")
+    // tier  = "common", "rare", "mythic", etc.
+    // RETURNS a new MutableText with per-letter RGB styles applied.
+    public static MutableText animate(MutableText base, String tier) {
+        if (base == null) {
+            return Text.empty();
+        }
 
-        // Strip ALL external formatting first
-        String raw = base.replaceAll("§[0-9A-FK-ORa-fk-or]", "");
+        String raw = base.getString();
+        if (raw.isEmpty()) {
+            // Nothing to color, just return a copy.
+            return base.copy();
+        }
 
-        String bold = (tier.equals("legendary") || tier.equals("mythic")) ? "§l" : "";
+        int[][] palette = getPaletteForTier(tier);
 
-        return "§x§" + hex.charAt(0) + "§" + hex.charAt(1) +
-                       "§" + hex.charAt(2) + "§" + hex.charAt(3) +
-                       "§" + hex.charAt(4) + "§" + hex.charAt(5) +
-                       bold + raw;
+        int length = raw.length();
+        MutableText result = Text.empty();
+
+        // Time-based offset so gradient flows over the word
+        long now = System.currentTimeMillis();
+        // 75ms per “step” ~13.3 FPS feel
+        double timeOffset = (now / 75L) % 100;  // 0..99
+
+        // For each character in the label, compute a gradient position + color
+        for (int i = 0; i < length; i++) {
+            char c = raw.charAt(i);
+
+            // Skip coloring spaces; just append a plain space to keep spacing nice
+            if (Character.isWhitespace(c)) {
+                result.append(Text.literal(String.valueOf(c)));
+                continue;
+            }
+
+            // Position of this character along the 0..100 gradient,
+            // then offset by time to make it flow horizontally.
+            double basePos = (length == 1) ? 50.0 : (i * (100.0 / (length - 1)));
+            double animatedPos = (basePos + timeOffset) % 100.0;
+
+            int rgb = getColorFromGradient((int) animatedPos, palette);
+
+            Style style = Style.EMPTY.withColor(TextColor.fromRgb(rgb));
+
+            // Legendary/Mythic modifiers: bold
+            if ("legendary".equals(tier) || "mythic".equals(tier)) {
+                style = style.withBold(true);
+            }
+
+            MutableText letter = Text.literal(String.valueOf(c)).setStyle(style);
+            result.append(letter);
+        }
+
+        return result;
+    }
+
+    // Pick the palette based on tier name
+    private static int[][] getPaletteForTier(String tier) {
+        if (tier == null) return COMMON_COLORS;
+        switch (tier.toLowerCase()) {
+            case "uncomon":
+                return UNCOMMON_COLORS;
+            case "rare":
+                return RARE_COLORS;
+            case "epic":
+                return EPIC_COLORS;
+            case "legendary":
+                return LEGENDARY_COLORS;
+            case "mythic":
+                return MYTHIC_COLORS;
+            case "common":
+            default:
+                return COMMON_COLORS;
+        }
+    }
+
+    // Lethality-style multi-stop gradient lerp:
+    // percentage: 0..100
+    // colors:     list of RGB anchors
+    private static int getColorFromGradient(int percentage, int[][] colors) {
+        if (colors == null || colors.length == 0) {
+            return rgb(255, 255, 255);
+        }
+        if (colors.length == 1) {
+            int[] c = colors[0];
+            return rgb(c[0], c[1], c[2]);
+        }
+
+        // Clamp percentage just in case
+        if (percentage < 0) percentage = 0;
+        if (percentage > 100) percentage = 100;
+
+        int segments = colors.length - 1;
+        double segmentLength = 100.0 / segments;
+
+        int segmentIndex = (int) Math.min(segments - 1, Math.floor(percentage / segmentLength));
+        double localStart = segmentIndex * segmentLength;
+        double t = (percentage - localStart) / segmentLength; // 0..1
+
+        int[] c1 = colors[segmentIndex];
+        int[] c2 = colors[segmentIndex + 1];
+
+        int r = lerp(c1[0], c2[0], t);
+        int g = lerp(c1[1], c2[1], t);
+        int b = lerp(c1[2], c2[2], t);
+
+        return rgb(r, g, b);
+    }
+
+    private static int lerp(int a, int b, double t) {
+        return a + (int) Math.round((b - a) * t);
+    }
+
+    private static int rgb(int r, int g, int b) {
+        // Clamp to 0..255 just to be safe
+        r = Math.max(0, Math.min(255, r));
+        g = Math.max(0, Math.min(255, g));
+        b = Math.max(0, Math.min(255, b));
+        return (r << 16) | (g << 8) | b;
     }
 }
