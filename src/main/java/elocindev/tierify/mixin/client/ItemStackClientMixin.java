@@ -243,7 +243,7 @@ public abstract class ItemStackClientMixin {
     
                 // Bold only if attribute is legendary/mythic
                 if (tierKey.equals("legendary") || tierKey.equals("mythic")) {
-                    vanilla.styled(style -> style.withBold(true));
+                    vanilla = vanilla.styled(style -> style.withBold(true));
                 }
 
                 // combined name
