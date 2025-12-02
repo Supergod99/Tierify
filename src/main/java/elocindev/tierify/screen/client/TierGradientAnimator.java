@@ -93,7 +93,7 @@ public class TierGradientAnimator {
 
         // Time-based offset so gradient flows over the word
         long now = System.currentTimeMillis();
-        double timeOffset = (now / 75L) % 100;  // 0..99
+        double timeOffset = (now / 45L) % 100;  // 0..99
 
         // For each character in the label, compute a gradient position + color
         for (int i = 0; i < length; i++) {
