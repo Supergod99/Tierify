@@ -5,6 +5,8 @@
 
 **3. Adds a "perfect roll" mechanic with a 1% chance, in which a reforge will roll with no downside. It will prepend "perfect" to the item, and have a custom tooltip border**
 
+**4. Adds new, animated gradients to all tiers!**
+
 The current config has each tier by itself, meaning you will only roll that specific tier. For example, limestone will only ever roll common.
 
 # Tierify
