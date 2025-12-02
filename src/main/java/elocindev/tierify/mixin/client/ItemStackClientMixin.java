@@ -220,14 +220,16 @@ public abstract class ItemStackClientMixin {
                 String tierKey = elocindev.tierify.screen.client.TierGradientAnimator.getTierFromId(potentialAttribute.getID());
                 text = elocindev.tierify.screen.client.TierGradientAnimator.animate(text, tierKey);
             
-                // PERFECT prefix 
+                // PERFECT prefix
                 NbtCompound tag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
                 if (tag != null && tag.getBoolean("Perfect")) {
-                    String animated = elocindev.tierify.screen.client.PerfectLabelAnimator.getPerfectLabel();
-                    // force perfect to be bold
-                    animated = "§l" + animated;
-                    text = Text.literal(animated).append(" ").append(text);
+                    net.minecraft.text.MutableText perfect =
+                            elocindev.tierify.screen.client.PerfectLabelAnimator.getPerfectLabel();
+                
+                    // PERFECT (gradient, bold) + space + existing tier label
+                    text = perfect.append(" ").append(text);
                 }
+
             
                 // vanilla / modded item name stays the same
                 MutableText vanilla = info.getReturnValue().copy();
