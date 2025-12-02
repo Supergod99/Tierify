@@ -31,7 +31,7 @@ public class TierGradientAnimator {
 
     private static final String[] LEGENDARY = {
         "B87400","BE7D00","C58500","CB8E00","D29600","D89F00","DFA700","E5B000",
-        "ECB800","F0B500","F3B000","F6A900","F9A200","FC9B00","FF94000","FF7C00"
+        "ECB800","F0B500","F3B000","F6A900","F9A200","FC9B00","FF9400","FF7C00"
     };
 
     private static final String[] MYTHIC = {
