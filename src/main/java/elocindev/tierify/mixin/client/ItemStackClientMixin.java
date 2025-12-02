@@ -191,38 +191,52 @@ public abstract class ItemStackClientMixin {
     @Inject(method = "getName", at = @At("RETURN"), cancellable = true)
     private void getNameMixin(CallbackInfoReturnable<Text> info) {
         if (this.hasNbt() && this.getSubNbt("display") == null && this.getSubNbt(Tierify.NBT_SUBTAG_KEY) != null) {
-            Identifier tier = new Identifier(getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY).getString(Tierify.NBT_SUBTAG_DATA_KEY));
-
-            // attempt to display attribute if it is valid
-            PotentialAttribute potentialAttribute = Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tier);
-
+    
+            Identifier tier = new Identifier(getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY)
+                    .getString(Tierify.NBT_SUBTAG_DATA_KEY));
+    
+            PotentialAttribute potentialAttribute =
+                    Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tier);
+    
             if (potentialAttribute != null) {
+    
+                // 
+                // Base modifier label
                 MutableText text = Text.translatable(potentialAttribute.getID() + ".label");
-                // animate modifier according to tier
+    
+                // Per-tier gradient
                 String tierKey = TierGradientAnimator.getTierFromId(potentialAttribute.getID());
                 String animatedModifier = TierGradientAnimator.animate(text.getString(), tierKey);
                 text = Text.literal(animatedModifier);
-                
+    
 
-                NbtCompound tierTag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
-                //replaces label with perfect animated one
-                if (tierTag != null && tierTag.getBoolean("Perfect")) {
+                //PERFECT prefix
+
+                NbtCompound tag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+                if (tag != null && tag.getBoolean("Perfect")) {
                     String animated = elocindev.tierify.screen.client.PerfectLabelAnimator.getPerfectLabel();
                     text = Text.literal(animated).append(" ").append(text);
                 }
-
-               // if (Tierify.CLIENT_CONFIG.showPlatesOnName) {
-                   // text = Text.literal(TieredTooltip.getPlateForModifier(text.getString()));
-               // }
-                // vanilla name styled normally, without touching gradients
+    
                 MutableText vanilla = info.getReturnValue().copy();
-                vanilla.setStyle(potentialAttribute.getStyle());
-                
-                // modifier + perfect (gradient safe)
+    
+                // Strip Tiered color — keep only bold for legendary/mythic
+                vanilla.styled(style -> 
+                    style.withColor(null)                     // color removed
+                         .withBold(style.isBold())            // keep bold
+                );
+    
+                // Bold only if attribute is legendary/mythic
+                if (tierKey.equals("legendary") || tierKey.equals("mythic")) {
+                    vanilla.styled(style -> style.withBold(true));
+                }
+
+                // combined name
                 info.setReturnValue(text.append(" ").append(vanilla));
             }
         }
     }
+
 
     @Inject(method = "getTooltip", at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/item/ItemStack;getAttributeModifiers(Lnet/minecraft/entity/EquipmentSlot;)Lcom/google/common/collect/Multimap;"), locals = LocalCapture.CAPTURE_FAILSOFT)
     private void getTooltipMixin(PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> info, List list, MutableText mutableText, int i, EquipmentSlot var6[], int var7,
