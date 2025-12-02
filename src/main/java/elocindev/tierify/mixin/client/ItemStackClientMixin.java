@@ -217,22 +217,22 @@ public abstract class ItemStackClientMixin {
                 // Base modifier label from lang
                 MutableText text = Text.translatable(potentialAttribute.getID() + ".label");
             
-                // Resolve tier key & apply Lethality-style gradient to the label itself
                 String tierKey = elocindev.tierify.screen.client.TierGradientAnimator.getTierFromId(potentialAttribute.getID());
                 text = elocindev.tierify.screen.client.TierGradientAnimator.animate(text, tierKey);
             
-                // PERFECT prefix (still using your existing PerfectLabelAnimator)
+                // PERFECT prefix 
                 NbtCompound tag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
                 if (tag != null && tag.getBoolean("Perfect")) {
                     String animated = elocindev.tierify.screen.client.PerfectLabelAnimator.getPerfectLabel();
+                    // force perfect to be bold
+                    animated = "§l" + animated;
                     text = Text.literal(animated).append(" ").append(text);
                 }
             
-                // Vanilla / modded item name EXACTLY as defined by the game / other mods
+                // vanilla / modded item name stays the same
                 MutableText vanilla = info.getReturnValue().copy();
             
-                // Final combined display name:
-                //   [PERFECT?] [gradient tier label] [space] [vanilla item name]
+                // final combined display name:
                 info.setReturnValue(text.append(" ").append(vanilla));
             }
         }
