@@ -1,4 +1,4 @@
-### This Fork does three things currently:
+### This Fork does four things currently:
 **1. Adds 3 more tiers for a total of 6 reforge tiers, effectively allowing you to gate entire tiers behind specific items**
 
 **2. Allows custom reforge names to have spaces or formatting codes in lang (previously would throw error, which caused other problems during reforging)**
