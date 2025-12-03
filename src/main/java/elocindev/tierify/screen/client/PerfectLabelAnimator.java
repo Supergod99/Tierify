@@ -7,49 +7,17 @@ import net.minecraft.text.TextColor;
 
 public class PerfectLabelAnimator {
 
-    // Label text: transcendent above all tiers
+    // Transcendent label text
     private static final String WORD = "✯Perfect✯";
 
-    // Global breathing / hue cycle (~4 seconds)
+    // Full mega-gradient loop duration (ms)
     private static final float PERIOD_MS = 4000.0f;
-    private static final float WAVE_SPACING = 0.12f;
 
-    // Sweeping highlight streak (~2.6 seconds per pass)
-    private static final float STREAK_PERIOD_MS = 2600.0f;
-    private static final float STREAK_WIDTH = 0.28f;
-    private static final float STREAK_INTENSITY = 0.45f;
+    // Horizontal spacing between characters along the gradient
+    private static final float CHAR_SPACING = 0.10f;
 
-    // Synchronized starburst pulse (~2.5 seconds)
-    private static final float STARBURST_PERIOD_MS = 2500.0f;
-    private static final float STARBURST_PULSE_INTENSITY = 0.60f;
+    // --- Upper-tier gradients 
 
-    // Vertical "pillar of radiance"
-    private static final float VERTICAL_OVERLAY_STRENGTH = 0.22f;
-
-    // Permanent halo for stars (+ pulse)
-    private static final float STAR_HALO_BASE = 0.35f;
-    private static final float STAR_HALO_EXTRA_FROM_PULSE = 0.50f;
-
-    // Bloom-style breathing
-    private static final float BLOOM_INTENSITY = 0.55f;
-
-    // Mild HSV drift (still used for depth)
-    private static final float BASE_HUE = 0.12f;
-    private static final float HUE_WARP_AMPLITUDE = 0.02f;
-    private static final float SATURATION = 0.9f;
-    private static final float MIN_VALUE = 0.75f;
-    private static final float MAX_VALUE = 1.00f;
-
-    // Tier cycle speed: Rare -> Epic -> Legendary -> Mythic -> Perfect -> loop
-    private static final float TIER_CYCLE_PERIOD_MS = 1800.0f;
-
-    // *** Deeper artifact-tier cosmic palette for Perfect ***
-    private static final int GOLD_COLOR = 0xE0A414;       // deep cosmic gold
-    private static final int GOLD_PEAK_COLOR = 0xFFD36B;  // gold bloom (bright, warm)
-    private static final int CYAN_COLOR = 0x00B7FF;       // deep starfall cyan
-    private static final int WHITE_COLOR = 0xFFFFFF;      // white flame
-
-    // Upper-tier gradients (from your code) as RGB triplets
     // Rare deep blue → cyan pulse
     private static final int[][] RARE_COLORS = new int[][]{
             {80, 150, 255},
@@ -78,115 +46,60 @@ public class PerfectLabelAnimator {
             {255, 120, 180}
     };
 
+    // Perfect: deep gold → white flame → deep cyan
+    private static final int[][] PERFECT_COLORS = new int[][]{
+            {224, 164, 20},   // deep gold
+            {255, 255, 255},  // white
+            {0, 183, 255}     // deep cyan
+    };
+
+    // Pre-flattened mega-gradient stop list:
+    // Rare -> Epic -> Legendary -> Mythic -> Perfect
+    // We will build this lazily once.
+    private static int[] MEGA_COLORS = null;
+    private static float[] SEGMENT_LENGTHS = null; // weights for each segment for smoother transitions
+
+
     public static void clientTick() {
-        // animation uses System.currentTimeMillis()
+        // no-op: animation uses System.currentTimeMillis()
     }
 
     public static MutableText getPerfectLabel() {
         String word = WORD;
-        if (word == null || word.isEmpty())
+        if (word == null || word.isEmpty()) {
             return Text.empty();
+        }
 
-        MutableText result = Text.empty();
+        ensureMegaGradientBuilt();
+
         int length = word.length();
-        if (length <= 0)
-            return result;
+        MutableText result = Text.empty();
 
         long now = System.currentTimeMillis();
-
-        // Global 0..1 breathing phase
-        float phase = (PERIOD_MS <= 0) ? 0f : (now % (long) PERIOD_MS) / PERIOD_MS;
-
-        // Global 0..1 sweeping streak phase
-        float streakPhase = (STREAK_PERIOD_MS <= 0) ? 0f : (now % (long) STREAK_PERIOD_MS) / STREAK_PERIOD_MS;
-
-        // Global 0..1 synchronized starburst phase
-        float starburstPhase = (STARBURST_PERIOD_MS <= 0) ? 0f : (now % (long) STARBURST_PERIOD_MS) / STARBURST_PERIOD_MS;
-
-        // Global 0..1 tier cycle phase (Rare -> Epic -> Legendary -> Mythic -> Perfect)
-        float tierPhase = (TIER_CYCLE_PERIOD_MS <= 0) ? 0f : (now % (long) TIER_CYCLE_PERIOD_MS) / TIER_CYCLE_PERIOD_MS;
-
-        // Smooth starburst curve (peaks sharply)
-        float starburstPulse = 0.5f - 0.5f * (float) Math.cos(2.0 * Math.PI * starburstPhase);
-        starburstPulse = starburstPulse * starburstPulse;
-
-        // Global breathing bloom
-        float breathe = 0.5f - 0.5f * (float) Math.cos(2.0 * Math.PI * phase);
-        float value = MIN_VALUE + (MAX_VALUE - MIN_VALUE) * breathe;
-
-        // Gentle HSV hue drift
-        float hue = BASE_HUE + HUE_WARP_AMPLITUDE * (float) Math.sin(2.0 * Math.PI * phase);
-        float saturation = SATURATION;
-
-        int globalBaseRgb = hsvToRgb(hue, saturation, value);
+        float phase = (PERIOD_MS <= 0.0f)
+                ? 0.0f
+                : (now % (long) PERIOD_MS) / PERIOD_MS; // 0..1
 
         for (int i = 0; i < length; i++) {
             char c = word.charAt(i);
-
-            boolean isStar = (i == 0 || i == length - 1) && c == '✯';
 
             if (Character.isWhitespace(c)) {
                 result.append(Text.literal(String.valueOf(c)));
                 continue;
             }
 
-            // Local 0..1 tier-cycle phase with a subtle per-letter wave
-            float localTierPhase = (tierPhase + i * WAVE_SPACING) % 1.0f;
-            if (localTierPhase < 0f)
-                localTierPhase += 1.0f;
+            // Is this one of the stars at the ends?
+            boolean isStar = (i == 0 || i == length - 1) && (c == '✯');
 
-            // Tier-based multi-gradient color:
-            // Rare -> Epic -> Legendary -> Mythic -> Perfect
-            int tierColor = getTierCycleColor(localTierPhase);
+            // Position of this character along the mega-gradient (0..1)
+            float pos = phase + (i * CHAR_SPACING);
+            pos = wrap01(pos);
 
-            // Blend tier-color with the golden HSV drift base
-            int rgb = mixColor(tierColor, globalBaseRgb, 0.35f);
+            int rgb = sampleMegaGradient(pos);
 
-            // Bloom breathing (push toward white)
-            rgb = mixColor(rgb, WHITE_COLOR, BLOOM_INTENSITY * breathe);
-
-            // Vertical radiance pillar
-            float verticalFactor;
-            if (length == 1)
-                verticalFactor = 1f;
-            else
-                verticalFactor = (float) i / (float) (length - 1);
-
-            verticalFactor = (verticalFactor - 0.5f) * 2f;
-            float verticalCenter = 1f - Math.abs(verticalFactor);
-            float pillarAmount = verticalCenter * VERTICAL_OVERLAY_STRENGTH;
-            rgb = mixColor(rgb, WHITE_COLOR, pillarAmount);
-
-            // Sweeping chromatic comet arc
-            float pos = (length == 1) ? 0.5f : (float) i / (float) (length - 1);
-            float dist = circularDistance(pos, streakPhase);
-
-            if (dist < STREAK_WIDTH) {
-                float streakT = 1f - (dist / STREAK_WIDTH);
-                float streakAmt = streakT * STREAK_INTENSITY;
-
-                int streakColor = getTierCycleColor(streakPhase);
-                rgb = mixColor(rgb, streakColor, streakAmt);
-                rgb = mixColor(rgb, WHITE_COLOR, streakAmt * 0.35f);
-            }
-
-            // Starburst + halo: deeper gold + white flare for stars
-            if (isStar) {
-                float halo = STAR_HALO_BASE + STAR_HALO_EXTRA_FROM_PULSE * starburstPulse;
-                halo = clamp01(halo);
-
-                // Deep gold base halo
-                rgb = mixColor(rgb, GOLD_COLOR, halo * 0.80f);
-                // Gold bloom peak
-                rgb = mixColor(rgb, GOLD_PEAK_COLOR, halo * 0.40f);
-                // White flame flare
-                rgb = mixColor(rgb, WHITE_COLOR, halo * 0.25f);
-            }
-
-            // Stars NOT bold, letters bold
             Style style = Style.EMPTY
                     .withColor(TextColor.fromRgb(rgb))
-                    .withBold(!isStar);
+                    .withBold(!isStar); // letters bold, stars NOT bold
 
             result.append(Text.literal(String.valueOf(c)).setStyle(style));
         }
@@ -194,65 +107,99 @@ public class PerfectLabelAnimator {
         return result;
     }
 
+    // --- Mega Gradient Construction & Sampling ---
+
     /**
-     * Returns the color for the current tier-cycle phase:
-     * Rare -> Epic -> Legendary -> Mythic -> Perfect.
-     * Each tier uses a 3-stop gradient: c0 -> c1 -> c2.
+     * Build the mega-gradient color stops and segment weights.
+     * We do:
+     * Rare(3) -> Epic(3) -> Legendary(3) -> Mythic(3) -> Perfect(3)
+     * with longer, smoother transitions between tiers.
      */
-    private static int getTierCycleColor(float t) {
-        t = wrap01(t);
-
-        final int tierCount = 5; // Rare, Epic, Legendary, Mythic, Perfect
-        float segment = 1.0f / tierCount;
-
-        int tierIndex = (int) (t / segment);
-        if (tierIndex < 0) tierIndex = 0;
-        if (tierIndex >= tierCount) tierIndex = tierCount - 1;
-
-        float tierStart = tierIndex * segment;
-        float intra = (t - tierStart) / segment;
-        intra = clamp01(intra);
-
-        int c0, c1, c2;
-
-        switch (tierIndex) {
-            case 0: // Rare
-                c0 = rgbFromArray(RARE_COLORS[0]);
-                c1 = rgbFromArray(RARE_COLORS[1]);
-                c2 = rgbFromArray(RARE_COLORS[2]);
-                break;
-            case 1: // Epic
-                c0 = rgbFromArray(EPIC_COLORS[0]);
-                c1 = rgbFromArray(EPIC_COLORS[1]);
-                c2 = rgbFromArray(EPIC_COLORS[2]);
-                break;
-            case 2: // Legendary
-                c0 = rgbFromArray(LEGENDARY_COLORS[0]);
-                c1 = rgbFromArray(LEGENDARY_COLORS[1]);
-                c2 = rgbFromArray(LEGENDARY_COLORS[2]);
-                break;
-            case 3: // Mythic
-                c0 = rgbFromArray(MYTHIC_COLORS[0]);
-                c1 = rgbFromArray(MYTHIC_COLORS[1]);
-                c2 = rgbFromArray(MYTHIC_COLORS[2]);
-                break;
-            case 4: // Perfect (our custom gold -> white -> cyan)
-            default:
-                c0 = GOLD_COLOR;
-                c1 = WHITE_COLOR;
-                c2 = CYAN_COLOR;
-                break;
+    private static void ensureMegaGradientBuilt() {
+        if (MEGA_COLORS != null && SEGMENT_LENGTHS != null) {
+            return;
         }
 
-        // 3-stop gradient: c0 -> c1 -> c2
-        if (intra < 0.5f) {
-            float local = intra * 2.0f;
-            return mixColor(c0, c1, local);
-        } else {
-            float local = (intra - 0.5f) * 2.0f;
-            return mixColor(c1, c2, local);
+        // Flatten all tier arrays into one list of packed RGB ints
+        int[][] all = new int[][]{
+                RARE_COLORS[0], RARE_COLORS[1], RARE_COLORS[2],
+                EPIC_COLORS[0], EPIC_COLORS[1], EPIC_COLORS[2],
+                LEGENDARY_COLORS[0], LEGENDARY_COLORS[1], LEGENDARY_COLORS[2],
+                MYTHIC_COLORS[0], MYTHIC_COLORS[1], MYTHIC_COLORS[2],
+                PERFECT_COLORS[0], PERFECT_COLORS[1], PERFECT_COLORS[2]
+        };
+
+        MEGA_COLORS = new int[all.length];
+        for (int i = 0; i < all.length; i++) {
+            MEGA_COLORS[i] = rgbFromArray(all[i]);
+        }
+
+        // Segment lengths between each pair of stops.
+        // We want NO harsh jumps, so:
+        // - within a tier (0-1,1-2; 3-4,4-5; etc) get length 1.0
+        // - transitions between tiers (2-3,5-6,8-9,11-12) get length 2.0
+        int nSegments = MEGA_COLORS.length - 1;
+        SEGMENT_LENGTHS = new float[nSegments];
+
+        for (int i = 0; i < nSegments; i++) {
+            // Tier indices:
+            // Rare:      0,1,2
+            // Epic:      3,4,5
+            // Legendary: 6,7,8
+            // Mythic:    9,10,11
+            // Perfect:   12,13,14
+            boolean crossTier =
+                    (i == 2) ||  // Rare -> Epic
+                    (i == 5) ||  // Epic -> Legendary
+                    (i == 8) ||  // Legendary -> Mythic
+                    (i == 11);   // Mythic -> Perfect
+
+            SEGMENT_LENGTHS[i] = crossTier ? 2.0f : 1.0f;
         }
     }
+
+    /**
+     * Sample the mega-gradient at t in [0,1].
+     */
+    private static int sampleMegaGradient(float t) {
+        t = clamp01(t);
+
+        int nSegments = SEGMENT_LENGTHS.length;
+        if (nSegments <= 0) {
+            // Fallback: just return first color if something is off
+            return (MEGA_COLORS != null && MEGA_COLORS.length > 0) ? MEGA_COLORS[0] : 0xFFFFFF;
+        }
+
+        // Total "length" of all segments
+        float total = 0.0f;
+        for (float seg : SEGMENT_LENGTHS) {
+            total += seg;
+        }
+
+        float scaled = t * total;
+
+        // Find which segment we land in
+        float accum = 0.0f;
+        for (int i = 0; i < nSegments; i++) {
+            float segLen = SEGMENT_LENGTHS[i];
+            float nextAccum = accum + segLen;
+
+            if (scaled <= nextAccum || i == nSegments - 1) {
+                float localT = (scaled - accum) / segLen;
+                localT = clamp01(localT);
+                int c1 = MEGA_COLORS[i];
+                int c2 = MEGA_COLORS[i + 1];
+                return mixColor(c1, c2, localT);
+            }
+
+            accum = nextAccum;
+        }
+
+        // Fallback (should not be reached)
+        return MEGA_COLORS[MEGA_COLORS.length - 1];
+    }
+
+    // --- Utility helpers ---
 
     private static int rgbFromArray(int[] arr) {
         if (arr == null || arr.length < 3) {
@@ -268,61 +215,31 @@ public class PerfectLabelAnimator {
         return (r << 16) | (g << 8) | b;
     }
 
-    private static int mixColor(int base, int add, float t) {
+    private static int mixColor(int c1, int c2, float t) {
         t = clamp01(t);
 
-        int r1 = (base >> 16) & 0xFF;
-        int g1 = (base >> 8) & 0xFF;
-        int b1 = base & 0xFF;
+        int r1 = (c1 >> 16) & 0xFF;
+        int g1 = (c1 >> 8) & 0xFF;
+        int b1 = c1 & 0xFF;
 
-        int r2 = (add >> 16) & 0xFF;
-        int g2 = (add >> 8) & 0xFF;
-        int b2 = add & 0xFF;
+        int r2 = (c2 >> 16) & 0xFF;
+        int g2 = (c2 >> 8) & 0xFF;
+        int b2 = c2 & 0xFF;
 
         int r = (int) (r1 + (r2 - r1) * t);
         int g = (int) (g1 + (g2 - g1) * t);
         int b = (int) (b1 + (b2 - b1) * t);
 
-        return ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
-    }
-
-    private static float circularDistance(float a, float b) {
-        float d = Math.abs(a - b);
-        return Math.min(d, 1f - d);
-    }
-
-    private static int hsvToRgb(float h, float s, float v) {
-        h = wrap01(h);
-        s = clamp01(s);
-        v = clamp01(v);
-
-        float c = v * s;
-        float hp = h * 6f;
-        float x = c * (1f - Math.abs(hp % 2f - 1f));
-
-        float r1, g1, b1;
-        if (hp < 1f)       { r1 = c; g1 = x; b1 = 0; }
-        else if (hp < 2f)  { r1 = x; g1 = c; b1 = 0; }
-        else if (hp < 3f)  { r1 = 0; g1 = c; b1 = x; }
-        else if (hp < 4f)  { r1 = 0; g1 = x; b1 = c; }
-        else if (hp < 5f)  { r1 = x; g1 = 0; b1 = c; }
-        else               { r1 = c; g1 = 0; b1 = x; }
-
-        float m = v - c;
-        int r = (int) ((r1 + m) * 255f + 0.5f);
-        int g = (int) ((g1 + m) * 255f + 0.5f);
-        int b = (int) ((b1 + m) * 255f + 0.5f);
-
-        return ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
+        return (r << 16) | (g << 8) | b;
     }
 
     private static float clamp01(float v) {
-        return Math.max(0f, Math.min(1f, v));
+        return (v < 0f) ? 0f : (v > 1f) ? 1f : v;
     }
 
     private static float wrap01(float v) {
-        v %= 1f;
-        if (v < 0f) v += 1f;
+        v = v % 1.0f;
+        if (v < 0f) v += 1.0f;
         return v;
     }
 }
