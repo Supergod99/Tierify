@@ -87,7 +87,27 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
         if (r == 0 && Tierify.CLIENT_CONFIG.centerName)
             nameCentering = i / 2 - tooltipComponent2.getWidth(textRenderer) / 2;
 
-        tooltipComponent2.drawText(textRenderer, n + nameCentering, q, context.getMatrices().peek().getPositionMatrix(), context.getVertexConsumers());
+        var maybeText = tooltipComponent2.getText();
+        
+        if (maybeText instanceof elocindev.tierify.screen.client.ScaledText scaled) {
+            // Draw scaled Perfect label (shrinks only that label)
+            scaled.render(
+                context,
+                textRenderer,
+                n + nameCentering,
+                q,
+                0xFFFFFF
+            );
+        } else {
+            tooltipComponent2.drawText(
+                textRenderer,
+                n + nameCentering,
+                q,
+                context.getMatrices().peek().getPositionMatrix(),
+                context.getVertexConsumers()
+            );
+        }
+        
         q += tooltipComponent2.getHeight() + (r == 0 ? 2 : 0);
     }
     q = o;
