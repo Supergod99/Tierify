@@ -5,6 +5,7 @@ import java.util.List;
 import org.joml.Vector2ic;
 
 import elocindev.tierify.screen.client.ScaledPerfectLabel;
+import elocindev.tierify.screen.client.ItemStackClientInternal;
 import elocindev.tierify.screen.client.PerfectBorderRenderer;
 import draylar.tiered.api.BorderTemplate;
 import elocindev.tierify.Tierify;
