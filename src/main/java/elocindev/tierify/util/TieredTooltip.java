@@ -124,6 +124,9 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
     // bottom footer
     context.drawTexture(borderTemplate.getIdentifier(), (n - 6 + n + l + 6) / 2 - 24, o + m + 1, 8 + secondHalf * 64, 8 + border * 16, 48, 8, 128, 128);
     // PERFECT-ONLY OVERLAY
+    context.getMatrices().push();
+    context.getMatrices().translate(0.0f, 0.0f, 1000.0f);
+    
     PerfectBorderRenderer.renderPerfectBorderOverlay(context, borderTemplate, n, o, l, m);
 
     context.getMatrices().pop();
