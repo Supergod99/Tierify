@@ -7,48 +7,47 @@ import net.minecraft.text.TextColor;
 
 public class TierGradientAnimator {
 
-    // animation here uses System.currentTimeMillis().
     private static int tick = 0;
     private static final int INTERVAL = 2;
 
     // Gradient anchor colors per tier
 
-    // Common: steel greys
+    // Common steel greys
     private static final int[][] COMMON_COLORS = new int[][]{
             {140, 140, 140},
             {90, 90, 90},
             {160, 160, 160}
     };
 
-    // Uncommon: green shimmer
+    // Uncommon green shimmer
     private static final int[][] UNCOMMON_COLORS = new int[][]{
             {90, 200, 90},
             {0, 120, 0},
             {140, 255, 140}
     };
 
-    // Rare: deep blue → cyan pulse
+    // Rare deep blue → cyan pulse
     private static final int[][] RARE_COLORS = new int[][]{
             {80, 150, 255},
             {0, 60, 160},
             {120, 220, 255}
     };
 
-    // Epic: purple / magenta wave
+    // Epic purple / magenta wave
     private static final int[][] EPIC_COLORS = new int[][]{
             {180, 70, 255},
             {100, 0, 180},
             {230, 150, 255}
     };
 
-    // Legendary: hot gold → amber
+    // Legendary hot gold → amber
     private static final int[][] LEGENDARY_COLORS = new int[][]{
             {255, 180, 0},
             {255, 220, 80},
             {255, 140, 0}
     };
 
-    // Mythic: crimson → eldritch magenta
+    // Mythic crimson → eldritch magenta
     private static final int[][] MYTHIC_COLORS = new int[][]{
             {255, 60, 60},
             {180, 0, 80},
@@ -91,7 +90,7 @@ public class TierGradientAnimator {
         int length = raw.length();
         MutableText result = Text.empty();
 
-        // Time-based offset so gradient flows over the word
+        // Time based offset so gradient flows over the word
         long now = System.currentTimeMillis();
         double timeOffset = (now / 35L) % 100;  // 0..99
 
@@ -99,7 +98,7 @@ public class TierGradientAnimator {
         for (int i = 0; i < length; i++) {
             char c = raw.charAt(i);
 
-            // Skip coloring spaces; just append a plain space to keep spacing nice
+            // Skip coloring spaces. just append a plain space to keep spacing nice
             if (Character.isWhitespace(c)) {
                 result.append(Text.literal(String.valueOf(c)));
                 continue;
@@ -113,7 +112,7 @@ public class TierGradientAnimator {
 
             Style style = Style.EMPTY.withColor(TextColor.fromRgb(rgb));
 
-            // Legendary/Mythic modifiers: bold
+            // Legendary/Mythic modifiers bold
             if ("legendary".equals(tier) || "mythic".equals(tier)) {
                 style = style.withBold(true);
             }
@@ -154,7 +153,7 @@ public class TierGradientAnimator {
             return rgb(c[0], c[1], c[2]);
         }
 
-        // Clamp percentage just in case
+
         if (percentage < 0) percentage = 0;
         if (percentage > 100) percentage = 100;
 
@@ -184,7 +183,7 @@ public class TierGradientAnimator {
     }
 
     private static int rgb(int r, int g, int b) {
-        // Clamp to 0..255 just to be safe
+
         r = Math.max(0, Math.min(255, r));
         g = Math.max(0, Math.min(255, g));
         b = Math.max(0, Math.min(255, b));
