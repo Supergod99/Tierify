@@ -5,7 +5,7 @@ import com.google.common.collect.Multimap;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 
 import draylar.tiered.api.PotentialAttribute;
-import elocindev.tierify.screen.client.ScaledText;
+import elocindev.tierify.screen.client.ScaledPerfectLabel;
 import elocindev.tierify.screen.client.TierGradientAnimator;
 import elocindev.tierify.Tierify;
 import elocindev.tierify.util.TieredTooltip;
@@ -224,14 +224,24 @@ public abstract class ItemStackClientMixin {
                 // PERFECT prefix
                 NbtCompound tag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
                 if (tag != null && tag.getBoolean("Perfect")) {
-                    net.minecraft.text.MutableText perfect =
-                            elocindev.tierify.screen.client.PerfectLabelAnimator.getPerfectLabel();
-                    // Shrink ONLY the Perfect label (scale 0.65)
-                    elocindev.tierify.screen.client.ScaledText smallPerfect =
-                        new elocindev.tierify.screen.client.ScaledText(perfect, 0.65f);
                 
-                    // PERFECT (gradient, bold) + space + existing tier label
-                    text = perfect.append(" ").append(text);
+
+                    MutableText perfect = elocindev.tierify.screen.client.PerfectLabelAnimator.getPerfectLabel();
+                
+
+                    elocindev.tierify.screen.client.ScaledPerfectLabel scaled =
+                            new elocindev.tierify.screen.client.ScaledPerfectLabel(perfect, 0.65f);
+                
+
+                    elocindev.tierify.screen.client.ItemStackClientInternal.SCALED_LABEL = scaled;
+                
+
+                    MutableText full = Text.literal("");
+                    full.getSiblings().add(perfect);          // animated perfect label
+                    full.getSiblings().add(Text.literal(" ")); // space before tier label
+                    full.getSiblings().add(text);              // animated tier label
+                
+                    text = full;
                 }
 
             
