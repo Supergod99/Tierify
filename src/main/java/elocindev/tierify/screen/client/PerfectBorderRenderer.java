@@ -33,7 +33,7 @@ public class PerfectBorderRenderer {
 
         // Only apply to the Perfect border (index 6 in your tooltip_borders.json)
         // DEBUG: detect if the overlay is ever triggered
-        if (borderTemplate.getIndex() != 6) {
+        if (!borderTemplate.containsDecider("{BorderTier:\"tiered:perfect\"}")) {
             return;
         }
         
