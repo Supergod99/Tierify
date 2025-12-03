@@ -6,7 +6,8 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 
 public class PerfectBorderRenderer {
-
+    
+    private static boolean loggedOnce = false;
     // 4 second loop
     private static final long TINT_PERIOD_MS = 4000L;
     // ~3 second glow pulse
@@ -31,8 +32,15 @@ public class PerfectBorderRenderer {
                                                   int width, int height) {
 
         // Only apply to the Perfect border (index 6 in your tooltip_borders.json)
+        // DEBUG: detect if the overlay is ever triggered
         if (borderTemplate.getIndex() != 6) {
             return;
+        }
+        
+        // One-time debug print
+        if (!loggedOnce) {
+            System.out.println("[Tierify DEBUG] Perfect border overlay triggered for item!");
+            loggedOnce = true;
         }
 
         RenderSystem.enableBlend();
