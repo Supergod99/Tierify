@@ -15,14 +15,14 @@ public class PerfectLabelAnimator {
     private static final float WAVE_SPACING = 0.12f;    // per-letter phase shift
     private static final float STREAK_PERIOD_MS = 2600.0f;  // sweeping highlight
 
-    // Color palette (cosmic aqua → near white)
+    // Color palette (cosmic aqua -> near white)
     private static final float BASE_HUE = 0.52f;          // teal/aqua
     private static final float HUE_WARP_AMPLITUDE = 0.015f;
     private static final float MIN_VALUE = 0.70f;         // always bright
     private static final float MAX_VALUE = 1.00f;
     private static final float SATURATION = 0.30f;        // desaturated -> white-ish
 
-    // Vertical overlay strength
+
     private static final float VERTICAL_OVERLAY_STRENGTH = 0.18f;
 
     // How bright the sweeping highlight is
@@ -31,7 +31,7 @@ public class PerfectLabelAnimator {
 
 
     public static void clientTick() {
-        // still no-op; animation uses System.currentTimeMillis()
+
     }
 
 
@@ -47,12 +47,12 @@ public class PerfectLabelAnimator {
 
         long now = System.currentTimeMillis();
 
-        // Phase 0..1 for breathing animation
+        // breathing animation
         float phase = (PERIOD_MS <= 0.0f)
                 ? 0f
                 : (now % (long) PERIOD_MS) / PERIOD_MS;
 
-        // 0..1 for sweeping streak
+        //  sweeping streak
         float streakPhase = (STREAK_PERIOD_MS <= 0.0f)
                 ? 0f
                 : (now % (long) STREAK_PERIOD_MS) / STREAK_PERIOD_MS;
@@ -77,20 +77,20 @@ public class PerfectLabelAnimator {
 
             float saturation = SATURATION;
 
-            // Convert to RGB (base color)
+            // Convert to RGB 
             int rgb = hsvToRgb(hue, saturation, value);
 
-            // --- Vertical gradient overlay (E)
+            // Vertical gradient overlay 
             // Gives top a little extra light
             float verticalFactor = (float) i / (float) (length - 1);
-            verticalFactor = (verticalFactor - 0.5f) * 2f;  // -1 .. +1
-            float overlay = 1f - Math.abs(verticalFactor); // max at center
+            verticalFactor = (verticalFactor - 0.5f) * 2f;  
+            float overlay = 1f - Math.abs(verticalFactor); 
             overlay *= VERTICAL_OVERLAY_STRENGTH;
 
             rgb = mixColor(rgb, 0xFFFFFF, overlay);
 
-            // --- Sweeping highlight streak (D)
-            float pos = (float) i / (float) (length - 1);  // 0..1 across text
+            // Sweeping highlight streak 
+            float pos = (float) i / (float) (length - 1);  
             float dist = Math.abs(pos - streakPhase);
 
             if (dist < STREAK_WIDTH) {
@@ -109,7 +109,7 @@ public class PerfectLabelAnimator {
     }
 
 
-    // Linear blend between colors
+    // blend between colors
     private static int mixColor(int base, int add, float t) {
         t = clamp01(t);
 
