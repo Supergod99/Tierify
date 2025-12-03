@@ -7,45 +7,40 @@ import net.minecraft.util.Identifier;
 
 public class PerfectBorderRenderer {
 
-    // 4 second loop, matches the Perfect label pacing
+    // 4 second loop
     private static final long TINT_PERIOD_MS = 4000L;
     // ~3 second glow pulse
     private static final long GLOW_PERIOD_MS = 3000L;
 
-    // Perfect palette: deep gold → white → deep cyan
-    private static final int GOLD_COLOR = 0xE0A414;
-    private static final int WHITE_COLOR = 0xFFFFFF;
-    private static final int CYAN_COLOR  = 0x00B7FF;
+    // Cosmic palette to match Perfect label:
+    // Electric Violet → Radiant Teal → Starlight Silver
+    private static final int COSMIC_1 = 0xA400FF;
+    private static final int COSMIC_2 = 0x00F5CC;
+    private static final int COSMIC_3 = 0xE6F7FF;
 
     /**
      * Renders animated tint + glow overlay for the Perfect border.
      *
-     * This assumes:
-     * - The caller already pushed the matrix stack and translated to the correct Z.
-     * - The base border pieces have already been drawn.
-     *
-     * @param context       DrawContext
-     * @param borderTemplate The BorderTemplate (used to get index + texture)
-     * @param x             tooltip X (n)
-     * @param y             tooltip Y (o)
-     * @param width         tooltip width (l)
-     * @param height        tooltip height (m)
+     * Assumes:
+     *  - The caller pushed the matrix stack and set Z high enough.
+     *  - The base border has already been drawn.
      */
     public static void renderPerfectBorderOverlay(DrawContext context,
                                                   BorderTemplate borderTemplate,
                                                   int x, int y,
                                                   int width, int height) {
-        // force correct shader
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        // Only apply to the Perfect border 
+
+        // Only apply to the Perfect border (index 6 in your tooltip_borders.json)
         if (borderTemplate.getIndex() != 6) {
             return;
         }
 
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
         long time = System.currentTimeMillis();
 
-        // Recompute border row / half 
+        // Recompute border row / half like TieredTooltip
         int border = borderTemplate.getIndex();
         int secondHalf = border > 7 ? 1 : 0;
         if (border > 7) {
@@ -54,9 +49,9 @@ public class PerfectBorderRenderer {
 
         Identifier texture = borderTemplate.getIdentifier();
 
-
-        // Animated Tint Layer
-
+        // -----------------------------
+        // 1) Animated Cosmic Tint Layer
+        // -----------------------------
         float phase = (time % TINT_PERIOD_MS) / (float) TINT_PERIOD_MS; // 0..1
 
         int tintColor = samplePerfectTint(phase);
@@ -64,7 +59,8 @@ public class PerfectBorderRenderer {
         float g = ((tintColor >> 8) & 0xFF) / 255.0f;
         float b = (tintColor & 0xFF) / 255.0f;
 
-        float tintStrength = 0.15f; // subtle
+        // Make this much stronger so it’s clearly visible
+        float tintStrength = 0.45f; // 45% toward cosmic color
 
         RenderSystem.setShaderColor(
                 lerp(1.0f, r, tintStrength),
@@ -79,24 +75,26 @@ public class PerfectBorderRenderer {
         // Reset color
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 
-        //  Glow Overlay Layer
-
+        // -----------------------------
+        // 2) Stronger Glow Overlay
+        // -----------------------------
         float glowPhase = (time % GLOW_PERIOD_MS) / (float) GLOW_PERIOD_MS;
         float pulse = 0.5f - 0.5f * (float) Math.cos(glowPhase * (float) Math.PI * 2.0f);
-        float alpha = 0.08f + pulse * 0.07f; // 0.08 -> 0.15
+
+        // Much stronger alpha swing so it’s unmissable
+        float alpha = 0.2f + pulse * 0.35f; // 0.2 → 0.55
 
         RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
 
-        // Glow overlay at same size 
+        // Glow overlay at same size for now (can expand later if you like)
         drawBorderPieces(context, texture, x, y, width, height, border, secondHalf);
 
-        // Reset color again
+        // Reset & cleanup
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-
         RenderSystem.disableBlend();
     }
 
-    // Draws the 6 border pieces 
+    // Draws the 6 border pieces exactly like your TieredTooltip
     private static void drawBorderPieces(DrawContext context,
                                          Identifier texture,
                                          int n, int o,
@@ -139,18 +137,16 @@ public class PerfectBorderRenderer {
                 48, 8, texW, texH);
     }
 
-    // Smooth tint: gold -> white -> cyan -> back toward gold
+    // Smooth tint over cosmic palette
     private static int samplePerfectTint(float t) {
         t = wrap01(t);
 
         if (t < 0.5f) {
-            float f = t * 2.0f; // 0..1
-            return mixColor(GOLD_COLOR, WHITE_COLOR, f);
+            float f = t * 2.0f;
+            return mixColor(COSMIC_1, COSMIC_2, f);
         } else {
-            float f = (t - 0.5f) * 2.0f; // 0..1
-            int whiteToCyan = mixColor(WHITE_COLOR, CYAN_COLOR, f);
-            // drift back a bit toward gold so the loop feels smooth
-            return mixColor(whiteToCyan, GOLD_COLOR, f * 0.5f);
+            float f = (t - 0.5f) * 2.0f;
+            return mixColor(COSMIC_2, COSMIC_3, f);
         }
     }
 
