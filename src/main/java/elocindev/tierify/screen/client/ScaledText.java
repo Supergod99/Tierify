@@ -18,9 +18,14 @@ public class ScaledText extends MutableText {
 
     public void render(DrawContext context, TextRenderer renderer, int x, int y, int color) {
         context.getMatrices().push();
-        context.getMatrices().translate(x, y, 0);
+    
+        // Exact vertical recenter based on scale
+        float offset = (9 - (9 * scale)) / 2f;  // mathematical offset
+        float yOffset = -offset;                // move up
+    
+        context.getMatrices().translate(x, y + yOffset, 0);
         context.getMatrices().scale(scale, scale, 1.0f);
-
+    
         renderer.draw(
             inner,
             0,
