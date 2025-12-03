@@ -1,18 +1,6 @@
 {
     "id": "tiered:common_tool_1",
     "verifiers": [
-        {
-            "tag": "c:axes"
-        },
-        {
-            "tag": "c:pickaxes"
-        },
-        {
-            "tag": "c:shovels"
-        },
-        {
-            "tag": "c:hoes"
-        }
     ],
     "weight": 50,
     "style": {

@@ -1,18 +1,6 @@
 {
     "id": "tiered:rare_tool_3",
     "verifiers": [
-        {
-            "tag": "c:axes"
-        },
-        {
-            "tag": "c:pickaxes"
-        },
-        {
-            "tag": "c:shovels"
-        },
-        {
-            "tag": "c:hoes"
-        }
     ],
     "weight": 15,
     "style": {
