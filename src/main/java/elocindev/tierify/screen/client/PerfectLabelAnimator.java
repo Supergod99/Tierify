@@ -54,19 +54,19 @@ public class PerfectLabelAnimator {
             rgb(255, 120, 180)
     };
 
-    // PERFECT COLOR SCHEME 
+    // ⭐ PERFECT COLOR SCHEME — Cosmic Aurora
     private static final int[] PERFECT_COLORS = new int[]{
             rgb(164, 0, 255),   // Electric Violet
             rgb(0, 245, 204),   // Radiant Teal
             rgb(230, 247, 255)  // Starlight Silver
     };
 
-    //  Star color (base) — gold-white divine mixture
-    private static final int STAR_BASE_COLOR = rgb(245, 230, 170);
+    // ⭐ Star color (new) — Starlight Radiance
+    private static final int STAR_BASE_COLOR = rgb(212, 240, 255); // #D4F0FF
 
-    // How strong the star's luminosity pulse is
-    private static final float STAR_PULSE_MIN = 0.85f;
-    private static final float STAR_PULSE_MAX = 1.15f;
+    // Stronger star pulse so it’s clearly visible
+    private static final float STAR_PULSE_MIN = 0.6f;
+    private static final float STAR_PULSE_MAX = 1.6f;
 
     public static void clientTick() {
         // no-op; uses System.currentTimeMillis()
@@ -116,7 +116,7 @@ public class PerfectLabelAnimator {
         // Slow gradient drift
         float tierDrift = tierLocalPhase;
 
-        // Star pulse (smooth breathing)
+        // Star pulse (smooth breathing, now strong enough to see)
         float starPulse = 0.5f - 0.5f * (float) Math.cos(2.0 * Math.PI * cyclePhase);
         float starLum = STAR_PULSE_MIN + (STAR_PULSE_MAX - STAR_PULSE_MIN) * starPulse;
 
@@ -192,6 +192,7 @@ public class PerfectLabelAnimator {
     }
 
     private static int scaleColor(int color, float factor) {
+        // Scale each channel by factor, clamp to [0, 255]
         int r = (int) (clamp01(((color >> 16) & 0xFF) * factor / 255f) * 255);
         int g = (int) (clamp01(((color >> 8) & 0xFF) * factor / 255f) * 255);
         int b = (int) (clamp01((color & 0xFF) * factor / 255f) * 255);
@@ -218,3 +219,4 @@ public class PerfectLabelAnimator {
         return v;
     }
 }
+
