@@ -1,8 +1,2 @@
 {
-    "type": "minecraft:stonecutting",
-    "ingredient": {
-        "item": "create:limestone"
-    },
-    "result": "tiered:limestone_chunk",
-    "count": 4
 }

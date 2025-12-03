@@ -1,8 +1,19 @@
 {
-    "type": "minecraft:stonecutting",
-    "ingredient": {
-        "item": "minecraft:diorite"
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "$#",
+        "#$"
+    ],
+    "key": {
+        "#": {
+            "item": "minecraft:iron_ingot"
+        },
+        "$": {
+            "item": "minecraft:diorite"
+        }
     },
-    "result": "tiered:limestone_chunk",
-    "count": 1
+    "result": {
+        "item": "tiered:limestone_chunk",
+        "count": 1
+    }
 }

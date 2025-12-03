@@ -9,11 +9,11 @@
             "item": "minecraft:popped_chorus_fruit"
         },
         "$": {
-            "item": "minecraft:end_stone"
+            "item": "armageddon_mod:khyros_tear"
         }
     },
     "result": {
         "item": "tiered:galena_chunk",
-        "count": 1
+        "count": 2
     }
 }
