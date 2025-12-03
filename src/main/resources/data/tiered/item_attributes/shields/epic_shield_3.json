@@ -2,20 +2,44 @@
     "id": "tiered:epic_shield_3",
     "verifiers": [
         {
+            "tag": "forge:tools/shields"
+        },
+        {
+            "tag": "forge:tools/shield"
+        },
+        {
+            "tag": "c:tools/shields"
+        },
+        {
+            "tag": "c:tools/shield"
+        },
+        {
             "tag": "c:shields"
         }
     ],
-    "weight": 8,
+    "weight": 1,
     "style": {
         "color": "dark_purple"
     },
     "attributes": [
         {
-            "type": "generic.armor",
+            "type": "combatroll:distance",
             "modifier": {
                 "name": "tiered:epic_shield_3",
                 "operation": "ADDITION",
-                "amount": 1
+                "amount": 0.5
+            },
+            "optional_equipment_slots": [
+                "MAINHAND",
+                "OFFHAND"
+            ]
+        },
+        {
+            "type": "combatroll:recharge",
+            "modifier": {
+                "name": "tiered:epic_shield_3",
+                "operation": "MULTIPLY_BASE",
+                "amount": 0.095
             },
             "optional_equipment_slots": [
                 "MAINHAND",
@@ -27,7 +51,7 @@
             "modifier": {
                 "name": "tiered:epic_shield_3",
                 "operation": "MULTIPLY_BASE",
-                "amount": 0.15
+                "amount": -0.125
             },
             "optional_equipment_slots": [
                 "MAINHAND",

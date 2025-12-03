@@ -2,20 +2,32 @@
     "id": "tiered:epic_shield_2",
     "verifiers": [
         {
+            "tag": "forge:tools/shields"
+        },
+        {
+            "tag": "forge:tools/shield"
+        },
+        {
+            "tag": "c:tools/shields"
+        },
+        {
+            "tag": "c:tools/shield"
+        },
+        {
             "tag": "c:shields"
         }
     ],
-    "weight": 8,
+    "weight": 1,
     "style": {
         "color": "dark_purple"
     },
     "attributes": [
         {
-            "type": "tiered:generic.durable",
+            "type": "generic.max_health",
             "modifier": {
                 "name": "tiered:epic_shield_2",
-                "operation": "MULTIPLY_BASE",
-                "amount": 0.15
+                "operation": "ADDITION",
+                "amount": 3.0
             },
             "optional_equipment_slots": [
                 "MAINHAND",
@@ -23,11 +35,11 @@
             ]
         },
         {
-            "type": "generic.max_health",
+            "type": "generic.movement_speed",
             "modifier": {
                 "name": "tiered:epic_shield_2",
                 "operation": "ADDITION",
-                "amount": 2
+                "amount": -0.006
             },
             "optional_equipment_slots": [
                 "MAINHAND",

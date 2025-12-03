@@ -2,10 +2,22 @@
     "id": "tiered:legendary_shield_1",
     "verifiers": [
         {
+            "tag": "forge:tools/shields"
+        },
+        {
+            "tag": "forge:tools/shield"
+        },
+        {
+            "tag": "c:tools/shields"
+        },
+        {
+            "tag": "c:tools/shield"
+        },
+        {
             "tag": "c:shields"
         }
     ],
-    "weight": 3,
+    "weight": 1,
     "style": {
         "color": "gold"
     },
@@ -15,7 +27,7 @@
             "modifier": {
                 "name": "tiered:legendary_shield_1",
                 "operation": "ADDITION",
-                "amount": 2
+                "amount": 4.0
             },
             "optional_equipment_slots": [
                 "MAINHAND",
@@ -23,23 +35,11 @@
             ]
         },
         {
-            "type": "tiered:generic.durable",
-            "modifier": {
-                "name": "tiered:legendary_shield_1",
-                "operation": "MULTIPLY_BASE",
-                "amount": 0.3
-            },
-            "optional_equipment_slots": [
-                "MAINHAND",
-                "OFFHAND"
-            ]
-        },
-        {
-            "type": "generic.max_health",
+            "type": "generic.movement_speed",
             "modifier": {
                 "name": "tiered:legendary_shield_1",
                 "operation": "ADDITION",
-                "amount": 4
+                "amount": -0.007
             },
             "optional_equipment_slots": [
                 "MAINHAND",

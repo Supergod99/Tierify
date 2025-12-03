@@ -2,10 +2,22 @@
     "id": "tiered:common_shield_1",
     "verifiers": [
         {
+            "tag": "forge:tools/shields"
+        },
+        {
+            "tag": "forge:tools/shield"
+        },
+        {
+            "tag": "c:tools/shields"
+        },
+        {
+            "tag": "c:tools/shield"
+        },
+        {
             "tag": "c:shields"
         }
     ],
-    "weight": 50,
+    "weight": 1,
     "style": {
         "color": "gray"
     },
@@ -15,7 +27,7 @@
             "modifier": {
                 "name": "tiered:common_shield_1",
                 "operation": "ADDITION",
-                "amount": -2
+                "amount": 0.5
             },
             "optional_equipment_slots": [
                 "MAINHAND",
@@ -23,11 +35,11 @@
             ]
         },
         {
-            "type": "tiered:generic.durable",
+            "type": "generic.movement_speed",
             "modifier": {
                 "name": "tiered:common_shield_1",
-                "operation": "MULTIPLY_BASE",
-                "amount": -0.05
+                "operation": "ADDITION",
+                "amount": -0.003
             },
             "optional_equipment_slots": [
                 "MAINHAND",
