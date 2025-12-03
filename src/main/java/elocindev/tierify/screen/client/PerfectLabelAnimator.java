@@ -19,10 +19,12 @@ public class PerfectLabelAnimator {
 
     // Crossfade length: 0.25s per tier window
     private static final float CROSSFADE_MS = 250.0f;
-    private static final float CROSSFADE_FRACTION = CROSSFADE_MS / TIER_DURATION_MS; // ~0.15625
+    private static final float CROSSFADE_FRACTION = CROSSFADE_MS / TIER_DURATION_MS;
 
-    // How much the gradient shifts per character 
+    // How much the gradient shifts per character (slow drift across letters)
     private static final float CHAR_WAVE_SPACING = 0.12f;
+
+    // --- Tier Gradients (RGB) ---
 
     // Rare deep blue → cyan pulse
     private static final int[] RARE_COLORS = new int[]{
@@ -52,15 +54,19 @@ public class PerfectLabelAnimator {
             rgb(255, 120, 180)
     };
 
-    // Perfect: deep gold → white → deep cyan
+    // PERFECT COLOR SCHEME 
     private static final int[] PERFECT_COLORS = new int[]{
-            rgb(224, 164, 20),   // deep gold
-            rgb(255, 255, 255),  // white
-            rgb(0, 183, 255)     // deep cyan
+            rgb(164, 0, 255),   // Electric Violet
+            rgb(0, 245, 204),   // Radiant Teal
+            rgb(230, 247, 255)  // Starlight Silver
     };
 
-    // Constant divine star color (gold/white blend)
-    private static final int STAR_COLOR = rgb(245, 225, 160);
+    //  Star color (base) — gold-white divine mixture
+    private static final int STAR_BASE_COLOR = rgb(245, 230, 170);
+
+    // How strong the star's luminosity pulse is
+    private static final float STAR_PULSE_MIN = 0.85f;
+    private static final float STAR_PULSE_MAX = 1.15f;
 
     public static void clientTick() {
         // no-op; uses System.currentTimeMillis()
@@ -77,58 +83,54 @@ public class PerfectLabelAnimator {
         long now = System.currentTimeMillis();
         float cyclePhase = (TOTAL_PERIOD_MS <= 0.0f)
                 ? 0.0f
-                : (now % (long) TOTAL_PERIOD_MS) / TOTAL_PERIOD_MS; // 0..1
+                : (now % (long) TOTAL_PERIOD_MS) / TOTAL_PERIOD_MS;
 
-        // Determine which tier slot we're in (0..4) and local phase (0..1 within that tier)
+        // Determine tier window + local phase
         int tierIndex = (int) (cyclePhase / TIER_SLOT_FRACTION);
         if (tierIndex >= TIER_COUNT) {
             tierIndex = TIER_COUNT - 1;
         }
         float tierStart = tierIndex * TIER_SLOT_FRACTION;
-        float tierLocalPhase = (cyclePhase - tierStart) / TIER_SLOT_FRACTION; // 0..1
+        float tierLocalPhase = (cyclePhase - tierStart) / TIER_SLOT_FRACTION;
 
-        // Precompute crossfade info
-        // Default: use current tier only
+        // Crossfade data
         int primaryTier = tierIndex;
-        Integer secondaryTier = null; // previous or next, for crossfade
-        float secondaryWeight = 0.0f; // how much of secondary tier is mixed in
+        Integer secondaryTier = null;
         float primaryWeight = 1.0f;
+        float secondaryWeight = 0.0f;
 
         if (tierLocalPhase < CROSSFADE_FRACTION) {
-            // Fade in from previous tier -> current tier
+            // Fade in from previous tier
             secondaryTier = (tierIndex - 1 + TIER_COUNT) % TIER_COUNT;
             float t = tierLocalPhase / CROSSFADE_FRACTION;
             secondaryWeight = clamp01(1.0f - t);
             primaryWeight = clamp01(t);
         } else if (tierLocalPhase > 1.0f - CROSSFADE_FRACTION) {
-            // Fade out from current tier -> next tier
+            // Fade out to next tier
             secondaryTier = (tierIndex + 1) % TIER_COUNT;
             float t = (tierLocalPhase - (1.0f - CROSSFADE_FRACTION)) / CROSSFADE_FRACTION;
             primaryWeight = clamp01(1.0f - t);
             secondaryWeight = clamp01(t);
         }
 
-        // Slow drift of gradient within the tier
-        // (0..1 over the 1.6s tier window)
-        float tierDrift = tierLocalPhase; // slow, smooth
+        // Slow gradient drift
+        float tierDrift = tierLocalPhase;
+
+        // Star pulse (smooth breathing)
+        float starPulse = 0.5f - 0.5f * (float) Math.cos(2.0 * Math.PI * cyclePhase);
+        float starLum = STAR_PULSE_MIN + (STAR_PULSE_MAX - STAR_PULSE_MIN) * starPulse;
 
         for (int i = 0; i < length; i++) {
             char c = WORD.charAt(i);
 
-            if (Character.isWhitespace(c)) {
-                result.append(Text.literal(String.valueOf(c)));
-                continue;
-            }
-
-            boolean isStar = (i == 0 || i == length - 1) && (c == '✯');
+            boolean isStar = (i == 0 || i == length - 1) && c == '✯';
 
             int rgb;
 
             if (isStar) {
-                // Stars: constant divine color, no gradient, no tier cycling
-                rgb = STAR_COLOR;
+                // Apply star brightness scaling
+                rgb = scaleColor(STAR_BASE_COLOR, starLum);
             } else {
-                // Compute a per-character phase that drifts slowly across the word
                 float charPhase = (tierDrift + i * CHAR_WAVE_SPACING) % 1.0f;
                 if (charPhase < 0.0f) charPhase += 1.0f;
 
@@ -145,7 +147,7 @@ public class PerfectLabelAnimator {
 
             Style style = Style.EMPTY
                     .withColor(TextColor.fromRgb(rgb))
-                    .withBold(!isStar); // letters bold, stars NOT bold
+                    .withBold(!isStar);
 
             result.append(Text.literal(String.valueOf(c)).setStyle(style));
         }
@@ -153,45 +155,34 @@ public class PerfectLabelAnimator {
         return result;
     }
 
-    // Get the color for a given tier and phase (0..1) across the word
+    // --- Gradient Helpers ---
+
     private static int getTierGradientColor(int tierIndex, float t) {
         t = wrap01(t);
 
         int[] stops;
         switch (tierIndex) {
-            case 0: // Rare
-                stops = RARE_COLORS;
-                break;
-            case 1: // Epic
-                stops = EPIC_COLORS;
-                break;
-            case 2: // Legendary
-                stops = LEGENDARY_COLORS;
-                break;
-            case 3: // Mythic
-                stops = MYTHIC_COLORS;
-                break;
-            case 4: // Perfect
+            case 0: stops = RARE_COLORS; break;
+            case 1: stops = EPIC_COLORS; break;
+            case 2: stops = LEGENDARY_COLORS; break;
+            case 3: stops = MYTHIC_COLORS; break;
+            case 4:
             default:
-                stops = PERFECT_COLORS;
-                break;
+                stops = PERFECT_COLORS; break;
         }
 
-        // 3-stop gradient: c0 -> c1 -> c2
         int c0 = stops[0];
         int c1 = stops[1];
         int c2 = stops[2];
 
         if (t < 0.5f) {
-            float local = t * 2.0f; // 0..1
-            return mixColor(c0, c1, local);
+            return mixColor(c0, c1, t * 2.0f);
         } else {
-            float local = (t - 0.5f) * 2.0f; // 0..1
-            return mixColor(c1, c2, local);
+            return mixColor(c1, c2, (t - 0.5f) * 2.0f);
         }
     }
 
-    // helpers
+    // --- RGB Utilities ---
 
     private static int rgb(int r, int g, int b) {
         r &= 0xFF;
@@ -200,34 +191,30 @@ public class PerfectLabelAnimator {
         return (r << 16) | (g << 8) | b;
     }
 
+    private static int scaleColor(int color, float factor) {
+        int r = (int) (clamp01(((color >> 16) & 0xFF) * factor / 255f) * 255);
+        int g = (int) (clamp01(((color >> 8) & 0xFF) * factor / 255f) * 255);
+        int b = (int) (clamp01((color & 0xFF) * factor / 255f) * 255);
+        return rgb(r, g, b);
+    }
+
     private static int mixColor(int c1, int c2, float t) {
         t = clamp01(t);
 
-        int r1 = (c1 >> 16) & 0xFF;
-        int g1 = (c1 >> 8) & 0xFF;
-        int b1 = c1 & 0xFF;
+        int r = (int) (((c1 >> 16) & 0xFF) * (1 - t) + ((c2 >> 16) & 0xFF) * t);
+        int g = (int) (((c1 >> 8) & 0xFF) * (1 - t) + ((c2 >> 8) & 0xFF) * t);
+        int b = (int) (((c1) & 0xFF) * (1 - t) + ((c2) & 0xFF) * t);
 
-        int r2 = (c2 >> 16) & 0xFF;
-        int g2 = (c2 >> 8) & 0xFF;
-        int b2 = c2 & 0xFF;
-
-        int r = (int) (r1 + (r2 - r1) * t);
-        int g = (int) (g1 + (g2 - g1) * t);
-        int b = (int) (b1 + (b2 - b1) * t);
-
-        return (r << 16) | (g << 8) | b;
+        return rgb(r, g, b);
     }
 
     private static float clamp01(float v) {
-        if (v < 0f) return 0f;
-        if (v > 1f) return 1f;
-        return v;
+        return Math.max(0f, Math.min(1f, v));
     }
 
     private static float wrap01(float v) {
-        v = v % 1.0f;
+        v %= 1.0f;
         if (v < 0f) v += 1.0f;
         return v;
     }
 }
-
