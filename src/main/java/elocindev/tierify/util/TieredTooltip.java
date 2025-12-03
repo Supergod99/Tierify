@@ -87,26 +87,54 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
         if (r == 0 && Tierify.CLIENT_CONFIG.centerName)
             nameCentering = i / 2 - tooltipComponent2.getWidth(textRenderer) / 2;
 
-        var maybeText = tooltipComponent2.getText();
+        var scaled = elocindev.tierify.screen.client.ItemStackClientInternal.SCALED_LABEL;
         
-        if (maybeText instanceof elocindev.tierify.screen.client.ScaledText scaled) {
-            // Draw scaled Perfect label (shrinks only that label)
-            scaled.render(
-                context,
-                textRenderer,
-                n + nameCentering,
-                q,
-                0xFFFFFF
-            );
-        } else {
-            tooltipComponent2.drawText(
-                textRenderer,
-                n + nameCentering,
-                q,
-                context.getMatrices().peek().getPositionMatrix(),
-                context.getVertexConsumers()
-            );
+        if (scaled != null) {
+        
+            String inner = scaled.getInner().getString();
+            String line = tooltipComponent2.toString();
+        
+            if (line.contains(inner)) {
+        
+                float scale = scaled.getScale();
+        
+                float scaledHeight = 9f * scale;
+                float offset = (9f - scaledHeight) / 2f;  // recenter
+                float yOffset = -offset;
+        
+                context.getMatrices().push();
+                context.getMatrices().translate(n + nameCentering, q + yOffset, 400f);
+                context.getMatrices().scale(scale, scale, 1f);
+        
+                textRenderer.draw(
+                    scaled.getInner(),
+                    0,
+                    0,
+                    0xFFFFFF,
+                    false,
+                    context.getMatrices().peek().getPositionMatrix(),
+                    context.getVertexConsumers(),
+                    TextRenderer.TextLayerType.NORMAL,
+                    0,
+                    0xF000F0
+                );
+        
+                context.getMatrices().pop();
+        
+                // Skip default rendering
+                q += tooltipComponent2.getHeight() + (r == 0 ? 2 : 0);
+                continue;
+            }
         }
+        
+        // default draw
+        tooltipComponent2.drawText(
+            textRenderer,
+            n + nameCentering,
+            q,
+            context.getMatrices().peek().getPositionMatrix(),
+            context.getVertexConsumers()
+        );
         
         q += tooltipComponent2.getHeight() + (r == 0 ? 2 : 0);
     }
