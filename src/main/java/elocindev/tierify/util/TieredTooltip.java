@@ -180,6 +180,8 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
     PerfectBorderRenderer.renderPerfectBorderOverlay(context, borderTemplate, n, o, l, m);
 
     context.getMatrices().pop();
+
+    ItemStackClientInternal.SCALED_LABEL = null;
 }
 
 
