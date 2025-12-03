@@ -1,11 +1,68 @@
 {
     "id": "tiered:mythic_melee_2",
     "verifiers": [
-        {
-            "tag": "c:swords"
-        }
+      {
+        "tag": "minecraft:swords"
+      },
+      {
+        "tag": "minecraft:axes"
+      },
+	  {
+        "tag": "forge:axes"
+      },
+	  {
+        "tag": "forge:swords"
+      },
+	  {
+        "tag": "forge:weapons/tools/melee"
+      },
+	  {
+        "tag": "forge:tools/swords"
+      },
+	  {
+        "tag": "c:tools/melee_weapons"
+      },
+	  {
+        "tag": "forge:weapon/tools/melee"
+      },
+	  {
+        "tag": "minecraft:weapons"
+      },
+	  {
+        "tag": "forge:tools/knives"
+      },
+	  {
+        "tag": "forge:tools/hammers"
+      },
+	  {
+        "tag": "forge:tools/daggers"
+      },
+	  {
+        "tag": "forge:tools/paxels"
+      },
+	  {
+        "tag": "forge:tools/weapons"
+      },
+	  {
+        "tag": "forge:tools/scythe"
+      },
+	  {
+        "tag": "forge:tools/whips"
+      },
+	  {
+        "tag": "c:weapons"
+      },
+	  {
+        "tag": "brutality:gastronomist_items"
+      },
+	  {
+        "tag": "forbidden_arcanus:blacksmith_gavel"
+      },
+	  {
+        "tag": "malum:scythe"
+      }
     ],
-    "weight": 0,
+    "weight": 1,
     "style": {
         "color": "red"
     },
@@ -14,30 +71,19 @@
             "type": "generic.attack_damage",
             "modifier": {
                 "name": "tiered:mythic_melee_2",
-                "operation": "MULTIPLY_BASE",
-                "amount": 0.3
+                "operation": "ADDITION",
+                "amount": 6.0
             },
             "optional_equipment_slots": [
                 "MAINHAND"
             ]
         },
         {
-            "type": "tiered:generic.crit_chance",
+            "type": "generic.attack_speed",
             "modifier": {
                 "name": "tiered:mythic_melee_2",
                 "operation": "MULTIPLY_BASE",
-                "amount": 0.2
-            },
-            "optional_equipment_slots": [
-                "MAINHAND"
-            ]
-        },
-        {
-            "type": "tiered:generic.durable",
-            "modifier": {
-                "name": "tiered:mythic_melee_2",
-                "operation": "MULTIPLY_BASE",
-                "amount": 0.5
+                "amount": -0.60
             },
             "optional_equipment_slots": [
                 "MAINHAND"

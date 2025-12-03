@@ -1,43 +1,89 @@
 {
     "id": "tiered:rare_melee_4",
     "verifiers": [
-        {
-            "tag": "c:swords"
-        }
+      {
+        "tag": "minecraft:swords"
+      },
+      {
+        "tag": "minecraft:axes"
+      },
+	  {
+        "tag": "forge:axes"
+      },
+	  {
+        "tag": "forge:swords"
+      },
+	  {
+        "tag": "forge:weapons/tools/melee"
+      },
+	  {
+        "tag": "forge:tools/swords"
+      },
+	  {
+        "tag": "c:tools/melee_weapons"
+      },
+	  {
+        "tag": "forge:weapon/tools/melee"
+      },
+	  {
+        "tag": "minecraft:weapons"
+      },
+	  {
+        "tag": "forge:tools/knives"
+      },
+	  {
+        "tag": "forge:tools/hammers"
+      },
+	  {
+        "tag": "forge:tools/daggers"
+      },
+	  {
+        "tag": "forge:tools/paxels"
+      },
+	  {
+        "tag": "forge:tools/weapons"
+      },
+	  {
+        "tag": "forge:tools/scythe"
+      },
+	  {
+        "tag": "forge:tools/whips"
+      },
+	  {
+        "tag": "c:weapons"
+      },
+	  {
+        "tag": "brutality:gastronomist_items"
+      },
+	  {
+        "tag": "forbidden_arcanus:blacksmith_gavel"
+      },
+	  {
+        "tag": "malum:scythe"
+      }
     ],
-    "weight": 15,
+    "weight": 1,
     "style": {
         "color": "blue"
     },
     "attributes": [
         {
+            "type": "brutality:lethality",
+            "modifier": {
+                "name": "tiered:rare_melee_4",
+                "operation": "ADDITION",
+                "amount": 3.0
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
             "type": "generic.attack_damage",
             "modifier": {
                 "name": "tiered:rare_melee_4",
                 "operation": "MULTIPLY_BASE",
-                "amount": 0.05
-            },
-            "optional_equipment_slots": [
-                "MAINHAND"
-            ]
-        },
-        {
-            "type": "tiered:generic.durable",
-            "modifier": {
-                "name": "tiered:rare_melee_4",
-                "operation": "MULTIPLY_BASE",
-                "amount": -0.1
-            },
-            "optional_equipment_slots": [
-                "MAINHAND"
-            ]
-        },
-        {
-            "type": "generic.luck",
-            "modifier": {
-                "name": "tiered:rare_melee_4",
-                "operation": "ADDITION",
-                "amount": -1
+                "amount": -0.15
             },
             "optional_equipment_slots": [
                 "MAINHAND"

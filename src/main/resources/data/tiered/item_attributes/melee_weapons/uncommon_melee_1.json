@@ -1,11 +1,8 @@
 {
     "id": "tiered:uncommon_melee_1",
     "verifiers": [
-        {
-            "tag": "c:swords"
-        }
     ],
-    "weight": 35,
+    "weight": 0,
     "style": {
         "color": "dark_green"
     },
@@ -15,7 +12,7 @@
             "modifier": {
                 "name": "tiered:uncommon_melee_1",
                 "operation": "MULTIPLY_BASE",
-                "amount": -0.15
+                "amount": -1.0
             },
             "optional_equipment_slots": [
                 "MAINHAND"
@@ -26,7 +23,7 @@
             "modifier": {
                 "name": "tiered:uncommon_melee_1",
                 "operation": "MULTIPLY_BASE",
-                "amount": -0.05
+                "amount": -0.5
             },
             "optional_equipment_slots": [
                 "MAINHAND"
@@ -37,7 +34,7 @@
             "modifier": {
                 "name": "tiered:uncommon_melee_1",
                 "operation": "ADDITION",
-                "amount": -1
+                "amount": -10
             },
             "optional_equipment_slots": [
                 "MAINHAND"

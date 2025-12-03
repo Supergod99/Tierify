@@ -1,43 +1,89 @@
 {
     "id": "tiered:common_melee_3",
     "verifiers": [
-        {
-            "tag": "c:swords"
-        }
+      {
+        "tag": "minecraft:swords"
+      },
+      {
+        "tag": "minecraft:axes"
+      },
+	  {
+        "tag": "forge:axes"
+      },
+	  {
+        "tag": "forge:swords"
+      },
+	  {
+        "tag": "forge:weapons/tools/melee"
+      },
+	  {
+        "tag": "forge:tools/swords"
+      },
+	  {
+        "tag": "c:tools/melee_weapons"
+      },
+	  {
+        "tag": "forge:weapon/tools/melee"
+      },
+	  {
+        "tag": "minecraft:weapons"
+      },
+	  {
+        "tag": "forge:tools/knives"
+      },
+	  {
+        "tag": "forge:tools/hammers"
+      },
+	  {
+        "tag": "forge:tools/daggers"
+      },
+	  {
+        "tag": "forge:tools/paxels"
+      },
+	  {
+        "tag": "forge:tools/weapons"
+      },
+	  {
+        "tag": "forge:tools/scythe"
+      },
+	  {
+        "tag": "forge:tools/whips"
+      },
+	  {
+        "tag": "c:weapons"
+      },
+	  {
+        "tag": "brutality:gastronomist_items"
+      },
+	  {
+        "tag": "forbidden_arcanus:blacksmith_gavel"
+      },
+	  {
+        "tag": "malum:scythe"
+      }
     ],
-    "weight": 50,
+    "weight": 1,
     "style": {
         "color": "gray"
     },
     "attributes": [
         {
-            "type": "tiered:generic.crit_chance",
+            "type": "brutality:armor_penetration",
             "modifier": {
                 "name": "tiered:common_melee_3",
                 "operation": "MULTIPLY_BASE",
-                "amount": -0.15
+                "amount": 0.05
             },
             "optional_equipment_slots": [
                 "MAINHAND"
             ]
         },
         {
-            "type": "tiered:generic.durable",
-            "modifier": {
-                "name": "tiered:common_melee_3",
-                "operation": "MULTIPLY_BASE",
-                "amount": -0.05
-            },
-            "optional_equipment_slots": [
-                "MAINHAND"
-            ]
-        },
-        {
-            "type": "generic.luck",
+            "type": "attributeslib:crit_damage",
             "modifier": {
                 "name": "tiered:common_melee_3",
                 "operation": "ADDITION",
-                "amount": -2
+                "amount": -0.05
             },
             "optional_equipment_slots": [
                 "MAINHAND"
