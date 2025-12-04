@@ -257,8 +257,6 @@ public abstract class ItemStackClientMixin {
             NbtCompound tierTag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             if (tierTag != null && tierTag.getBoolean("Perfect")) {
         
-                // placeholder line for the renderer
-                MutableText marker = Text.literal("__TIERIFY_PERFECT_LABEL__");
         
                 // PERFECT should ALWAYS appear directly under the item name
                 int insertPos = 1;
