@@ -79,6 +79,14 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
     int colorStart = borderTemplate.getStartGradient();
     int colorEnd = borderTemplate.getEndGradient();
 
+    int border = borderTemplate.getIndex();
+    int secondHalf = border > 7 ? 1 : 0;
+    if (border > 7) {
+        border -= 8;
+    }
+
+    boolean isPerfectTooltip = (border == 6);
+
     renderTooltipBackground(context, n, o, l, m, 400, backgroundColor, colorStart, colorEnd);
     context.getMatrices().translate(0.0f, 0.0f, 400.0f);
     int q = o;
@@ -162,14 +170,6 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
         q += tooltipComponent2.getHeight() + (r == 0 ? 2 : 0);
     }
     context.getMatrices().pop();
-
-    int border = borderTemplate.getIndex();
-    int secondHalf = border > 7 ? 1 : 0;
-    if (border > 7) {
-        border -= 8;
-    }
-
-    boolean isPerfectTooltip = (border == 6);
 
     context.getMatrices().push();
     context.getMatrices().translate(0.0f, 0.0f, 400.0f);
