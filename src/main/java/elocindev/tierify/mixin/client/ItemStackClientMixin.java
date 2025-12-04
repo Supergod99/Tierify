@@ -256,15 +256,18 @@ public abstract class ItemStackClientMixin {
             NbtCompound tierTag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             if (tierTag != null && tierTag.getBoolean("Perfect")) {
         
-                // Insert a recognizable marker line that TieredTooltip will replace
+                // placeholder line for the renderer
                 MutableText marker = Text.literal("__TIERIFY_PERFECT_LABEL__");
         
-                int insertPos = 1; // directly under the name
-                if (list.isEmpty()) {
+                // PERFECT should ALWAYS appear directly under the item name
+                int insertPos = 1;
+        
+                // Safety fallback 
+                if (list.size() == 0) {
                     insertPos = 0;
                 }
         
-                list.add(insertPos, net.minecraft.client.gui.tooltip.TooltipComponent.of(marker.asOrderedText()));
+                list.add(insertPos, TooltipComponent.of(marker.asOrderedText()));
             }
         }
     }
