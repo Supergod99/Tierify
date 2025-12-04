@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import draylar.tiered.api.BorderTemplate;
 import elocindev.tierify.TierifyClient;
@@ -31,18 +32,53 @@ import net.minecraft.text.Text;
 @Mixin(HandledScreen.class)
 public abstract class HandledScreenMixin extends Screen {
 
+    @Unique
+    private List<Text> tiered_screenList;
+    @Unique
+    private Optional<TooltipData> tiered_screenData;
+
     public HandledScreenMixin(Text title) {
         super(title);
     }
 
+    @ModifyVariable(method = "drawMouseoverTooltip", at = @At("STORE"), ordinal = 0)
+    private List<Text> captureList(List<Text> list) {
+        this.tiered_screenList = list;
+        return list;
+    }
+
+    @ModifyVariable(method = "drawMouseoverTooltip", at = @At("STORE"), ordinal = 0)
+    private Optional<TooltipData> captureData(Optional<TooltipData> data) {
+        this.tiered_screenData = data;
+        return data;
+    }
+
     @Inject(method = "drawMouseoverTooltip", 
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;Ljava/util/Optional;II)V"), 
-            cancellable = true, 
-            locals = LocalCapture.CAPTURE_FAILSOFT)
-    protected void drawMouseoverTooltipMixin(DrawContext context, int x, int y, CallbackInfo info, ItemStack stack, List<Text> text, Optional<TooltipData> data) {
+            cancellable = true)
+    protected void drawMouseoverTooltipMixin(DrawContext context, int x, int y, CallbackInfo info) {
+    }
+    
+    // Additional capture for ItemStack to be safe
+    @Unique
+    private ItemStack tiered_screenStack;
+    
+    @ModifyVariable(method = "drawMouseoverTooltip", at = @At("STORE"), ordinal = 0)
+    private ItemStack captureStack(ItemStack stack) {
+        this.tiered_screenStack = stack;
+        return stack;
+    }
+
+    @Inject(method = "drawMouseoverTooltip", 
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;Ljava/util/Optional;II)V"), 
+            cancellable = true)
+    protected void injectRender(DrawContext context, int x, int y, CallbackInfo info) {
+        if (this.tiered_screenStack == null || this.tiered_screenList == null) return;
+        ItemStack stack = this.tiered_screenStack;
+
         if (Tierify.CLIENT_CONFIG.tieredTooltip && stack.hasNbt() && stack.getNbt().contains("Tiered")) {
             
-            // --- 1. PERFECT BORDER OVERRIDE LOGIC ---
+            // --- 1. PERFECT BORDER OVERRIDE ---
             NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             if (tierTag != null && tierTag.getBoolean("Perfect")) {
 
@@ -54,12 +90,11 @@ public abstract class HandledScreenMixin extends Screen {
                             template.addStack(stack);
                         }
 
-                        // Use the captured 'text' list
                         List<TooltipComponent> list = new ArrayList<>();
                         int wrapWidth = 350;
 
-                        for (int k = 0; k < text.size(); k++) {
-                            Text t = text.get(k);
+                        for (int k = 0; k < tiered_screenList.size(); k++) {
+                            Text t = tiered_screenList.get(k);
                             int width = this.textRenderer.getWidth(t);
 
                             if (k == 0 || width <= wrapWidth) {
@@ -72,14 +107,15 @@ public abstract class HandledScreenMixin extends Screen {
                             }
                         }
 
-                        // Use the captured 'data' optional
-                        data.ifPresent(d -> {
-                            if (list.size() > 1) {
-                                list.add(1, TooltipComponent.of(d));
-                            } else {
-                                list.add(TooltipComponent.of(d));
-                            }
-                        });
+                        if (tiered_screenData != null) {
+                            tiered_screenData.ifPresent(d -> {
+                                if (list.size() > 1) {
+                                    list.add(1, TooltipComponent.of(d));
+                                } else {
+                                    list.add(TooltipComponent.of(d));
+                                }
+                            });
+                        }
 
                         TieredTooltip.renderTieredTooltipFromComponents(
                                 context,
@@ -96,21 +132,19 @@ public abstract class HandledScreenMixin extends Screen {
                     }
                 }
             }
-            // --- END PERFECT OVERRIDE ---
 
-
+            // --- 2. STANDARD TIER BORDER ---
             String nbtString = stack.getNbt().getCompound("Tiered").asString();
             for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
                 if (!TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack) && TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(nbtString)) {
                     TierifyClient.BORDER_TEMPLATES.get(i).addStack(stack);
                 } else if (TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack)) {
                     
-                    // Use captured 'text'
                     List<TooltipComponent> list = new ArrayList<>();
                     int wrapWidth = 350;
 
-                    for (int k = 0; k < text.size(); k++) {
-                        Text t = text.get(k);
+                    for (int k = 0; k < tiered_screenList.size(); k++) {
+                        Text t = tiered_screenList.get(k);
                         int width = this.textRenderer.getWidth(t);
 
                         if (k == 0 || width <= wrapWidth) {
@@ -123,14 +157,15 @@ public abstract class HandledScreenMixin extends Screen {
                         }
                     }
 
-                    // Use captured 'data'
-                    data.ifPresent(d -> {
-                        if (list.size() > 1) {
-                            list.add(1, TooltipComponent.of(d));
-                        } else {
-                            list.add(TooltipComponent.of(d));
-                        }
-                    });
+                    if (tiered_screenData != null) {
+                        tiered_screenData.ifPresent(d -> {
+                            if (list.size() > 1) {
+                                list.add(1, TooltipComponent.of(d));
+                            } else {
+                                list.add(TooltipComponent.of(d));
+                            }
+                        });
+                    }
 
                     TieredTooltip.renderTieredTooltipFromComponents(context, this.textRenderer, list, x, y, HoveredTooltipPositioner.INSTANCE, TierifyClient.BORDER_TEMPLATES.get(i));
 
