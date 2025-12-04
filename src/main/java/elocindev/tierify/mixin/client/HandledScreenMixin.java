@@ -52,18 +52,25 @@ public abstract class HandledScreenMixin extends Screen {
                         if (!template.containsStack(stack)) {
                             template.addStack(stack);
                         }
-
-                        // Render directly with perfect border
-                        List<Text> text = Screen.getTooltipFromItem(client, stack);
                         
-                        // FIX: WRAP LINES MANUALLY
+                        List<Text> text = Screen.getTooltipFromItem(client, stack);
                         List<TooltipComponent> list = new ArrayList<>();
-                        int maxWidth = 200;
+                        int wrapWidth = 300; // Allow wider tooltips
+                        
+                        for (int k = 0; k < text.size(); k++) {
+                            Text t = text.get(k);
+                            int width = this.textRenderer.getWidth(t);
+                        
+                            // If it's the title (0) or short enough, do NOT touch it. 
 
-                        for (Text t : text) {
-                            List<OrderedText> wrapped = this.textRenderer.wrapLines(t, maxWidth);
-                            for (OrderedText line : wrapped) {
-                                list.add(TooltipComponent.of(line));
+                            if (k == 0 || width <= wrapWidth) {
+                                list.add(TooltipComponent.of(t.asOrderedText()));
+                            } else {
+
+                                List<OrderedText> wrapped = this.textRenderer.wrapLines(t, wrapWidth);
+                                for (OrderedText line : wrapped) {
+                                    list.add(TooltipComponent.of(line));
+                                }
                             }
                         }
                         // END FIX
