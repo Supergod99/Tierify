@@ -99,7 +99,9 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
                 isPerfectMarker = true;
             }
         }
-
+        
+        if (isPerfectMarker) {
+        
             MutableText perfectText = PerfectLabelAnimator.getPerfectLabel();
             float scale = 0.65f;
         
@@ -131,7 +133,7 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
         
             context.getMatrices().pop();
         
-            q += 10; // advance line
+            q += 10;  // advance line
             continue;
         }
     
