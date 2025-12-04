@@ -17,6 +17,7 @@ import elocindev.tierify.Tierify;
 import elocindev.tierify.util.TieredTooltip;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendering.v1.TooltipComponentCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -54,19 +55,17 @@ public class DrawContextMixin {
                     List<Text> text = Screen.getTooltipFromItem(client, stack);
                     List<TooltipComponent> list = new ArrayList<>();
 
-                    int wrapWidth = 300; 
+                    // --- SMART WRAP (Width 350) ---
+                    int wrapWidth = 350; 
 
                     for (int k = 0; k < text.size(); k++) {
                         Text t = text.get(k);
-                        
-                        // Check width
                         int width = textRenderer.getWidth(t);
 
-                        // If it's the title (0) or the line is short enough, keep it valid.
+                        // Don't wrap title (k=0) or short lines
                         if (k == 0 || width <= wrapWidth) {
                             list.add(TooltipComponent.of(t.asOrderedText()));
                         } else {
-                            // Only wrap long descriptions
                             List<OrderedText> wrapped = textRenderer.wrapLines(t, wrapWidth);
                             for (OrderedText line : wrapped) {
                                 list.add(TooltipComponent.of(line));
@@ -81,6 +80,10 @@ public class DrawContextMixin {
                             list.add(TooltipComponent.of(data));
                         }
                     });
+
+
+                    TooltipComponentCallback.EVENT.invoker().getTooltipComponents(stack, list);
+
 
                     TieredTooltip.renderTieredTooltipFromComponents(
                         (DrawContext) (Object) this, 
