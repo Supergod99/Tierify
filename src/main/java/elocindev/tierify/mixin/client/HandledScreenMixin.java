@@ -1,5 +1,6 @@
 package elocindev.tierify.mixin.client;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,7 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.tooltip.HoveredTooltipPositioner;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 
 @Environment(EnvType.CLIENT)
@@ -35,7 +37,8 @@ public abstract class HandledScreenMixin extends Screen {
     @Inject(method = "drawMouseoverTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;Ljava/util/Optional;II)V"), cancellable = true, locals = LocalCapture.CAPTURE_FAILSOFT)
     protected void drawMouseoverTooltipMixin(DrawContext context, int x, int y, CallbackInfo info, ItemStack stack) {
         if (Tierify.CLIENT_CONFIG.tieredTooltip && stack.hasNbt() && stack.getNbt().contains("Tiered")) {
-            //  perfect border override
+            
+
             NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             if (tierTag != null && tierTag.getBoolean("Perfect")) {
 
@@ -52,14 +55,26 @@ public abstract class HandledScreenMixin extends Screen {
 
                         // Render directly with perfect border
                         List<Text> text = Screen.getTooltipFromItem(client, stack);
-                        List<TooltipComponent> list = text.stream()
-                                .map(Text::asOrderedText)
-                                .map(TooltipComponent::of)
-                                .collect(Collectors.toList());
+                        
+                        // FIX: WRAP LINES MANUALLY
+                        List<TooltipComponent> list = new ArrayList<>();
+                        int maxWidth = 200;
 
-                        stack.getTooltipData().ifPresent(data -> 
-                            list.add(1, TooltipComponent.of(data))
-                        );
+                        for (Text t : text) {
+                            List<OrderedText> wrapped = this.textRenderer.wrapLines(t, maxWidth);
+                            for (OrderedText line : wrapped) {
+                                list.add(TooltipComponent.of(line));
+                            }
+                        }
+                        // END FIX
+
+                        stack.getTooltipData().ifPresent(data -> {
+                            if (list.size() > 1) {
+                                list.add(1, TooltipComponent.of(data));
+                            } else {
+                                list.add(TooltipComponent.of(data));
+                            }
+                        });
 
                         TieredTooltip.renderTieredTooltipFromComponents(
                                 context,
@@ -76,7 +91,8 @@ public abstract class HandledScreenMixin extends Screen {
                     }
                 }
             }
-            //end override
+
+
             String nbtString = stack.getNbt().getCompound("Tiered").asString();
             for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
                 if (!TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack) && TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(nbtString)) {
@@ -84,8 +100,25 @@ public abstract class HandledScreenMixin extends Screen {
                 } else if (TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack)) {
                     List<Text> text = Screen.getTooltipFromItem(client, stack);
 
-                    List<TooltipComponent> list = text.stream().map(Text::asOrderedText).map(TooltipComponent::of).collect(Collectors.toList());
-                    stack.getTooltipData().ifPresent(data -> list.add(1, TooltipComponent.of(data)));
+
+                    List<TooltipComponent> list = new ArrayList<>();
+                    int maxWidth = 200;
+
+                    for (Text t : text) {
+                        List<OrderedText> wrapped = this.textRenderer.wrapLines(t, maxWidth);
+                        for (OrderedText line : wrapped) {
+                            list.add(TooltipComponent.of(line));
+                        }
+                    }
+
+
+                    stack.getTooltipData().ifPresent(data -> {
+                        if (list.size() > 1) {
+                            list.add(1, TooltipComponent.of(data));
+                        } else {
+                            list.add(TooltipComponent.of(data));
+                        }
+                    });
 
                     TieredTooltip.renderTieredTooltipFromComponents(context, this.textRenderer, list, x, y, HoveredTooltipPositioner.INSTANCE, TierifyClient.BORDER_TEMPLATES.get(i));
 
@@ -95,5 +128,4 @@ public abstract class HandledScreenMixin extends Screen {
             }
         }
     }
-
 }
