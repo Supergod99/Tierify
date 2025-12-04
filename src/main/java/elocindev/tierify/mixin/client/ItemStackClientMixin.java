@@ -70,6 +70,14 @@ public abstract class ItemStackClientMixin {
     private Map<String, ArrayList> map = new HashMap<>();
     private boolean toughnessZero = false;
 
+    private static String orderedTextToString(OrderedText text) {
+        StringBuilder sb = new StringBuilder();
+        text.accept((index, style, codePoint) -> {
+            sb.appendCodePoint(codePoint);
+            return true;
+        });
+        return sb.toString();
+    }
 
     private Text wrapText(MutableText text) {
         int maxWidth = 240;
@@ -83,7 +91,7 @@ public abstract class ItemStackClientMixin {
         MutableText out = Text.literal("");
     
         for (OrderedText ln : wrapped) {
-            String s = OrderedText.styledString(ln); // <-- THE FIX
+            String s = orderedTextToString(ln);
             out.append(Text.literal(s));
             out.append("\n");
         }
