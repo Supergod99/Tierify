@@ -94,9 +94,18 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
     
         boolean isPerfectMarker = false;
         
-        if (tooltipComponent2 instanceof TextTooltipComponent textComp) {
-            if (textComp.text().getString().equals("__TIERIFY_PERFECT_LABEL__")) {
-                isPerfectMarker = true;
+        if (tooltipComponent2 != null) {
+            // ordered text form
+            var ordered = tooltipComponent2.getText();
+        
+            if (ordered != null) {
+                // Extract characters
+                String raw = ordered.getString();
+        
+                // Our marker is exactly "\uE000"
+                if (raw.length() == 1 && raw.charAt(0) == '\uE000') {
+                    isPerfectMarker = true;
+                }
             }
         }
         
