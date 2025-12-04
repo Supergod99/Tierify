@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.joml.Vector2ic;
 
+import elocindev.tierify.screen.client.PerfectMarkerComponent;
 import elocindev.tierify.screen.client.PerfectLabelAnimator;
 import elocindev.tierify.screen.client.PerfectBorderRenderer;
 import net.minecraft.text.MutableText;
@@ -92,20 +93,10 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
             nameCentering = i / 2 - tooltipComponent2.getWidth(textRenderer) / 2;
         }
     
-        // Detect our PERFECT marker line
-
-        boolean isPerfectMarker = false;
+        // Detect our unique PERFECT marker component
+        if (tooltipComponent2 instanceof elocindev.tierify.screen.client.PerfectMarkerComponent) {
         
-        if (tooltipComponent2 instanceof net.minecraft.client.gui.tooltip.TextTooltipComponent textComp) {
-            String raw = textComp.text().getString();
-            if (raw.equals("__TIERIFY_PERFECT_LABEL__")) {
-                isPerfectMarker = true;
-            }
-        }
-        
-        if (isPerfectMarker) {
             MutableText perfectText = PerfectLabelAnimator.getPerfectLabel();
-        
             float scale = 0.65f;
         
             int textWidth = textRenderer.getWidth(perfectText);
@@ -136,7 +127,7 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
         
             context.getMatrices().pop();
         
-            q += tooltipComponent2.getHeight() + 2;
+            q += 10; // advance line
             continue;
         }
     
