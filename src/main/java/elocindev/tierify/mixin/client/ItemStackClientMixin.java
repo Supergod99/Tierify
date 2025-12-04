@@ -71,11 +71,13 @@ public abstract class ItemStackClientMixin {
     private boolean toughnessZero = false;
 
 
-    private void addWrapped(List<Text> list, List<OrderedText> wrappedLines) {
-        for (OrderedText line : wrappedLines) {
-            list.add(Text.literal("").append(line));
+    private void addWrapped(List<Text> list, List<OrderedText> wrapped) {
+        TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
+        for (OrderedText line : wrapped) {
+            list.add(Text.literal(renderer.getStringVisually(line)));
         }
     }
+
     
 
     private List<OrderedText> wrapTooltipLine(MutableText text) {
