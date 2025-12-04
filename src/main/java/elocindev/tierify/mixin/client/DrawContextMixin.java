@@ -44,8 +44,7 @@ public class DrawContextMixin {
         if (Tierify.CLIENT_CONFIG.tieredTooltip && stack.hasNbt() && stack.getNbt().contains("Tiered")) {
             String nbtString = stack.getNbt().getCompound("Tiered").asString();
             
-            // --- FIX: Generate list/data manually here to prevent 'InjectionError' ---
-            // This is safe in DrawContext because it's a low-level render call
+            // --- MANUAL DATA GENERATION (Safety against Mixin crashes) ---
             List<Text> text = net.minecraft.client.gui.screen.Screen.getTooltipFromItem(this.client, stack);
             Optional<TooltipData> data = stack.getTooltipData();
 
@@ -67,7 +66,6 @@ public class DrawContextMixin {
                         Text t = text.get(k);
                         int width = textRenderer.getWidth(t);
 
-                        // Don't wrap title (k=0) or short lines.
                         if (k == 0 || width <= wrapWidth) {
                             list.add(TooltipComponent.of(t.asOrderedText()));
                         } else {
