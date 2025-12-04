@@ -221,13 +221,6 @@ public abstract class ItemStackClientMixin {
             
                 String tierKey = elocindev.tierify.screen.client.TierGradientAnimator.getTierFromId(potentialAttribute.getID());
                 text = elocindev.tierify.screen.client.TierGradientAnimator.animate(text, tierKey);
-            
-                // PERFECT prefix
-                NbtCompound tag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
-                if (tag != null && tag.getBoolean("Perfect")) {
-                
-                    // Generate animated Perfect label
-                    MutableText perfect = PerfectLabelAnimator.getPerfectLabel();
                 
                 }
 
@@ -265,18 +258,15 @@ public abstract class ItemStackClientMixin {
             NbtCompound tierTag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             if (tierTag != null && tierTag.getBoolean("Perfect")) {
         
-                MutableText perfect = PerfectLabelAnimator.getPerfectLabel();
+                // Insert a recognizable marker line that TieredTooltip will replace
+                MutableText marker = Text.literal("__TIERIFY_PERFECT_LABEL__");
         
-                // Find the item name line (index 0)
-                int insertPos = 1;
-        
-                // Some mods add extra lines above attributes, so we make sure
-                // we insert JUST after the name, no matter what.
-                if (!list.isEmpty()) {
-                    insertPos = 1; // always after the first line
+                int insertPos = 1; // directly under the name
+                if (list.isEmpty()) {
+                    insertPos = 0;
                 }
         
-                list.add(insertPos, perfect);
+                list.add(insertPos, marker);
             }
         }
     }
