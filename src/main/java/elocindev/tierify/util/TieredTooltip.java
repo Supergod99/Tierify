@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.joml.Vector2ic;
 
-import elocindev.tierify.screen.client.ScaledPerfectLabel;
-import elocindev.tierify.screen.client.ItemStackClientInternal;
+import elocindev.tierify.screen.client.PerfectLabelAnimator;
 import elocindev.tierify.screen.client.PerfectBorderRenderer;
+import net.minecraft.text.MutableText;
 import draylar.tiered.api.BorderTemplate;
 import elocindev.tierify.Tierify;
 import net.fabricmc.api.EnvType;
@@ -86,50 +86,55 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
     for (r = 0; r < components.size(); ++r) {
         int nameCentering = 0;
         tooltipComponent2 = components.get(r);
-        if (r == 0 && Tierify.CLIENT_CONFIG.centerName)
+    
+        // Center ONLY the name line if config says so
+        if (r == 0 && Tierify.CLIENT_CONFIG.centerName) {
             nameCentering = i / 2 - tooltipComponent2.getWidth(textRenderer) / 2;
-
-        var scaled = elocindev.tierify.screen.client.ItemStackClientInternal.SCALED_LABEL;
-        
-        if (scaled != null) {
-        
-            String inner = scaled.getInner().getString();
-            String line = tooltipComponent2.toString();
-        
-            if (line.contains(inner)) {
-        
-                float scale = scaled.getScale();
-        
-                float scaledHeight = 9f * scale;
-                float offset = (9f - scaledHeight) / 2f;  // recenter
-                float yOffset = -offset;
-        
-                context.getMatrices().push();
-                context.getMatrices().translate(n + nameCentering, q + yOffset, 400f);
-                context.getMatrices().scale(scale, scale, 1f);
-        
-                textRenderer.draw(
-                    scaled.getInner(),
-                    0,
-                    0,
-                    0xFFFFFF,
-                    false,
-                    context.getMatrices().peek().getPositionMatrix(),
-                    context.getVertexConsumers(),
-                    TextRenderer.TextLayerType.NORMAL,
-                    0,
-                    0xF000F0
-                );
-        
-                context.getMatrices().pop();
-        
-                // Skip default rendering
-                q += tooltipComponent2.getHeight() + (r == 0 ? 2 : 0);
-                continue;
-            }
         }
-        
-        // default draw
+    
+        // Detect our PERFECT marker line
+        String asString = tooltipComponent2.toString();
+        if (asString.contains("__TIERIFY_PERFECT_LABEL__")) {
+            // Build the animated PERFECT label for this frame
+            MutableText perfectText = PerfectLabelAnimator.getPerfectLabel();
+    
+            float scale = 0.65f;
+    
+            int textWidth = textRenderer.getWidth(perfectText);
+            float scaledWidth = textWidth * scale;
+    
+            // Tooltip content width is 'l' (same as i), center inside it
+            float x = n + (l - scaledWidth) / 2.0f;
+    
+            float baseHeight = 9f;                  // vanilla line height
+            float scaledHeight = baseHeight * scale;
+            float yOffset = -(baseHeight - scaledHeight) / 2.0f;  // vertical recenter
+    
+            context.getMatrices().push();
+            context.getMatrices().translate(x, q + yOffset, 400f);
+            context.getMatrices().scale(scale, scale, 1.0f);
+    
+            textRenderer.draw(
+                perfectText,
+                0,
+                0,
+                0xFFFFFF,
+                false,
+                context.getMatrices().peek().getPositionMatrix(),
+                context.getVertexConsumers(),
+                TextRenderer.TextLayerType.NORMAL,
+                0,
+                0xF000F0
+            );
+    
+            context.getMatrices().pop();
+    
+            // Advance to next line; small extra space is fine
+            q += tooltipComponent2.getHeight() + 2;
+            continue;
+        }
+    
+        // Default draw for non-PERFECT lines
         tooltipComponent2.drawText(
             textRenderer,
             n + nameCentering,
@@ -137,7 +142,7 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
             context.getMatrices().peek().getPositionMatrix(),
             context.getVertexConsumers()
         );
-        
+    
         q += tooltipComponent2.getHeight() + (r == 0 ? 2 : 0);
     }
     q = o;
@@ -181,7 +186,6 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
 
     context.getMatrices().pop();
 
-    ItemStackClientInternal.SCALED_LABEL = null;
 }
 
 
