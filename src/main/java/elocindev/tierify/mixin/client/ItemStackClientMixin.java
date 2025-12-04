@@ -267,7 +267,7 @@ public abstract class ItemStackClientMixin {
                     insertPos = 0;
                 }
         
-                list.add(insertPos, TooltipComponent.of(marker.asOrderedText()));
+                list.add(insertPos, net.minecraft.client.gui.tooltip.TooltipComponent.of(marker.asOrderedText()))
             }
         }
     }
