@@ -265,7 +265,7 @@ public abstract class ItemStackClientMixin {
                     insertPos = 0;
                 }
         
-                list.add(insertPos, Text.literal("__TIERIFY_PERFECT_LABEL__"));
+                list.add(insertPos, Text.literal("\uE000"));
             }
         }
     }
