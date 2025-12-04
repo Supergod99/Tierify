@@ -61,7 +61,7 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
         j += tooltipComponent.getHeight();
     }
     if (borderTemplate.getIndex() == 6) {    
-        j += 9;
+        j += 12;
     }
     if (i < 64) {
         i = 64;
