@@ -41,70 +41,121 @@ public class TieredTooltip {
     }
 
 public static void renderTieredTooltipFromComponents(DrawContext context, TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, TooltipPositioner positioner,
-        BorderTemplate borderTemplate) {
-    TooltipComponent tooltipComponent2;
-    int r;
-    int k;
-    if (components.isEmpty()) {
-        return;
-    }
-    int i = 0;
-    int j = components.size() == 1 ? -2 : 0;
-    for (TooltipComponent tooltipComponent : components) {
-        if (tooltipComponent == null) {
-            continue;
+            BorderTemplate borderTemplate) {
+        TooltipComponent tooltipComponent2;
+        int r;
+        int k;
+        if (components.isEmpty()) {
+            return;
         }
-        k = tooltipComponent.getWidth(textRenderer);
-        if (k > i) {
-            i = k;
+        int i = 0;
+        int j = components.size() == 1 ? -2 : 0;
+        for (TooltipComponent tooltipComponent : components) {
+            if (tooltipComponent == null) {
+                continue;
+            }
+            k = tooltipComponent.getWidth(textRenderer);
+            if (k > i) {
+                i = k;
+            }
+            j += tooltipComponent.getHeight();
         }
-        j += tooltipComponent.getHeight();
-    }
-    
-    if (borderTemplate.getIndex() == 6) {    
-        j += 12;
-    }
-    if (i < 64) {
-        i = 64;
-    }
-    if (j < 16) {
-        j = 16;
-    }
+        
+        // --- FIX 1: ADD PADDING ---
+        // Add 8 pixels of extra width so text doesn't touch the border
+        i += 8; 
+        // --------------------------
 
-    int l = i;
-    int m = j;
-
-    Vector2ic vector2ic = positioner.getPosition(context.getScaledWindowWidth(), context.getScaledWindowHeight(), x, y, l, m);
-    int n = vector2ic.x();
-    int o = vector2ic.y();
-    context.getMatrices().push();
-
-    int backgroundColor = borderTemplate.getBackgroundGradient();
-    int colorStart = borderTemplate.getStartGradient();
-    int colorEnd = borderTemplate.getEndGradient();
-
-    int border = borderTemplate.getIndex();
-    int secondHalf = border > 7 ? 1 : 0;
-    if (border > 7) {
-        border -= 8;
-    }
-
-    boolean isPerfectTooltip = (border == 6);
-
-    renderTooltipBackground(context, n, o, l, m, 400, backgroundColor, colorStart, colorEnd);
-    context.getMatrices().translate(0.0f, 0.0f, 400.0f);
-    int q = o;
-
-    for (r = 0; r < components.size(); ++r) {
-        int nameCentering = 0;
-        tooltipComponent2 = components.get(r);
-    
-        // Center ONLY the name line if config says so
-        if (r == 0 && Tierify.CLIENT_CONFIG.centerName) {
-            nameCentering = i / 2 - tooltipComponent2.getWidth(textRenderer) / 2;
+        if (borderTemplate.getIndex() == 6) {    
+            j += 12;
         }
-    
-        if (r == 0 && isPerfectTooltip) {
+        if (i < 64) {
+            i = 64;
+        }
+        if (j < 16) {
+            j = 16;
+        }
+
+        int l = i;
+        int m = j;
+
+        Vector2ic vector2ic = positioner.getPosition(context.getScaledWindowWidth(), context.getScaledWindowHeight(), x, y, l, m);
+        int n = vector2ic.x();
+        int o = vector2ic.y();
+        context.getMatrices().push();
+
+        int backgroundColor = borderTemplate.getBackgroundGradient();
+        int colorStart = borderTemplate.getStartGradient();
+        int colorEnd = borderTemplate.getEndGradient();
+
+        int border = borderTemplate.getIndex();
+        int secondHalf = border > 7 ? 1 : 0;
+        if (border > 7) {
+            border -= 8;
+        }
+
+        boolean isPerfectTooltip = (border == 6);
+
+        renderTooltipBackground(context, n, o, l, m, 400, backgroundColor, colorStart, colorEnd);
+        context.getMatrices().translate(0.0f, 0.0f, 400.0f);
+        int q = o;
+
+        for (r = 0; r < components.size(); ++r) {
+            int nameCentering = 0;
+            tooltipComponent2 = components.get(r);
+        
+            // Center ONLY the name line if config says so
+            if (r == 0 && Tierify.CLIENT_CONFIG.centerName) {
+                nameCentering = i / 2 - tooltipComponent2.getWidth(textRenderer) / 2;
+            }
+        
+            if (r == 0 && isPerfectTooltip) {
+                tooltipComponent2.drawText(
+                        textRenderer,
+                        n + nameCentering,
+                        q,
+                        context.getMatrices().peek().getPositionMatrix(),
+                        context.getVertexConsumers()
+                );
+        
+                q += tooltipComponent2.getHeight() + 2;
+        
+                MutableText perfectText = PerfectLabelAnimator.getPerfectLabel();
+                float scale = 0.65f;
+        
+                int textWidth = textRenderer.getWidth(perfectText);
+                float scaledWidth = textWidth * scale;
+        
+                float xPos = n + (l - scaledWidth) / 2f;
+        
+                float baseHeight = 9f;           
+                float scaledHeight = baseHeight * scale;
+                float yOffset = -(baseHeight - scaledHeight) / 2f; 
+        
+                context.getMatrices().push();
+                context.getMatrices().translate(xPos, q + yOffset, 400f);
+                context.getMatrices().scale(scale, scale, 1f);
+        
+                textRenderer.draw(
+                        perfectText,
+                        0,
+                        0,
+                        0xFFFFFF,
+                        false,
+                        context.getMatrices().peek().getPositionMatrix(),
+                        context.getVertexConsumers(),
+                        TextRenderer.TextLayerType.NORMAL,
+                        0,
+                        0xF000F0
+                );
+        
+                context.getMatrices().pop();
+        
+                q += baseHeight + 3;
+        
+                continue;
+            }
+        
             tooltipComponent2.drawText(
                     textRenderer,
                     n + nameCentering,
@@ -112,96 +163,44 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
                     context.getMatrices().peek().getPositionMatrix(),
                     context.getVertexConsumers()
             );
-    
-            q += tooltipComponent2.getHeight() + 2;
-    
-            MutableText perfectText = PerfectLabelAnimator.getPerfectLabel();
-            float scale = 0.65f;
-    
-            int textWidth = textRenderer.getWidth(perfectText);
-            float scaledWidth = textWidth * scale;
-    
-
-            float xPos = n + (l - scaledWidth) / 2f;
-    
-            float baseHeight = 9f;           // vanilla line height
-            float scaledHeight = baseHeight * scale;
-            float yOffset = -(baseHeight - scaledHeight) / 2f;  // vertical recenter
-    
-            context.getMatrices().push();
-            context.getMatrices().translate(xPos, q + yOffset, 400f);
-            context.getMatrices().scale(scale, scale, 1f);
-    
-            textRenderer.draw(
-                    perfectText,
-                    0,
-                    0,
-                    0xFFFFFF,
-                    false,
-                    context.getMatrices().peek().getPositionMatrix(),
-                    context.getVertexConsumers(),
-                    TextRenderer.TextLayerType.NORMAL,
-                    0,
-                    0xF000F0
-            );
-    
-            context.getMatrices().pop();
-    
-
-            q += baseHeight + 3;
-    
-
-            continue;
+        
+            // --- FIX 2: RESTORE VERTICAL SPACING ---
+            // Vanilla adds 2px padding after the Title (index 0).
+            // We replicate that here to fix the "crunched" look.
+            q += tooltipComponent2.getHeight() + (r == 0 ? 2 : 0);
         }
-    
 
-        tooltipComponent2.drawText(
-                textRenderer,
-                n + nameCentering,
-                q,
-                context.getMatrices().peek().getPositionMatrix(),
-                context.getVertexConsumers()
-        );
-    
-        q += tooltipComponent2.getHeight();
+        q = o;
+
+        for (r = 0; r < components.size(); ++r) {
+            tooltipComponent2 = components.get(r);
+            tooltipComponent2.drawItems(textRenderer, n, q, context);
+            q += tooltipComponent2.getHeight() + (r == 0 ? 2 : 0);
+        }
+        context.getMatrices().pop();
+
+        context.getMatrices().push();
+        context.getMatrices().translate(0.0f, 0.0f, 400.0f);
+
+        // [Border Drawing Logic remains the same as your file...]
+        // left top corner
+        context.drawTexture(borderTemplate.getIdentifier(), n - 6, o - 6, 0 + secondHalf * 64, 0 + border * 16, 8, 8, 128, 128);
+        // right top corner
+        context.drawTexture(borderTemplate.getIdentifier(), n + l - 2, o - 6, 56 + secondHalf * 64, 0 + border * 16, 8, 8, 128, 128);
+        // left bottom corner
+        context.drawTexture(borderTemplate.getIdentifier(), n - 6, o + m - 2, 0 + secondHalf * 64, 8 + border * 16, 8, 8, 128, 128);
+        // right bottom corner
+        context.drawTexture(borderTemplate.getIdentifier(), n + l - 2, o + m - 2, 56 + secondHalf * 64, 8 + border * 16, 8, 8, 128, 128);
+        // middle header
+        context.drawTexture(borderTemplate.getIdentifier(), (n - 6 + n + l + 6) / 2 - 24, o - 9, 8 + secondHalf * 64, 0 + border * 16, 48, 8, 128, 128);
+        // bottom footer
+        context.drawTexture(borderTemplate.getIdentifier(), (n - 6 + n + l + 6) / 2 - 24, o + m + 1, 8 + secondHalf * 64, 8 + border * 16, 48, 8, 128, 128);
+        
+        context.getMatrices().push();
+        context.getMatrices().translate(0.0f, 0.0f, 1000.0f);
+        PerfectBorderRenderer.renderPerfectBorderOverlay(context, borderTemplate, n, o, l, m);
+        context.getMatrices().pop();
     }
-
-    q = o;
-
-    for (r = 0; r < components.size(); ++r) {
-        tooltipComponent2 = components.get(r);
-        tooltipComponent2.drawItems(textRenderer, n, q, context);
-        q += tooltipComponent2.getHeight() + (r == 0 ? 2 : 0);
-    }
-    context.getMatrices().pop();
-
-    context.getMatrices().push();
-    context.getMatrices().translate(0.0f, 0.0f, 400.0f);
-
-    // Base (static) border pieces – for all tiers
-    // left top corner
-    context.drawTexture(borderTemplate.getIdentifier(), n - 6, o - 6, 0 + secondHalf * 64, 0 + border * 16, 8, 8, 128, 128);
-    // right top corner
-    context.drawTexture(borderTemplate.getIdentifier(), n + l - 2, o - 6, 56 + secondHalf * 64, 0 + border * 16, 8, 8, 128, 128);
-
-    // left bottom corner
-    context.drawTexture(borderTemplate.getIdentifier(), n - 6, o + m - 2, 0 + secondHalf * 64, 8 + border * 16, 8, 8, 128, 128);
-    // right bottom corner
-    context.drawTexture(borderTemplate.getIdentifier(), n + l - 2, o + m - 2, 56 + secondHalf * 64, 8 + border * 16, 8, 8, 128, 128);
-
-    // middle header
-    context.drawTexture(borderTemplate.getIdentifier(), (n - 6 + n + l + 6) / 2 - 24, o - 9, 8 + secondHalf * 64, 0 + border * 16, 48, 8, 128, 128);
-    // bottom footer
-    context.drawTexture(borderTemplate.getIdentifier(), (n - 6 + n + l + 6) / 2 - 24, o + m + 1, 8 + secondHalf * 64, 8 + border * 16, 48, 8, 128, 128);
-    // PERFECT-ONLY OVERLAY
-    context.getMatrices().push();
-    context.getMatrices().translate(0.0f, 0.0f, 1000.0f);
-    
-    PerfectBorderRenderer.renderPerfectBorderOverlay(context, borderTemplate, n, o, l, m);
-
-    context.getMatrices().pop();
-
-}
 
 
     private static void renderTooltipBackground(DrawContext context, int x, int y, int width, int height, int z, int backgroundColor, int colorStart, int colorEnd) {
