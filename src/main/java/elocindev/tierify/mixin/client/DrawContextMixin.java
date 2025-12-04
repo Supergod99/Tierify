@@ -8,10 +8,8 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import elocindev.tierify.TierifyClient;
@@ -38,34 +36,19 @@ public class DrawContextMixin {
     @Final
     private MinecraftClient client;
 
-    @Unique
-    private List<Text> tiered_capturedList;
-
-    @Unique
-    private Optional<TooltipData> tiered_capturedData;
-
-    // Capture the List<Text> (tooltip lines) safely
-    @ModifyVariable(method = "drawItemTooltip", at = @At("STORE"), ordinal = 0)
-    private List<Text> captureTooltipList(List<Text> list) {
-        this.tiered_capturedList = list;
-        return list;
-    }
-
-    // Capture the Optional<TooltipData> (icons/bundles) safely
-    @ModifyVariable(method = "drawItemTooltip", at = @At("STORE"), ordinal = 0)
-    private Optional<TooltipData> captureTooltipData(Optional<TooltipData> data) {
-        this.tiered_capturedData = data;
-        return data;
-    }
-
     @Inject(method = "drawItemTooltip", 
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;Ljava/util/Optional;II)V"), 
             cancellable = true)
     private void drawItemTooltipMixin(TextRenderer textRenderer, ItemStack stack, int x, int y, CallbackInfo info) {
 
-        if (Tierify.CLIENT_CONFIG.tieredTooltip && stack.hasNbt() && stack.getNbt().contains("Tiered") && tiered_capturedList != null) {
+        if (Tierify.CLIENT_CONFIG.tieredTooltip && stack.hasNbt() && stack.getNbt().contains("Tiered")) {
             String nbtString = stack.getNbt().getCompound("Tiered").asString();
             
+            // --- FIX: Generate list/data manually here to prevent 'InjectionError' ---
+            // This is safe in DrawContext because it's a low-level render call
+            List<Text> text = net.minecraft.client.gui.screen.Screen.getTooltipFromItem(this.client, stack);
+            Optional<TooltipData> data = stack.getTooltipData();
+
             for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
                 boolean matchesDecider = !TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack) 
                                          && TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(nbtString);
@@ -80,8 +63,8 @@ public class DrawContextMixin {
                     // --- SMART WRAP (Width 350) ---
                     int wrapWidth = 350; 
 
-                    for (int k = 0; k < tiered_capturedList.size(); k++) {
-                        Text t = tiered_capturedList.get(k);
+                    for (int k = 0; k < text.size(); k++) {
+                        Text t = text.get(k);
                         int width = textRenderer.getWidth(t);
 
                         // Don't wrap title (k=0) or short lines.
@@ -95,15 +78,13 @@ public class DrawContextMixin {
                         }
                     }
 
-                    if (tiered_capturedData != null) {
-                        tiered_capturedData.ifPresent(d -> {
-                            if (list.size() > 1) {
-                                list.add(1, TooltipComponent.of(d));
-                            } else {
-                                list.add(TooltipComponent.of(d));
-                            }
-                        });
-                    }
+                    data.ifPresent(d -> {
+                        if (list.size() > 1) {
+                            list.add(1, TooltipComponent.of(d));
+                        } else {
+                            list.add(TooltipComponent.of(d));
+                        }
+                    });
 
                     TieredTooltip.renderTieredTooltipFromComponents(
                         (DrawContext) (Object) this, 
