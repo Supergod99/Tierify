@@ -93,43 +93,52 @@ public static void renderTieredTooltipFromComponents(DrawContext context, TextRe
         }
     
         // Detect our PERFECT marker line
-        String asString = tooltipComponent2.toString();
-        if (asString.contains("__TIERIFY_PERFECT_LABEL__")) {
+        var maybeText = tooltipComponent2.getText();
+        
+        boolean isPerfectMarker = false;
+        
+        if (maybeText != null) {
+            // Convert OrderedText → String
+            String raw = maybeText.getString();
+            if (raw.equals("__TIERIFY_PERFECT_LABEL__")) {
+                isPerfectMarker = true;
+            }
+        }
+        
+        if (isPerfectMarker) {
             // Build the animated PERFECT label for this frame
             MutableText perfectText = PerfectLabelAnimator.getPerfectLabel();
-    
+        
             float scale = 0.65f;
-    
+        
             int textWidth = textRenderer.getWidth(perfectText);
             float scaledWidth = textWidth * scale;
-    
-            // Tooltip content width is 'l' (same as i), center inside it
-            float x = n + (l - scaledWidth) / 2.0f;
-    
-            float baseHeight = 9f;                  // vanilla line height
+        
+            float xPos = n + (l - scaledWidth) / 2f;
+        
+            float baseHeight = 9f;
             float scaledHeight = baseHeight * scale;
-            float yOffset = -(baseHeight - scaledHeight) / 2.0f;  // vertical recenter
-    
+            float yOffset = -(baseHeight - scaledHeight) / 2f;
+        
             context.getMatrices().push();
-            context.getMatrices().translate(x, q + yOffset, 400f);
-            context.getMatrices().scale(scale, scale, 1.0f);
-    
+            context.getMatrices().translate(xPos, q + yOffset, 400f);
+            context.getMatrices().scale(scale, scale, 1f);
+        
             textRenderer.draw(
-                perfectText,
-                0,
-                0,
-                0xFFFFFF,
-                false,
-                context.getMatrices().peek().getPositionMatrix(),
-                context.getVertexConsumers(),
-                TextRenderer.TextLayerType.NORMAL,
-                0,
-                0xF000F0
+                    perfectText,
+                    0,
+                    0,
+                    0xFFFFFF,
+                    false,
+                    context.getMatrices().peek().getPositionMatrix(),
+                    context.getVertexConsumers(),
+                    TextRenderer.TextLayerType.NORMAL,
+                    0,
+                    0xF000F0
             );
-    
+        
             context.getMatrices().pop();
-    
-            // Advance to next line; small extra space is fine
+        
             q += tooltipComponent2.getHeight() + 2;
             continue;
         }
