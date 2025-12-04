@@ -38,7 +38,7 @@ public abstract class HandledScreenMixin extends Screen {
     protected void drawMouseoverTooltipMixin(DrawContext context, int x, int y, CallbackInfo info, ItemStack stack) {
         if (Tierify.CLIENT_CONFIG.tieredTooltip && stack.hasNbt() && stack.getNbt().contains("Tiered")) {
             
-
+            // --- 1. PERFECT BORDER OVERRIDE LOGIC ---
             NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             if (tierTag != null && tierTag.getBoolean("Perfect")) {
 
@@ -52,21 +52,21 @@ public abstract class HandledScreenMixin extends Screen {
                         if (!template.containsStack(stack)) {
                             template.addStack(stack);
                         }
-                        
+
+                        // Render directly with perfect border
                         List<Text> text = Screen.getTooltipFromItem(client, stack);
-                        List<TooltipComponent> list = new ArrayList<>();
-                        int wrapWidth = 300; // Allow wider tooltips
                         
+                        // FIX: SMART WRAP LINES MANUALLY
+                        List<TooltipComponent> list = new ArrayList<>();
+                        int wrapWidth = 300;
+
                         for (int k = 0; k < text.size(); k++) {
                             Text t = text.get(k);
                             int width = this.textRenderer.getWidth(t);
-                        
-                            // If it's the title (0) or short enough, do NOT touch it. 
 
                             if (k == 0 || width <= wrapWidth) {
                                 list.add(TooltipComponent.of(t.asOrderedText()));
                             } else {
-
                                 List<OrderedText> wrapped = this.textRenderer.wrapLines(t, wrapWidth);
                                 for (OrderedText line : wrapped) {
                                     list.add(TooltipComponent.of(line));
@@ -98,8 +98,10 @@ public abstract class HandledScreenMixin extends Screen {
                     }
                 }
             }
+            // --- END PERFECT OVERRIDE ---
 
 
+            // --- 2. STANDARD TIER BORDER LOGIC ---
             String nbtString = stack.getNbt().getCompound("Tiered").asString();
             for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
                 if (!TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack) && TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(nbtString)) {
@@ -107,26 +109,24 @@ public abstract class HandledScreenMixin extends Screen {
                 } else if (TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack)) {
                     List<Text> text = Screen.getTooltipFromItem(client, stack);
 
-
-                    int wrapWidth = 300; // Wider width for icons/titles
+                    // FIX: SMART WRAP LINES MANUALLY (Repeated for standard logic)
+                    List<TooltipComponent> list = new ArrayList<>();
+                    int wrapWidth = 300;
 
                     for (int k = 0; k < text.size(); k++) {
                         Text t = text.get(k);
                         int width = this.textRenderer.getWidth(t);
 
-                        // 1. Don't wrap Titles (Index 0).
-                        // 2. Only wrap lines that are excessively long (> 300px).
                         if (k == 0 || width <= wrapWidth) {
                             list.add(TooltipComponent.of(t.asOrderedText()));
                         } else {
-                            // Only wrap long descriptions
                             List<OrderedText> wrapped = this.textRenderer.wrapLines(t, wrapWidth);
                             for (OrderedText line : wrapped) {
                                 list.add(TooltipComponent.of(line));
                             }
                         }
                     }
-                    // ---------------------------------------
+                    // END FIX
 
                     stack.getTooltipData().ifPresent(data -> {
                         if (list.size() > 1) {
