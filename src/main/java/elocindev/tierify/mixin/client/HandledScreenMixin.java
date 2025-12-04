@@ -16,6 +16,7 @@ import elocindev.tierify.Tierify;
 import elocindev.tierify.util.TieredTooltip;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendering.v1.TooltipComponentCallback;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -48,17 +49,15 @@ public abstract class HandledScreenMixin extends Screen {
                     // Matches the perfect decider defined in TooltipBorderLoader
                     if (template.containsDecider("{BorderTier:\"tiered:perfect\"}")) {
 
-                        // Register this stack to this template
                         if (!template.containsStack(stack)) {
                             template.addStack(stack);
                         }
 
-                        // Render directly with perfect border
                         List<Text> text = Screen.getTooltipFromItem(client, stack);
                         
-                        // FIX: SMART WRAP LINES MANUALLY
+                        // FIX: WRAP WIDTH 350
                         List<TooltipComponent> list = new ArrayList<>();
-                        int wrapWidth = 300;
+                        int wrapWidth = 350;
 
                         for (int k = 0; k < text.size(); k++) {
                             Text t = text.get(k);
@@ -73,7 +72,6 @@ public abstract class HandledScreenMixin extends Screen {
                                 }
                             }
                         }
-                        // END FIX
 
                         stack.getTooltipData().ifPresent(data -> {
                             if (list.size() > 1) {
@@ -82,6 +80,9 @@ public abstract class HandledScreenMixin extends Screen {
                                 list.add(TooltipComponent.of(data));
                             }
                         });
+
+                        // FIX: RESTORE ICONS
+                        TooltipComponentCallback.EVENT.invoker().getTooltipComponents(stack, list);
 
                         TieredTooltip.renderTieredTooltipFromComponents(
                                 context,
@@ -109,9 +110,9 @@ public abstract class HandledScreenMixin extends Screen {
                 } else if (TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack)) {
                     List<Text> text = Screen.getTooltipFromItem(client, stack);
 
-                    // FIX: SMART WRAP LINES MANUALLY (Repeated for standard logic)
+                    // FIX: WRAP WIDTH 350
                     List<TooltipComponent> list = new ArrayList<>();
-                    int wrapWidth = 300;
+                    int wrapWidth = 350;
 
                     for (int k = 0; k < text.size(); k++) {
                         Text t = text.get(k);
@@ -126,7 +127,6 @@ public abstract class HandledScreenMixin extends Screen {
                             }
                         }
                     }
-                    // END FIX
 
                     stack.getTooltipData().ifPresent(data -> {
                         if (list.size() > 1) {
@@ -135,6 +135,9 @@ public abstract class HandledScreenMixin extends Screen {
                             list.add(TooltipComponent.of(data));
                         }
                     });
+
+                    // FIX: RESTORE ICONS
+                    TooltipComponentCallback.EVENT.invoker().getTooltipComponents(stack, list);
 
                     TieredTooltip.renderTieredTooltipFromComponents(context, this.textRenderer, list, x, y, HoveredTooltipPositioner.INSTANCE, TierifyClient.BORDER_TEMPLATES.get(i));
 
