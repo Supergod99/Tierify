@@ -31,20 +31,18 @@ public class DrawContextMixin {
     @Final
     private MinecraftClient client;
 
-    // 1. Capture the stack when drawItemTooltip is called (Standard rendering)
+    // 1. Capture for non-inventory tooltips (Creative menu, etc)
     @Inject(method = "drawItemTooltip", at = @At("HEAD"))
     private void captureStack(TextRenderer textRenderer, ItemStack stack, int x, int y, CallbackInfo info) {
         TierifyClient.CURRENT_TOOLTIP_STACK = stack;
     }
 
-    // 2. Clear it afterwards
     @Inject(method = "drawItemTooltip", at = @At("RETURN"))
     private void releaseStack(TextRenderer textRenderer, ItemStack stack, int x, int y, CallbackInfo info) {
         TierifyClient.CURRENT_TOOLTIP_STACK = ItemStack.EMPTY;
     }
 
-    // 3. Intercept the LOW-LEVEL drawTooltip. This receives the FINAL list of components
-    //    (including Icons and Separators added by other mods).
+    // 2. Render Interception
     @Inject(method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;IILnet/minecraft/client/gui/tooltip/TooltipPositioner;)V", 
             at = @At("HEAD"), cancellable = true)
     private void drawTooltipMixin(TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, TooltipPositioner positioner, CallbackInfo info) {
@@ -55,10 +53,9 @@ public class DrawContextMixin {
             
             NbtCompound tieredTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             
-            // Only proceed if the item actually has Tiered NBT data
             if (tieredTag != null) {
                 
-                // --- 1. PERFECT TIER OVERRIDE ---
+                // --- PERFECT TIER CHECK ---
                 if (tieredTag.getBoolean("Perfect")) {
                     String perfectKey = "{BorderTier:\"tiered:perfect\"}";
                     
@@ -79,8 +76,7 @@ public class DrawContextMixin {
                     }
                 }
 
-                // We construct the lookup key manually to match the JSON loader format exactly: {Tier:"tiered:id"}
-                // This avoids NBT string mismatches caused by extra data (like "Perfect":true or repair cost)
+                // --- STANDARD TIER CHECK ---
                 String tierId = tieredTag.getString(Tierify.NBT_SUBTAG_DATA_KEY);
                 String lookupKey = "{Tier:\"" + tierId + "\"}";
 
