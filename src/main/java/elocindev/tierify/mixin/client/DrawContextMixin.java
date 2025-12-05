@@ -43,87 +43,69 @@ public class DrawContextMixin {
         TierifyClient.CURRENT_TOOLTIP_STACK = ItemStack.EMPTY;
     }
 
+    // --- TARGET 1: The standard method (Vanilla uses this) ---
     @Inject(method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;IILnet/minecraft/client/gui/tooltip/TooltipPositioner;)V", 
             at = @At("HEAD"), cancellable = true)
-    private void drawTooltipMixin(TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, TooltipPositioner positioner, CallbackInfo info) {
-        
-        ItemStack stack = TierifyClient.CURRENT_TOOLTIP_STACK;
-        boolean debug = false; // Toggle this if spam is too much, but we need it once.
+    private void drawTooltipWithPositioner(TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, TooltipPositioner positioner, CallbackInfo info) {
+        handleTooltipRender(textRenderer, components, x, y, positioner, info);
+    }
 
-        // --- FAIL-SAFE & DEBUGGING ---
+    // --- TARGET 2: The simple method (Mods often use this) ---
+    @Inject(method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;II)V", 
+            at = @At("HEAD"), cancellable = true)
+    private void drawTooltipSimple(TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, CallbackInfo info) {
+        // We pass 'null' for the positioner, the renderer handles this gracefully
+        handleTooltipRender(textRenderer, components, x, y, null, info);
+    }
+
+    // --- SHARED LOGIC ---
+    private void handleTooltipRender(TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, TooltipPositioner positioner, CallbackInfo info) {
+        ItemStack stack = TierifyClient.CURRENT_TOOLTIP_STACK;
+
+        // FAIL-SAFE: Active Retrieval if stack is missing
         if ((stack == null || stack.isEmpty()) && this.client.currentScreen instanceof HandledScreen) {
             HandledScreenAccessor screen = (HandledScreenAccessor) this.client.currentScreen;
             Slot focused = screen.getFocusedSlot();
             if (focused != null && focused.hasStack()) {
                 stack = focused.getStack();
-                debug = true; // Only debug if we actually found something interesting
             }
         }
 
-        if (debug) System.out.println("[Tierify Debug] Mixin Fired. Stack found: " + (stack != null ? stack.getName().getString() : "NULL"));
-
         if (Tierify.CLIENT_CONFIG.tieredTooltip && stack != null && !stack.isEmpty()) {
-            
             NbtCompound tieredTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             
-            if (debug) System.out.println("[Tierify Debug] Tiered Tag Present: " + (tieredTag != null) + " | Tag: " + tieredTag);
-
             if (tieredTag != null) {
-                
-                // --- 1. PERFECT TIER CHECK ---
-                boolean isPerfect = tieredTag.getBoolean("Perfect");
-                if (debug && isPerfect) System.out.println("[Tierify Debug] Item is Perfect. Checking templates...");
-
-                if (isPerfect) {
+                // Check Perfect
+                if (tieredTag.getBoolean("Perfect")) {
                     String perfectKey = "{BorderTier:\"tiered:perfect\"}";
-                    
-                    for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
-                        if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(perfectKey)) {
-                            if (debug) System.out.println("[Tierify Debug] Perfect Template MATCHED at index " + i + ". Rendering...");
-                            
-                            TieredTooltip.renderTieredTooltipFromComponents(
-                                (DrawContext) (Object) this, 
-                                textRenderer, 
-                                components, 
-                                x, 
-                                y, 
-                                positioner, 
-                                TierifyClient.BORDER_TEMPLATES.get(i)
-                            );
-                            info.cancel(); 
-                            return;
-                        }
-                    }
-                    if (debug) System.out.println("[Tierify Debug] Item was Perfect, but NO TEMPLATE matched key: " + perfectKey);
+                    attemptRender(perfectKey, textRenderer, components, x, y, positioner, info);
+                    if (info.isCancelled()) return;
                 }
 
-                // --- 2. STANDARD TIER CHECK ---
+                // Check Standard
                 String tierId = tieredTag.getString(Tierify.NBT_SUBTAG_DATA_KEY);
                 String lookupKey = "{Tier:\"" + tierId + "\"}";
-                
-                if (debug) System.out.println("[Tierify Debug] Looking for Standard Tier Key: " + lookupKey);
-
-                for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
-                    if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(lookupKey)) {
-                        if (debug) System.out.println("[Tierify Debug] Standard Template MATCHED at index " + i);
-                        
-                        TieredTooltip.renderTieredTooltipFromComponents(
-                            (DrawContext) (Object) this, 
-                            textRenderer, 
-                            components, 
-                            x, 
-                            y, 
-                            positioner, 
-                            TierifyClient.BORDER_TEMPLATES.get(i)
-                        );
-                        info.cancel(); 
-                        return;
-                    }
-                }
-                if (debug) System.out.println("[Tierify Debug] NO TEMPLATE matched Standard Key: " + lookupKey);
+                attemptRender(lookupKey, textRenderer, components, x, y, positioner, info);
             }
-        } else {
-             // Often fires for air or empty slots, don't spam console here unless necessary
+        }
+    }
+
+    private void attemptRender(String key, TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, TooltipPositioner positioner, CallbackInfo info) {
+        for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
+            if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(key)) {
+                // The renderer will handle layout, spacing, and the border
+                TieredTooltip.renderTieredTooltipFromComponents(
+                    (DrawContext) (Object) this, 
+                    textRenderer, 
+                    components, 
+                    x, 
+                    y, 
+                    positioner, 
+                    TierifyClient.BORDER_TEMPLATES.get(i)
+                );
+                info.cancel(); // Stop vanilla render
+                return;
+            }
         }
     }
 }
