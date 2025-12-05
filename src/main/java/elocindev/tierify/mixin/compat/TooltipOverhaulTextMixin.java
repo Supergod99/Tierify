@@ -4,8 +4,8 @@ import dev.xylonity.tooltipoverhaul.client.style.text.DefaultText;
 import elocindev.tierify.screen.client.component.PerfectTierComponent;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
-
-import net.minecraft.util.math.Vec2f; 
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.util.math.Vec2f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -19,19 +19,24 @@ public class TooltipOverhaulTextMixin {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/tooltip/TooltipComponent;drawText(Lnet/minecraft/client/font/TextRenderer;IILorg/joml/Matrix4f;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;)V"
+            // We use the Intermediary signature here. 
+            // class_5684 = TooltipComponent
+            // method_32665 = drawText
+            // class_327 = TextRenderer
+            // class_4597$class_4598 = VertexConsumerProvider$Immediate
+            target = "Lnet/minecraft/class_5684;method_32665(Lnet/minecraft/class_327;IILorg/joml/Matrix4f;Lnet/minecraft/class_4597$class_4598;)V",
+            remap = true
         )
     )
     private void tierify$centerPerfectLabel(TooltipComponent instance, 
                                             TextRenderer textRenderer, 
                                             int x, int y, 
                                             org.joml.Matrix4f matrix, 
-                                            net.minecraft.client.render.VertexConsumerProvider.Immediate vertexConsumers, 
-
+                                            VertexConsumerProvider.Immediate vertexConsumers, 
                                             dev.xylonity.tooltipoverhaul.client.layer.LayerDepth depth, 
                                             dev.xylonity.tooltipoverhaul.client.TooltipContext ctx, 
                                             Vec2f pos, 
-                                            Point size) { 
+                                            Point size) {
         
         int drawX = x;
         
