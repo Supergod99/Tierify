@@ -91,8 +91,13 @@ public class DrawContextMixin {
     }
 
     private void attemptRender(String key, TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, TooltipPositioner positioner, CallbackInfo info) {
+        
+        if (TierifyClient.BORDER_TEMPLATES == null) return; // Crash protection
+
         for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
-            if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(key)) {
+            if (TierifyClient.BORDER_TEMPLATES.get(i) != null && 
+                TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(key)) {
+                
                 // The renderer will handle layout, spacing, and the border
                 TieredTooltip.renderTieredTooltipFromComponents(
                     (DrawContext) (Object) this, 
@@ -103,7 +108,7 @@ public class DrawContextMixin {
                     positioner, 
                     TierifyClient.BORDER_TEMPLATES.get(i)
                 );
-                info.cancel(); // Stop vanilla render
+                info.cancel(); // Stop vanilla/other mod render
                 return;
             }
         }
