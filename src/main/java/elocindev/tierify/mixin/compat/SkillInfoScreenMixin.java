@@ -21,13 +21,15 @@ import net.minecraft.text.Text;
 @Mixin(SkillInfoScreen.class)
 public class SkillInfoScreenMixin {
 
-    @Shadow
+    @Shadow(remap = false) 
     @Mutable
     @Final
     private String title;
-    @Shadow
+
+    @Shadow(remap = false) 
     private Text translatableText1A = null;
-    @Shadow
+
+    @Shadow(remap = false) 
     private Text translatableText1B = null;
 
     @Inject(method = "Lnet/levelz/screen/SkillInfoScreen;init()V", at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z", ordinal = 0, shift = Shift.BEFORE))
