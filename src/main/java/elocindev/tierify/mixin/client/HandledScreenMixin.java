@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import elocindev.tierify.Tierify;
 import elocindev.tierify.TierifyClient;
 import elocindev.tierify.util.TieredTooltip;
-// Removed the bad import here
+// Removed the bad import for BorderTemplate
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -22,6 +22,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
 import net.minecraft.client.gui.tooltip.TooltipPositioner;
+import net.minecraft.client.gui.tooltip.HoveredTooltipPositioner; // NEW IMPORT
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -57,7 +58,7 @@ public abstract class HandledScreenMixin extends Screen {
     @Inject(method = "render", at = @At("RETURN"))
     private void renderTierifyOverlay(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo info) {
         
-        // Safety Check 1: Ensure Client/Player exists (Fixes Reforge Crash)
+        // Safety Check 1: Ensure Client/Player exists
         if (this.client == null || this.client.player == null) return;
         
         if (this.focusedSlot == null || !this.focusedSlot.hasStack()) return;
@@ -96,8 +97,7 @@ public abstract class HandledScreenMixin extends Screen {
             if (TierifyClient.BORDER_TEMPLATES == null) return;
 
             for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
-                // We access the list directly here instead of assigning it to a typed variable
-                // This avoids needing the import for 'BorderTemplate'
+                // Safety Check for null entries in the template list
                 if (TierifyClient.BORDER_TEMPLATES.get(i) != null && 
                     TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(lookupKey)) {
                     
@@ -110,7 +110,7 @@ public abstract class HandledScreenMixin extends Screen {
                         components, 
                         x, 
                         y, 
-                        (TooltipPositioner)null, 
+                        HoveredTooltipPositioner.INSTANCE, // FIXED: No more NULL
                         TierifyClient.BORDER_TEMPLATES.get(i)
                     );
                     
