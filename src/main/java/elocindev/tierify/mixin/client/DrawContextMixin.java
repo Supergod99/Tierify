@@ -1,7 +1,6 @@
 package elocindev.tierify.mixin.client;
 
 import java.util.List;
-
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -21,6 +20,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
 import net.minecraft.client.gui.tooltip.TooltipPositioner;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 
 @Environment(EnvType.CLIENT)
 @Mixin(DrawContext.class)
@@ -51,15 +51,41 @@ public class DrawContextMixin {
         
         ItemStack stack = TierifyClient.CURRENT_TOOLTIP_STACK;
 
-        if (Tierify.CLIENT_CONFIG.tieredTooltip && stack != null && !stack.isEmpty() && stack.hasNbt() && stack.getNbt().contains("Tiered")) {
-            String nbtString = stack.getNbt().getCompound("Tiered").asString();
+        if (Tierify.CLIENT_CONFIG.tieredTooltip && stack != null && !stack.isEmpty()) {
             
-            // Check for Perfect Tier Override
-            if (stack.getNbt().getCompound("Tiered").getBoolean("Perfect")) {
-                 for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
-                    if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider("{BorderTier:\"tiered:perfect\"}")) {
-                        TierifyClient.BORDER_TEMPLATES.get(i).addStack(stack);
-                        
+            NbtCompound tieredTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+            
+            // Only proceed if the item actually has Tiered NBT data
+            if (tieredTag != null) {
+                
+                // --- 1. PERFECT TIER OVERRIDE ---
+                if (tieredTag.getBoolean("Perfect")) {
+                    String perfectKey = "{BorderTier:\"tiered:perfect\"}";
+                    
+                    for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
+                        if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(perfectKey)) {
+                            TieredTooltip.renderTieredTooltipFromComponents(
+                                (DrawContext) (Object) this, 
+                                textRenderer, 
+                                components, 
+                                x, 
+                                y, 
+                                positioner, 
+                                TierifyClient.BORDER_TEMPLATES.get(i)
+                            );
+                            info.cancel();
+                            return;
+                        }
+                    }
+                }
+
+                // We construct the lookup key manually to match the JSON loader format exactly: {Tier:"tiered:id"}
+                // This avoids NBT string mismatches caused by extra data (like "Perfect":true or repair cost)
+                String tierId = tieredTag.getString(Tierify.NBT_SUBTAG_DATA_KEY);
+                String lookupKey = "{Tier:\"" + tierId + "\"}";
+
+                for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
+                    if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(lookupKey)) {
                         TieredTooltip.renderTieredTooltipFromComponents(
                             (DrawContext) (Object) this, 
                             textRenderer, 
@@ -72,30 +98,6 @@ public class DrawContextMixin {
                         info.cancel();
                         return;
                     }
-                 }
-            }
-
-            // Standard Tiers
-            for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
-                boolean matchesDecider = !TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack) 
-                                         && TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(nbtString);
-                boolean matchesStack = TierifyClient.BORDER_TEMPLATES.get(i).containsStack(stack);
-
-                if (matchesDecider) {
-                    TierifyClient.BORDER_TEMPLATES.get(i).addStack(stack);
-                } 
-                else if (matchesStack) {
-                    TieredTooltip.renderTieredTooltipFromComponents(
-                        (DrawContext) (Object) this, 
-                        textRenderer, 
-                        components, // Pass the original components list (preserving icons/separators)
-                        x, 
-                        y, 
-                        positioner, 
-                        TierifyClient.BORDER_TEMPLATES.get(i)
-                    );
-                    info.cancel();
-                    break;
                 }
             }
         }
