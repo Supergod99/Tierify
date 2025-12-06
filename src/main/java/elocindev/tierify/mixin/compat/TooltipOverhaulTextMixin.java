@@ -26,6 +26,7 @@ public class TooltipOverhaulTextMixin {
      * * Fabric Name: net.minecraft.client.font.TextRenderer
      * Forge Name:  net.minecraft.client.gui.Font
      */
+    /*
     @Redirect(
         method = "render(Ldev/xylonity/tooltipoverhaul/client/layer/LayerDepth;Ldev/xylonity/tooltipoverhaul/client/TooltipContext;Lnet/minecraft/util/math/Vec2f;Ljava/awt/Point;Lnet/minecraft/text/Text;Lnet/minecraft/client/font/TextRenderer;)V",
         at = @At(
@@ -64,4 +65,5 @@ public class TooltipOverhaulTextMixin {
 
         return originalX;
     }
+     */
 }
