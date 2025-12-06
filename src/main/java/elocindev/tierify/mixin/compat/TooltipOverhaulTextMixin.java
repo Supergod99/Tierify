@@ -18,12 +18,19 @@ import java.awt.Point;
 @Mixin(DefaultText.class)
 public class TooltipOverhaulTextMixin {
 
-
+    /**
+     * TARGETING FIX FOR SINYTRA CONNECTOR:
+     * We manually specify the FORGE/MOJANG class names in the target string.
+     * * Fabric Name: net.minecraft.client.gui.tooltip.TooltipComponent
+     * Forge Name:  net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
+     * * Fabric Name: net.minecraft.client.font.TextRenderer
+     * Forge Name:  net.minecraft.client.gui.Font
+     */
     @Redirect(
         method = "render(Ldev/xylonity/tooltipoverhaul/client/layer/LayerDepth;Ldev/xylonity/tooltipoverhaul/client/TooltipContext;Lnet/minecraft/util/math/Vec2f;Ljava/awt/Point;Lnet/minecraft/text/Text;Lnet/minecraft/client/font/TextRenderer;)V",
         at = @At(
             value = "INVOKE",
-            target = "Ldev/xylonity/tooltipoverhaul/util/Util;getTitleAlignmentX(IILjava/awt/Point;Lnet/minecraft/class_5684;Lnet/minecraft/class_327;Ldev/xylonity/tooltipoverhaul/client/TooltipContext;)I"
+            target = "Ldev/xylonity/tooltipoverhaul/util/Util;getTitleAlignmentX(IILjava/awt/Point;Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipComponent;Lnet/minecraft/client/gui/Font;Ldev/xylonity/tooltipoverhaul/client/TooltipContext;)I"
         )
     )
     private int tierify$modifyTitleAlignment(
@@ -41,7 +48,7 @@ public class TooltipOverhaulTextMixin {
             Text rarity,
             TextRenderer capturedFont
     ) {
-        // 1. Run the original logic
+        // 1. Run the original logic using the standard Fabric method call (Connector handles the runtime bridging here)
         int originalX = Util.getTitleAlignmentX(x, y, containerSize, component, fontRenderer, context);
 
         // 2. Custom "Perfect" Tier Logic
