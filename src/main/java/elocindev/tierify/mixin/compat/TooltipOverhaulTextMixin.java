@@ -16,6 +16,7 @@ import java.awt.Point;
 @Mixin(DefaultText.class)
 public class TooltipOverhaulTextMixin {
 
+
     @Redirect(
         method = "render(Ldev/xylonity/tooltipoverhaul/client/layer/LayerDepth;Ldev/xylonity/tooltipoverhaul/client/TooltipContext;Lnet/minecraft/util/math/Vec2f;Ljava/awt/Point;Lnet/minecraft/text/Text;Lnet/minecraft/client/font/TextRenderer;)V",
         at = @At(
@@ -38,8 +39,13 @@ public class TooltipOverhaulTextMixin {
 
         int originalX = Util.getTitleAlignmentX(ctx, containerWidth, textWidth);
 
+ 
+        if (rarity == null) {
+            return originalX;
+        }
 
-        if (rarity != null && rarity.getString().contains("Perfect")) {
+
+        if (rarity.getString().contains("Perfect")) {
             
 
             int absoluteLeft = (int) pos.x;
