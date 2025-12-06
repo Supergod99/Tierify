@@ -18,18 +18,18 @@ import java.awt.Point;
 @Mixin(DefaultText.class)
 public class TooltipOverhaulTextMixin {
 
-    // Strategy: Intercept the X-coordinate calculation.
-    // The target method signature is derived from your compile error log:
-    // (int, int, Point, TooltipComponent, TextRenderer, TooltipContext)
     @Redirect(
         method = "render(Ldev/xylonity/tooltipoverhaul/client/layer/LayerDepth;Ldev/xylonity/tooltipoverhaul/client/TooltipContext;Lnet/minecraft/util/math/Vec2f;Ljava/awt/Point;Lnet/minecraft/text/Text;Lnet/minecraft/client/font/TextRenderer;)V",
         at = @At(
             value = "INVOKE",
-            target = "Ldev/xylonity/tooltipoverhaul/util/Util;getTitleAlignmentX(IILjava/awt/Point;Lnet/minecraft/client/gui/tooltip/TooltipComponent;Lnet/minecraft/client/font/TextRenderer;Ldev/xylonity/tooltipoverhaul/client/TooltipContext;)I"
+            // FIX: Removed the complex signature "(IILjava/awt/Point;...)" 
+            // We only specify the owner and the name. Mixin will match it by name, ignoring the mismatched class mappings.
+            target = "Ldev/xylonity/tooltipoverhaul/util/Util;getTitleAlignmentX"
         )
     )
     private int tierify$modifyTitleAlignment(
             // Arguments passed to Util.getTitleAlignmentX
+            // These MUST match the types the compiler asked for (from your previous error log)
             int x, 
             int y, 
             Point containerSize, 
@@ -37,7 +37,7 @@ public class TooltipOverhaulTextMixin {
             TextRenderer fontRenderer, 
             TooltipContext context,
             
-            // Captured locals from the render method (we need 'pos' for absolute coordinates)
+            // Captured locals from the render method
             LayerDepth depth,
             TooltipContext capturedCtx,
             Vec2f pos,
@@ -45,10 +45,12 @@ public class TooltipOverhaulTextMixin {
             Text rarity,
             TextRenderer capturedFont
     ) {
-        // 1. Calculate default behavior
+        // 1. Calculate default behavior (so standard items are not broken)
         int originalX = Util.getTitleAlignmentX(x, y, containerSize, component, fontRenderer, context);
 
-        // 2. Check if this is the "Perfect" component
+        // 2. Check if this is your custom "Perfect" component
+        // Since we are intercepting the calculation BEFORE drawing, your custom component
+        // will still handle the rendering (keeping your stars, gradients, and scaling intact).
         if (component instanceof PerfectTierComponent) {
             
             // 3. Force Center Alignment
@@ -57,7 +59,7 @@ public class TooltipOverhaulTextMixin {
             int containerWidth = containerSize.x;
             int componentWidth = component.getWidth(fontRenderer);
             
-            // Recalculate center
+            // Calculate the absolute centered position
             return absoluteLeft + (containerWidth - componentWidth) / 2;
         }
 
