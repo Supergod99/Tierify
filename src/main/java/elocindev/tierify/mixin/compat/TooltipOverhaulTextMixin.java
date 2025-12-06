@@ -7,7 +7,8 @@ import elocindev.tierify.screen.client.component.PerfectTierComponent;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.class_241; // This is Vec2f/Vector2f in Mojang mappings
+import net.minecraft.util.math.Vec2f; // CORRECT IMPORT (was class_241)
+import net.minecraft.text.Text; // CORRECT IMPORT (was class_2561)
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,13 +19,13 @@ import java.awt.Point;
 @Mixin(DefaultText.class)
 public class TooltipOverhaulTextMixin {
 
-    // Targetting: component.method_32665(font, x, y, ...);
-    // In Yarn: TooltipComponent.drawText(TextRenderer, int, int, Matrix4f, VertexConsumerProvider.Immediate)
+    // We update the signature string to use the real mapped names (Vec2f, Text, etc.)
+    // instead of class_241, so the compiler can find the target method in your dev environment.
     @Redirect(
-        method = "render(Ldev/xylonity/tooltipoverhaul/client/layer/LayerDepth;Ldev/xylonity/tooltipoverhaul/client/TooltipContext;Lnet/minecraft/class_241;Ljava/awt/Point;Lnet/minecraft/class_2561;Lnet/minecraft/class_327;)V",
+        method = "render(Ldev/xylonity/tooltipoverhaul/client/layer/LayerDepth;Ldev/xylonity/tooltipoverhaul/client/TooltipContext;Lnet/minecraft/util/math/Vec2f;Ljava/awt/Point;Lnet/minecraft/text/Text;Lnet/minecraft/client/font/TextRenderer;)V",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/tooltip/TooltipComponent;method_32665(Lnet/minecraft/client/font/TextRenderer;IILorg/joml/Matrix4f;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;)V"
+            target = "Lnet/minecraft/client/gui/tooltip/TooltipComponent;drawText(Lnet/minecraft/client/font/TextRenderer;IILorg/joml/Matrix4f;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;)V"
         )
     )
     private void tierify$centerPerfectLabel(
@@ -33,30 +34,30 @@ public class TooltipOverhaulTextMixin {
             int x, int y,
             Matrix4f matrix,
             VertexConsumerProvider.Immediate vertexConsumers,
-            // Captured locals from the render method
+            // Captured locals
             LayerDepth depth,
             TooltipContext ctx,
-            class_241 pos, // This is the 'pos' argument from render()
-            Point size // This is the 'size' argument from render()
+            Vec2f pos, // CORRECT TYPE
+            Point size,
+            Text rarity, // Added to match the 'render' method signature we defined above
+            TextRenderer font // Added to match the 'render' method signature we defined above
     ) {
         int drawX = x;
 
-        // Check if this component is our special "Perfect" tier label
         if (instance instanceof PerfectTierComponent) {
-            // size.x is the width of the entire tooltip background
-            // pos.field_1343 is the X coordinate (float)
+            // size.x is width of the tooltip background
+            // pos.x is the absolute X position
             
             int tooltipWidth = size.x;
             int componentWidth = instance.getWidth(textRenderer);
             
             // Calculate absolute left edge of the tooltip
-            int absoluteLeft = (int) pos.field_1343;
+            int absoluteLeft = (int) pos.x;
             
-            // Center the text: Left + (TotalWidth - TextWidth) / 2
+            // Center formula: Left + (TotalWidth - ComponentWidth) / 2
             drawX = absoluteLeft + (tooltipWidth - componentWidth) / 2;
         }
 
-        // Proceed with the original draw call using our (potentially modified) X
         instance.drawText(textRenderer, drawX, y, matrix, vertexConsumers);
     }
 }
