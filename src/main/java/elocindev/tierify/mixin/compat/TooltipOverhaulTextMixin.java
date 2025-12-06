@@ -19,13 +19,12 @@ import java.awt.Point;
 @Mixin(DefaultText.class)
 public class TooltipOverhaulTextMixin {
 
-    // Targetting: component.drawText(font, x, y, matrix, vertexConsumers);
-    // FIX: The signature must use the interface 'VertexConsumerProvider', not 'VertexConsumerProvider$Immediate'
+
     @Redirect(
         method = "render(Ldev/xylonity/tooltipoverhaul/client/layer/LayerDepth;Ldev/xylonity/tooltipoverhaul/client/TooltipContext;Lnet/minecraft/util/math/Vec2f;Ljava/awt/Point;Lnet/minecraft/text/Text;Lnet/minecraft/client/font/TextRenderer;)V",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/tooltip/TooltipComponent;drawText(Lnet/minecraft/client/font/TextRenderer;IILorg/joml/Matrix4f;Lnet/minecraft/client/render/VertexConsumerProvider;)V"
+            target = "Lnet/minecraft/client/gui/tooltip/TooltipComponent;drawText(Lnet/minecraft/client/font/TextRenderer;IILorg/joml/Matrix4f;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;)V"
         )
     )
     private void tierify$centerPerfectLabel(
@@ -33,8 +32,8 @@ public class TooltipOverhaulTextMixin {
             TextRenderer textRenderer,
             int x, int y,
             Matrix4f matrix,
-            VertexConsumerProvider vertexConsumers, // FIX: Changed from .Immediate to Interface
-            // Captured locals
+            VertexConsumerProvider vertexConsumers, 
+
             LayerDepth depth,
             TooltipContext ctx,
             Vec2f pos,
@@ -44,22 +43,18 @@ public class TooltipOverhaulTextMixin {
     ) {
         int drawX = x;
 
-        // Check if this component is our special "Perfect" tier label
         if (instance instanceof PerfectTierComponent) {
-            // size.x is the width of the entire tooltip background
-            // pos.x is the absolute X position
-            
             int tooltipWidth = size.x;
             int componentWidth = instance.getWidth(textRenderer);
             
-            // Calculate absolute left edge of the tooltip
+         
             int absoluteLeft = (int) pos.x;
             
-            // Center formula: Left + (TotalWidth - ComponentWidth) / 2
+
             drawX = absoluteLeft + (tooltipWidth - componentWidth) / 2;
         }
 
-        // Use the interface method
-        instance.drawText(textRenderer, drawX, y, matrix, vertexConsumers);
+      
+        instance.drawText(textRenderer, drawX, y, matrix, (VertexConsumerProvider.Immediate) vertexConsumers);
     }
 }
