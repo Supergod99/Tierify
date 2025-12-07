@@ -32,6 +32,8 @@ import elocindev.tierify.screen.client.widget.AnvilTab;
 import elocindev.tierify.screen.client.widget.ReforgeTab;
 import elocindev.tierify.screen.client.PerfectLabelAnimator;
 import elocindev.tierify.screen.client.TierGradientAnimator;
+import elocindev.tierify.mixin.compat.TooltipRendererAccessor;
+import elocindev.tierify.compat.TierifyBorderLayer;
 
 @Environment(EnvType.CLIENT)
 public class TierifyClient implements ClientModInitializer {
@@ -56,6 +58,14 @@ public class TierifyClient implements ClientModInitializer {
             PerfectLabelAnimator.clientTick();
             TierGradientAnimator.clientTick();
         });
+        
+        try {
+            // Inject our custom border layer into Tooltip Overhaul
+            TooltipRendererAccessor.getLayersMain().add(new TierifyBorderLayer());
+        } catch (Throwable t) {
+            // This safely ignores errors if Tooltip Overhaul is not installed or mixin fails
+            System.out.println("[Tierify] Tooltip Overhaul not found or mixin failed, skipping border layer injection.");
+        }
 
         registerAttributeSyncHandler();
         registerReforgeItemSyncHandler();
