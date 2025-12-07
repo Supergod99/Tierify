@@ -70,14 +70,14 @@ public class TierifyBorderLayer implements ITooltipLayer {
             
             DrawContext drawContext = ctx.graphics();
             
-            // --- A. Draw Gradient Lines (The "Standard" Border) ---
-            // These connect the corners. We mimic vanilla/Tierify logic here.
-            // Note: TooltipOverhaul coords are usually top-left of the BOX.
+            // --- A. Draw Gradient Lines (The "Connectors") ---
+            // [FIX] Expanded offsets from -3 to -5 to align with the fancy corners.
+            // This pushes the lines outward so they connect with the pixel art.
             
-            int borderX = x - 3;
-            int borderY = y - 3;
-            int borderW = width + 6;
-            int borderH = height + 6;
+            int borderX = x - 5;
+            int borderY = y - 5;
+            int borderW = width + 10;
+            int borderH = height + 10;
 
             // Vertical Left
             drawContext.fillGradient(borderX, borderY + 1, borderX + 1, borderY + borderH - 1, 400, startColor, endColor);
@@ -90,10 +90,10 @@ public class TierifyBorderLayer implements ITooltipLayer {
 
 
             // --- B. Draw Texture Corners & Header (The "Fancy" Bits) ---
+            // These draw at -6, so the -5 lines will sit perfectly inside them.
             int texW = 128;
             int texH = 128;
             
-            // Tierify draws corners slightly outside the box (-6 offset from content x/y)
             int cX = x;
             int cY = y;
             int cW = width;
@@ -109,7 +109,6 @@ public class TierifyBorderLayer implements ITooltipLayer {
             drawContext.drawTexture(texture, cX + cW - 2, cY + cH - 2, 56 + secondHalf * 64, 8 + index * 16, 8, 8, texW, texH);
 
             // Header Plate (Centered "Gem")
-            // Only draw if width is sufficient to not look weird
             if (cW >= 48) {
                  drawContext.drawTexture(texture, cX + (cW / 2) - 24, cY - 9, 8 + secondHalf * 64, 0 + index * 16, 48, 8, texW, texH);
             }
