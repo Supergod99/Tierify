@@ -137,7 +137,7 @@ public class TierifyBorderLayer implements ITooltipLayer {
         float centeredX = bgX + (bgWidth / 2.0f) - ((textWidth * scale) / 2.0f);
         
         // FIX: Moved up to 20.0f (was 24.0f) to center between Title and Description Line
-        float fixedY = bgY + 20.0f; 
+        float fixedY = bgY + 22.0f; 
 
         // LAYER 3: Float the text well above the border
         ctx.push(() -> {
