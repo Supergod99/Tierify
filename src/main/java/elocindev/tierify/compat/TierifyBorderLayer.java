@@ -10,7 +10,7 @@ import elocindev.tierify.TierifyClient;
 import draylar.tiered.api.BorderTemplate;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.util.math.Vec2f; // [FIXED] Was class_241
+import net.minecraft.util.math.Vec2f;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import java.awt.Point;
@@ -42,17 +42,18 @@ public class TierifyBorderLayer implements ITooltipLayer {
 
         if (match == null) return;
 
-        // 4. Geometry Setup
-        int x = (int) pos.x; // [FIXED] Was field_1343
-        int y = (int) pos.y; // [FIXED] Was field_1342
-        int width = size.x;
-        int height = size.y;
+        // 4. Geometry Setup (Variables must be FINAL for Lambda use)
+        final int x = (int) pos.x; 
+        final int y = (int) pos.y; 
+        final int width = size.x;
+        final int height = size.y;
 
-        int index = match.getIndex();
-        int secondHalf = index > 7 ? 1 : 0;
-        if (index > 7) index -= 8;
+        // Calculate index logic without modifying the variable afterwards
+        int rawIndex = match.getIndex();
+        final int secondHalf = rawIndex > 7 ? 1 : 0;
+        final int index = rawIndex > 7 ? rawIndex - 8 : rawIndex;
         
-        Identifier texture = match.getIdentifier();
+        final Identifier texture = match.getIdentifier();
 
         // 5. Draw the Tierify Border
         ctx.push(() -> {
@@ -63,7 +64,7 @@ public class TierifyBorderLayer implements ITooltipLayer {
             int texW = 128;
             int texH = 128;
 
-            // --- Drawing Logic (Copied from your TieredTooltip) ---
+            // --- Drawing Logic ---
             
             // Corners
             drawContext.drawTexture(texture, x - 6, y - 6, 0 + secondHalf * 64, 0 + index * 16, 8, 8, texW, texH);
