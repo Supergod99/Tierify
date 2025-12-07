@@ -29,7 +29,7 @@
     "compat.ModAnvilScreenMixin",
     "compat.TooltipOverhaulFrameMixin",
     "compat.TooltipOverhaulRenderMixin",
-    "compat.TooltipOverhaulTextMixin"
+    "compat.TooltipRendererAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
