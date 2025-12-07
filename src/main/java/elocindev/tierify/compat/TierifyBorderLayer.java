@@ -49,18 +49,15 @@ public class TierifyBorderLayer implements ITooltipLayer {
 
         if (match == null) return;
 
-        // 4. Setup Geometry (Standard Tooltip Bounds)
-        // Tooltip Overhaul content starts at pos.x, pos.y
+        // 4. Setup Geometry
         final int x = (int) pos.x; 
         final int y = (int) pos.y; 
         final int width = size.x;
         final int height = size.y;
 
-        // Calculate Border Colors
         final int startColor = match.getStartGradient();
         final int endColor = match.getEndGradient();
 
-        // Calculate Texture Index
         int rawIndex = match.getIndex();
         final int secondHalf = rawIndex > 7 ? 1 : 0;
         final int index = rawIndex > 7 ? rawIndex - 8 : rawIndex;
@@ -69,69 +66,60 @@ public class TierifyBorderLayer implements ITooltipLayer {
 
         // 5. Draw
         ctx.push(() -> {
-            // Z-Level 3000 draws on top of standard background
+            // Draw on top of the background (Z=3000)
             ctx.translate(0.0f, 0.0f, LayerDepth.BACKGROUND_OVERLAY.getZ());
             
             DrawContext drawContext = ctx.graphics();
             
             // --- A. Draw Gradient Lines (The "Connectors") ---
-            // Replicating logic from TieredTooltip.renderBorder(...)
-            // Original logic uses: i = x - 3, j = y - 3, k = w + 6, l = h + 6
-            
+            // CORRECTION: Reverted to strict TieredTooltip offsets (-3)
             int i = x - 3;
             int j = y - 3;
             int k = width + 6;
             int l = height + 6;
-            
-            // Adjust y for top/bottom lines to match renderHorizontalLine logic (y-1) from original
-            // Original: renderHorizontalLine(..., y - 1, ...) where y passed was j+1. So j.
-            
-            // Vertical Left (at x-3)
-            drawContext.fillGradient(i, j + 1, i + 1, j + l - 1, 400, startColor, endColor);
-            
-            // Vertical Right (at x + width + 2)
-            drawContext.fillGradient(i + k - 1, j + 1, i + k, j + l - 1, 400, startColor, endColor);
-            
-            // Horizontal Top (at y-3)
-            drawContext.fillGradient(i, j, i + k, j + 1, 400, startColor, startColor);
-            
-            // Horizontal Bottom (at y + height + 2)
-            drawContext.fillGradient(i, j + l - 1, i + k, j + l, 400, endColor, endColor);
 
+            // Vertical Left
+            drawContext.fillGradient(i, j + 1, i + 1, j + l - 1, 0, startColor, endColor);
+            // Vertical Right
+            drawContext.fillGradient(i + k - 1, j + 1, i + k, j + l - 1, 0, startColor, endColor);
+            // Horizontal Top
+            drawContext.fillGradient(i, j, i + k, j + 1, 0, startColor, startColor);
+            // Horizontal Bottom
+            drawContext.fillGradient(i, j + l - 1, i + k, j + l, 0, endColor, endColor);
 
-            // --- B. Draw Texture Corners & Header (The "Fancy" Bits) ---
-            // Texture corners are drawn at offsets relative to standard border
-            // Tiered uses: n - 6 (where n is x)
+            // --- B. Draw Texture Corners (The "Fancy" Bits) ---
+            // Move Z up slightly so corners render on top of the lines
+            ctx.translate(0.0f, 0.0f, 1.0f);
+            
             int texW = 128;
             int texH = 128;
-            
-            // Top Left Corner
+
+            // Top Left
             drawContext.drawTexture(texture, x - 6, y - 6, 0 + secondHalf * 64, 0 + index * 16, 8, 8, texW, texH);
-            // Top Right Corner
+            // Top Right
             drawContext.drawTexture(texture, x + width - 2, y - 6, 56 + secondHalf * 64, 0 + index * 16, 8, 8, texW, texH);
-            // Bottom Left Corner
+            // Bottom Left
             drawContext.drawTexture(texture, x - 6, y + height - 2, 0 + secondHalf * 64, 8 + index * 16, 8, 8, texW, texH);
-            // Bottom Right Corner
+            // Bottom Right
             drawContext.drawTexture(texture, x + width - 2, y + height - 2, 56 + secondHalf * 64, 8 + index * 16, 8, 8, texW, texH);
 
-            // Header Plate (Centered "Gem")
+            // Header Plate
             if (width >= 48) {
                  drawContext.drawTexture(texture, x + (width / 2) - 24, y - 9, 8 + secondHalf * 64, 0 + index * 16, 48, 8, texW, texH);
             }
-            
-             // Footer Plate (Centered)
+             // Footer Plate
              if (width >= 48) {
                  drawContext.drawTexture(texture, x + (width / 2) - 24, y + height + 1, 8 + secondHalf * 64, 8 + index * 16, 48, 8, texW, texH);
             }
 
             // --- C. Animated Perfect Overlay (Glow) ---
-            // This applies the pulsing effect to the corners we just drew
+            // Use your provided renderer. Translate Z up again so glow sits on top of corners.
             ctx.push(() -> {
-                ctx.translate(0.0f, 0.0f, 10.0f); // Draw slightly above
+                ctx.translate(0.0f, 0.0f, 1.0f); 
                 PerfectBorderRenderer.renderPerfectBorderOverlay(drawContext, match, x, y, width, height);
             });
 
-            // --- D. Draw "Perfect" Text (Self-Centering) ---
+            // --- D. Draw "Perfect" Text (Centered) ---
             if (isPerfect) {
                 renderPerfectLabel(ctx, font, x, y, width);
             }
@@ -143,14 +131,14 @@ public class TierifyBorderLayer implements ITooltipLayer {
         float scale = 0.65f;
         int textWidth = font.getWidth(label);
         
-        // Calculate Centered X based on the background width
+        // Center text relative to the tooltip width
         float centeredX = bgX + (bgWidth / 2.0f) - ((textWidth * scale) / 2.0f);
         
-        // Calculate Y: Sit exactly on Line 1 (approx 14px down from top)
+        // Position roughly on the second line
         float fixedY = bgY + 14.0f; 
 
         ctx.push(() -> {
-            ctx.translate(centeredX, fixedY, LayerDepth.BACKGROUND_OVERLAY.getZ() + 20);
+            ctx.translate(centeredX, fixedY, LayerDepth.BACKGROUND_OVERLAY.getZ() + 10);
             ctx.scale(scale, scale, 1.0f);
             ctx.graphics().drawText(font, label, 0, 0, 0xFFFFFF, true);
         });
