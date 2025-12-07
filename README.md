@@ -7,6 +7,8 @@
 
 **4. Adds new, animated gradients to all tiers!**
 
+**5. Compatibility with tooltip overhaul**
+
 The current config has each tier by itself, meaning you will only roll that specific tier. For example, limestone will only ever roll common.
 
 # Tierify
