@@ -19,7 +19,8 @@
     "ItemFrameEntityMixin",
     "MobEntityMixin",
     "ArmorStandEntityMixin",
-    "ArmorItemMixin"
+    "ArmorItemMixin",
+    "EnchantmentHelperMixin"
   ],
   "client": [
     "client.ItemStackClientMixin",
