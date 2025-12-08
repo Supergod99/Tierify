@@ -267,7 +267,51 @@ public abstract class ItemStackClientMixin {
         }
         return original;
     }
+
+    @Inject(method = "getTooltip", at = @At("RETURN"))
+    private void tierify$fixInvertedAttackSpeedText(PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> cir) {
+        List<Text> tooltip = cir.getReturnValue();
+        if (tooltip == null || tooltip.isEmpty()) return;
     
+        double baseSpeed = 4.0; 
+        double addedValue = 0.0;
+        double multiplyBase = 0.0;
+        double multiplyTotal = 0.0;
+    
+        Multimap<EntityAttribute, EntityAttributeModifier> modifiers = this.getAttributeModifiers(EquipmentSlot.MAINHAND);
+    
+        if (modifiers.containsKey(EntityAttributes.GENERIC_ATTACK_SPEED)) {
+            for (EntityAttributeModifier mod : modifiers.get(EntityAttributes.GENERIC_ATTACK_SPEED)) {
+
+                if (mod.getOperation() == EntityAttributeModifier.Operation.ADDITION) {
+                    addedValue += mod.getValue();
+                } else if (mod.getOperation() == EntityAttributeModifier.Operation.MULTIPLY_BASE) {
+                    multiplyBase += mod.getValue();
+                } else if (mod.getOperation() == EntityAttributeModifier.Operation.MULTIPLY_TOTAL) {
+                    multiplyTotal += mod.getValue();
+                }
+            }
+        }
+    
+        double speed = (baseSpeed + addedValue) * (1.0 + multiplyBase) * (1.0 + multiplyTotal);
+    
+        String correctLabel;
+        if (speed >= 3.0) correctLabel = "Very Fast";
+        else if (speed >= 2.0) correctLabel = "Fast";
+        else if (speed >= 1.2) correctLabel = "Medium";
+        else if (speed > 0.6) correctLabel = "Slow"; 
+        else correctLabel = "Very Slow"; 
+    
+        for (int i = 0; i < tooltip.size(); i++) {
+            Text line = tooltip.get(i);
+            String text = line.getString();
+            
+            if (text.contains("Fast") || text.contains("Slow") || text.contains("Medium")) {
+                 tooltip.set(i, replaceSpeedText(line, correctLabel));
+                 break;
+            }
+        }
+    }
     @Shadow
     public Multimap<EntityAttribute, EntityAttributeModifier> getAttributeModifiers(EquipmentSlot slot) {
         return null;
