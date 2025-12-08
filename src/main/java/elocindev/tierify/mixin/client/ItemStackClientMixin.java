@@ -332,7 +332,6 @@ public abstract class ItemStackClientMixin {
         }
         return copy;
     }
-}
     
     @Shadow
     public Multimap<EntityAttribute, EntityAttributeModifier> getAttributeModifiers(EquipmentSlot slot) {
