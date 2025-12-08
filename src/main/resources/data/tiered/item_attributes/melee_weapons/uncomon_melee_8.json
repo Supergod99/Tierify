@@ -90,11 +90,22 @@
             ]
         },
         {
-            "type": "generic.max_health",
+            "type": "generic.armor",
             "modifier": {
                 "name": "tiered:uncomon_melee_8",
                 "operation": "ADDITION",
-                "amount": -2.0
+                "amount": -1.0
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "generic.attack_speed",
+            "modifier": {
+                "name": "tiered:uncomon_melee_8",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.1
             },
             "optional_equipment_slots": [
                 "MAINHAND"
