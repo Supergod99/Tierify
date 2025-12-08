@@ -307,10 +307,36 @@ public abstract class ItemStackClientMixin {
             String text = line.getString();
             
             if (text.contains("Fast") || text.contains("Slow") || text.contains("Medium")) {
-                 tooltip.set(i, replaceSpeedText(line, correctLabel));
+                 tooltip.set(i, replaceSpeedTextRecursively(line, correctLabel));
                  break;
             }
         }
+    }
+
+    private Text replaceSpeedTextRecursively(Text original, String replacementLabel) {
+        
+        MutableText newNode = processSingleNode(original, replacementLabel);
+    
+        for (Text sibling : original.getSiblings()) {
+            newNode.append(replaceSpeedTextRecursively(sibling, replacementLabel));
+        }
+        return newNode;
+    }
+
+    private MutableText processSingleNode(Text node, String replacementLabel) {
+        
+        MutableText copy = node.copyWithoutSiblings();
+        String content = copy.getString(); 
+
+        String[] targets = {"Very Fast", "Very Slow", "Fast", "Slow", "Medium"};
+        
+        for (String target : targets) {
+            if (content.contains(target)) {
+                String newContent = content.replace(target, replacementLabel);
+                return Text.literal(newContent).setStyle(node.getStyle());
+            }
+        }
+        return copy;
     }
     @Shadow
     public Multimap<EntityAttribute, EntityAttributeModifier> getAttributeModifiers(EquipmentSlot slot) {
