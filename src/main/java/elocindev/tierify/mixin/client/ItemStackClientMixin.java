@@ -173,17 +173,14 @@ public abstract class ItemStackClientMixin {
     private MutableText getFormatting(MutableText text, Formatting formatting) {
     
         String raw = text.getString();
-    
         // prevent overriding any animated gradient 
         if (raw.contains("§x")) {
             return text;
         }
-    
         // no override for modded item names
         if (!isTiered) {
             return text.formatted(formatting);
         }
-    
         // Apply Tiered style ONLY to Tiered attribute lines
         Identifier tier = new Identifier(this.getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY)
                 .getString(Tierify.NBT_SUBTAG_DATA_KEY));
@@ -324,8 +321,9 @@ public abstract class ItemStackClientMixin {
     }
 
     private MutableText processSingleNode(Text node, String replacementLabel) {
-        
-        MutableText copy = node.copyWithoutSiblings();
+        MutableText copy = node.copy();
+        copy.getSiblings().clear();
+
         String content = copy.getString(); 
 
         String[] targets = {"Very Fast", "Very Slow", "Fast", "Slow", "Medium"};
