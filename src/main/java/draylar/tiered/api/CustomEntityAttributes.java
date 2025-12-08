@@ -12,7 +12,7 @@ public class CustomEntityAttributes {
     public static final EntityAttribute CRIT_CHANCE = register(new ClampedEntityAttribute("generic.crit_chance", 0.0D, 0.0D, 1D).setTracked(true));
     public static final EntityAttribute DURABLE = register(new ClampedEntityAttribute("generic.durable", 0.0D, 0.0D, 1D).setTracked(true));
     public static final EntityAttribute RANGE_ATTACK_DAMAGE = register(new ClampedEntityAttribute("generic.range_attack_damage", 0.0D, 0.0D, 2048.0D).setTracked(true));
-
+    public static final EntityAttribute FORTUNE = register(new ClampedEntityAttribute("generic.fortune", 0.0D, 0.0D, 100.0D).setTracked(true));
     public static void init() {
         // NO-OP
     }
