@@ -265,6 +265,31 @@
   "tiered:mythic_ranged_7.label": "Ruin of Creation",
   "tiered:mythic_ranged_8.label": "Edict of Annihilation",
 
+  "tiered:common_tool_1.label": "Brisk",
+  "tiered:common_tool_2.label": "Tempered",
+  "tiered:common_tool_3.label": "Extended",
+
+  "tiered:uncomon_tool_1.label": "Haste Forged",
+  "tiered:uncomon_tool_2.label": "Alloy Forged",
+  "tiered:uncomon_tool_3.label": "Farstrike",
+
+  "tiered:rare_tool_1.label": "Vein Splitter",
+  "tiered:rare_tool_2.label": "Adamant Hand",
+  "tiered:rare_tool_3.label": "Horizon Reach",
+
+  "tiered:epic_tool_1.label": "Seismic Artisan",
+  "tiered:epic_tool_2.label": "Forgemaster's Blessing",
+  "tiered:epic_tool_3.label": "Titan's Arm",
+
+  "tiered:legendary_tool_1.label": "Primeval Dig",
+  "tiered:legendary_tool_2.label": "Indomitable Frame",
+  "tiered:legendary_tool_3.label": "Grasp of Giants",
+
+  "tiered:mythic_tool_1.label": "Terra Sunderer",
+  "tiered:mythic_tool_2.label": "Relic of Infinite Use",
+  "tiered:mythic_tool_3.label": "Hand of the Cosmic Delver",
+  
+
   "tiered:common.label": "Common",
   "tiered:uncommon.label": "Uncommon",
   "tiered:rare.label": "Rare",
