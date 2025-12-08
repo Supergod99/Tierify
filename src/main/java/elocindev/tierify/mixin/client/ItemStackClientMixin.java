@@ -293,11 +293,11 @@ public abstract class ItemStackClientMixin {
         double speed = (baseSpeed + addedValue) * (1.0 + multiplyBase) * (1.0 + multiplyTotal);
     
         String correctLabel;
-        if (speed >= 3.0) correctLabel = "Very Fast";
-        else if (speed >= 2.0) correctLabel = "Fast";
-        else if (speed >= 1.2) correctLabel = "Medium";
-        else if (speed > 0.6) correctLabel = "Slow"; 
-        else correctLabel = "Very Slow"; 
+        if (speed >= 3.0) correctLabel = "§2Very Fast";      // Dark Green
+        else if (speed >= 2.0) correctLabel = "§aFast";      // Green
+        else if (speed >= 1.2) correctLabel = "§fMedium";    // White
+        else if (speed > 0.6) correctLabel = "§cSlow";       // Red 
+        else correctLabel = "§4Very Slow";                   // Dark Red 
     
         for (int i = 0; i < tooltip.size(); i++) {
             Text line = tooltip.get(i);
