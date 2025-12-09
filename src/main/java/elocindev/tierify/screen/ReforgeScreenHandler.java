@@ -175,25 +175,33 @@ public class ReforgeScreenHandler extends ScreenHandler {
         return itemStack;
     }
 
-    public void reforge() {
+public void reforge() {
         ItemStack itemStack = this.getSlot(1).getStack();
         ItemStack modifierItem = this.getSlot(2).getStack();
-        ModifierUtils.removeItemStackAttribute(itemStack);
-        
-        if (modifierItem.isIn(TieredItemTags.TIER_CLEANSE)) {
-        } else {
-             ModifierUtils.setItemStackAttribute(player, itemStack, true, modifierItem);
-        }
 
-        if (Registries.SOUND_EVENT.get(getReforgeSound(ModifierUtils.getAttributeID(itemStack))) !=null) {
-            SoundEvent soundEvent = Registries.SOUND_EVENT.get(getReforgeSound(ModifierUtils.getAttributeID(itemStack)));
+        ModifierUtils.removeItemStackAttribute(itemStack);
+
+        if (modifierItem.isIn(TieredItemTags.TIER_CLEANSE)) {
             this.context.run((world, pos) -> {
                 if (!world.isClient) {
-                    world.playSound(null, pos, soundEvent, SoundCategory.BLOCKS, 1f, 1f);
+                    world.playSound(null, pos, net.minecraft.sound.SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.BLOCKS, 1f, 1f);
                 }
             });
+        } else {
+            ModifierUtils.setItemStackAttribute(player, itemStack, true, modifierItem);
+            Identifier tierId = ModifierUtils.getAttributeID(itemStack);
+            if (tierId != null) {
+                Identifier soundId = getReforgeSound(tierId);
+                if (soundId != null && Registries.SOUND_EVENT.containsId(soundId)) {
+                    SoundEvent soundEvent = Registries.SOUND_EVENT.get(soundId);
+                    this.context.run((world, pos) -> {
+                        if (!world.isClient) {
+                            world.playSound(null, pos, soundEvent, SoundCategory.BLOCKS, 1f, 1f);
+                        }
+                    });
+                }
+            }
         }
-
         this.decrementStack(0);
         this.decrementStack(2);
         this.context.run((world, pos) -> world.syncWorldEvent(WorldEvents.ANVIL_USED, (BlockPos) pos, 0));
