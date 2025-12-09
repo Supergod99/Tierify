@@ -1,4 +1,4 @@
-### This Fork does four things currently:
+### This Fork comes with these changes: ###
 **1. Adds 3 more tiers for a total of 6 reforge tiers, effectively allowing you to gate entire tiers behind specific items**
 
 **2. Allows custom reforge names to have spaces or formatting codes in lang (previously would throw error, which caused other problems during reforging)**
@@ -8,6 +8,8 @@
 **4. Adds new, animated gradients to all tiers!**
 
 **5. Compatibility with tooltip overhaul**
+
+**6. Adds a "Cleansing Stone" that can remove any reforge**
 
 The current config has each tier by itself, meaning you will only roll that specific tier. For example, limestone will only ever roll common.
 
