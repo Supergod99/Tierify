@@ -60,7 +60,7 @@ public class TieredTooltip {
             j += tooltipComponent.getHeight();
         }
         
-        // --- VISUAL FIXES ---
+
         i += 8; // Horizontal Padding
         
         int topPadding = 4;
