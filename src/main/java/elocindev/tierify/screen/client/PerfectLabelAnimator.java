@@ -9,67 +9,61 @@ public class PerfectLabelAnimator {
 
     private static final String WORD = "✯Perfect✯";
 
-    // Total cycle: 8 seconds
     private static final float TOTAL_PERIOD_MS = 8000.0f;
 
-    // 5 tiers: Rare, Epic, Legendary, Mythic, Perfect
     private static final int TIER_COUNT = 5;
     private static final float TIER_SLOT_FRACTION = 1.0f / TIER_COUNT; // 0.2
     private static final float TIER_DURATION_MS = TOTAL_PERIOD_MS * TIER_SLOT_FRACTION; // 1600ms
 
-    // Crossfade length: 0.25s per tier window
     private static final float CROSSFADE_MS = 250.0f;
     private static final float CROSSFADE_FRACTION = CROSSFADE_MS / TIER_DURATION_MS;
 
-    // How much the gradient shifts per character (slow drift across letters)
+    // How much the gradient shifts per character
     private static final float CHAR_WAVE_SPACING = 0.12f;
 
-    // --- Tier Gradients (RGB) ---
 
-    // Rare deep blue → cyan pulse
+    // Rare 
     private static final int[] RARE_COLORS = new int[]{
             rgb(80, 150, 255),
             rgb(0, 60, 160),
             rgb(120, 220, 255)
     };
 
-    // Epic purple / magenta wave
+    // Epic
     private static final int[] EPIC_COLORS = new int[]{
             rgb(180, 70, 255),
             rgb(100, 0, 180),
             rgb(230, 150, 255)
     };
 
-    // Legendary hot gold → amber
+    // Legendary 
     private static final int[] LEGENDARY_COLORS = new int[]{
             rgb(255, 180, 0),
             rgb(255, 220, 80),
             rgb(255, 140, 0)
     };
 
-    // Mythic crimson → eldritch magenta
+    // Mythic 
     private static final int[] MYTHIC_COLORS = new int[]{
             rgb(255, 60, 60),
             rgb(180, 0, 80),
             rgb(255, 120, 180)
     };
 
-    // ⭐ PERFECT COLOR SCHEME — Cosmic Aurora
+    //PERFECT 
     private static final int[] PERFECT_COLORS = new int[]{
             rgb(164, 0, 255),   // Electric Violet
             rgb(0, 245, 204),   // Radiant Teal
             rgb(230, 247, 255)  // Starlight Silver
     };
 
-    // ⭐ Star color (new) — Starlight Radiance
+    // Star color 
     private static final int STAR_BASE_COLOR = rgb(212, 240, 255); // #D4F0FF
 
-    // Stronger star pulse so it’s clearly visible
     private static final float STAR_PULSE_MIN = 0.6f;
     private static final float STAR_PULSE_MAX = 1.6f;
 
     public static void clientTick() {
-        // no-op; uses System.currentTimeMillis()
     }
 
     public static MutableText getPerfectLabel() {
@@ -116,7 +110,7 @@ public class PerfectLabelAnimator {
         // Slow gradient drift
         float tierDrift = tierLocalPhase;
 
-        // Star pulse (smooth breathing, now strong enough to see)
+        // Star pulse
         float starPulse = 0.5f - 0.5f * (float) Math.cos(2.0 * Math.PI * cyclePhase);
         float starLum = STAR_PULSE_MIN + (STAR_PULSE_MAX - STAR_PULSE_MIN) * starPulse;
 
@@ -128,12 +122,10 @@ public class PerfectLabelAnimator {
             int rgb;
 
             if (isStar) {
-                // Apply star brightness scaling
                 rgb = scaleColor(STAR_BASE_COLOR, starLum);
             } else {
                 float charPhase = (tierDrift + i * CHAR_WAVE_SPACING) % 1.0f;
                 if (charPhase < 0.0f) charPhase += 1.0f;
-
                 // Color from primary tier
                 int primaryColor = getTierGradientColor(primaryTier, charPhase);
 
@@ -154,8 +146,6 @@ public class PerfectLabelAnimator {
 
         return result;
     }
-
-    // --- Gradient Helpers ---
 
     private static int getTierGradientColor(int tierIndex, float t) {
         t = wrap01(t);
@@ -182,8 +172,6 @@ public class PerfectLabelAnimator {
         }
     }
 
-    // --- RGB Utilities ---
-
     private static int rgb(int r, int g, int b) {
         r &= 0xFF;
         g &= 0xFF;
@@ -192,7 +180,6 @@ public class PerfectLabelAnimator {
     }
 
     private static int scaleColor(int color, float factor) {
-        // Scale each channel by factor, clamp to [0, 255]
         int r = (int) (clamp01(((color >> 16) & 0xFF) * factor / 255f) * 255);
         int g = (int) (clamp01(((color >> 8) & 0xFF) * factor / 255f) * 255);
         int b = (int) (clamp01((color & 0xFF) * factor / 255f) * 255);
@@ -201,7 +188,6 @@ public class PerfectLabelAnimator {
 
     private static int mixColor(int c1, int c2, float t) {
         t = clamp01(t);
-
         int r = (int) (((c1 >> 16) & 0xFF) * (1 - t) + ((c2 >> 16) & 0xFF) * t);
         int g = (int) (((c1 >> 8) & 0xFF) * (1 - t) + ((c2 >> 8) & 0xFF) * t);
         int b = (int) (((c1) & 0xFF) * (1 - t) + ((c2) & 0xFF) * t);
