@@ -35,7 +35,9 @@ dependencies {
 	modImplementation include ('com.fasterxml.jackson.core:jackson-databind:2.15.2')
 	modImplementation include ('com.fasterxml.jackson.core:jackson-annotations:2.15.2')
 	// Tooltip overhaul
-	modImplementation "maven.modrinth:tooltip-overhaul:1.3.0-1.20.1:fabric"
+	modImplementation("curse.maven:tooltip-overhaul-1327508:7096298") {
+    	exclude(group: "net.fabricmc.fabric-api")
+	}
 
 
 	// ModMenu
