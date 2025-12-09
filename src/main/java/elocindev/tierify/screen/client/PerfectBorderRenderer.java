@@ -8,36 +8,22 @@ import net.minecraft.util.Identifier;
 public class PerfectBorderRenderer {
     
     private static boolean loggedOnce = false;
-    // 4 second loop
     private static final long TINT_PERIOD_MS = 4000L;
-    // ~3 second glow pulse
     private static final long GLOW_PERIOD_MS = 3000L;
-
-    // Cosmic palette to match Perfect label:
-    // Electric Violet → Radiant Teal → Starlight Silver
     private static final int COSMIC_1 = 0xA400FF;
     private static final int COSMIC_2 = 0x00F5CC;
     private static final int COSMIC_3 = 0xE6F7FF;
 
-    /**
-     * Renders animated tint + glow overlay for the Perfect border.
-     *
-     * Assumes:
-     *  - The caller pushed the matrix stack and set Z high enough.
-     *  - The base border has already been drawn.
-     */
     public static void renderPerfectBorderOverlay(DrawContext context,
                                                   BorderTemplate borderTemplate,
                                                   int x, int y,
                                                   int width, int height) {
 
-        // Only apply to the Perfect border (index 6 in your tooltip_borders.json)
-        // DEBUG: detect if the overlay is ever triggered
         if (!borderTemplate.containsDecider("{BorderTier:\"tiered:perfect\"}")) {
             return;
         }
         
-        // One-time debug print
+        //debug print
         if (!loggedOnce) {
             System.out.println("[Tierify DEBUG] Perfect border overlay triggered for item!");
             loggedOnce = true;
@@ -48,7 +34,6 @@ public class PerfectBorderRenderer {
 
         long time = System.currentTimeMillis();
 
-        // Recompute border row / half like TieredTooltip
         int border = borderTemplate.getIndex();
         int secondHalf = border > 7 ? 1 : 0;
         if (border > 7) {
@@ -57,18 +42,13 @@ public class PerfectBorderRenderer {
 
         Identifier texture = borderTemplate.getIdentifier();
 
-        // -----------------------------
-        // 1) Animated Cosmic Tint Layer
-        // -----------------------------
         float phase = (time % TINT_PERIOD_MS) / (float) TINT_PERIOD_MS; // 0..1
 
         int tintColor = samplePerfectTint(phase);
         float r = ((tintColor >> 16) & 0xFF) / 255.0f;
         float g = ((tintColor >> 8) & 0xFF) / 255.0f;
         float b = (tintColor & 0xFF) / 255.0f;
-
-        // Make this much stronger so it’s clearly visible
-        float tintStrength = 0.45f; // 45% toward cosmic color
+        float tintStrength = 0.45f; 
 
         RenderSystem.setShaderColor(
                 lerp(1.0f, r, tintStrength),
@@ -77,32 +57,26 @@ public class PerfectBorderRenderer {
                 1.0f
         );
 
-        // Draw tinted overlay (same geometry as base border)
+        // Draw tinted overlay
         drawBorderPieces(context, texture, x, y, width, height, border, secondHalf);
 
         // Reset color
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 
-        // -----------------------------
-        // 2) Stronger Glow Overlay
-        // -----------------------------
         float glowPhase = (time % GLOW_PERIOD_MS) / (float) GLOW_PERIOD_MS;
         float pulse = 0.5f - 0.5f * (float) Math.cos(glowPhase * (float) Math.PI * 2.0f);
-
-        // Much stronger alpha swing so it’s unmissable
-        float alpha = 0.2f + pulse * 0.35f; // 0.2 → 0.55
+        float alpha = 0.2f + pulse * 0.35f; 
 
         RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
-
-        // Glow overlay at same size for now (can expand later if you like)
+        
         drawBorderPieces(context, texture, x, y, width, height, border, secondHalf);
 
-        // Reset & cleanup
+        // Reset and cleanup
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.disableBlend();
     }
 
-    // Draws the 6 border pieces exactly like your TieredTooltip
+    // 6 border pieces
     private static void drawBorderPieces(DrawContext context,
                                          Identifier texture,
                                          int n, int o,
@@ -145,7 +119,7 @@ public class PerfectBorderRenderer {
                 48, 8, texW, texH);
     }
 
-    // Smooth tint over cosmic palette
+    // Smooth tint
     private static int samplePerfectTint(float t) {
         t = wrap01(t);
 
