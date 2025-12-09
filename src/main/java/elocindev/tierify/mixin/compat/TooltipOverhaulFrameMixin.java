@@ -62,14 +62,13 @@ public class TooltipOverhaulFrameMixin {
             
             Optional.of(CustomFrameData.GradientType.CUSTOM), 
             
-            // Keep gradient colors for Divider Line if needed
+            // Keep gradient colors for Divider Line
             Optional.of(List.of(startHex, midHex, endHex)), 
             
             Optional.empty(), // itemRating
             Optional.empty(), // colorItemRating
             Optional.empty(), // ratingAlignment
             
-            // FIX: Force "middle" alignment for ALL tiered items (Common, Rare, Perfect, etc.)
             Optional.of("middle"), // titleAlignment
 
             Optional.empty(), // titlePositionX
