@@ -94,10 +94,13 @@ public class Tierify implements ModInitializer {
     @Override
     public void onInitialize() {
 
-        ServerTickEvents.START_PLAYER_TICK.register(player -> {
-            if (player.age % 20 == 0 && player instanceof ServerPlayerEntity serverPlayer) {
-                SetBonusLogic.updatePlayerSetBonus(serverPlayer);
-            }
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            server.getPlayerManager().getPlayerList().forEach(player -> {
+                // Run logic once per second
+                if (player.age % 20 == 0) {
+                    SetBonusLogic.updatePlayerSetBonus(player);
+                }
+            });
         });
         
         NecConfigAPI.registerConfig(CommonConfig.class);
