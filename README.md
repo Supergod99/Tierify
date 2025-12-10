@@ -1,12 +1,18 @@
 ### This Fork comes with these changes: ###
 
-**1. Adds in over a hundred reforges, each with a downside, and a custom name for each modifier + tier combination.
-2. Adds 3 more tiers for a total of 6 reforge tiers, which gates each tier to a specific reforge item. 
-3. Allows custom modifier names to have spaces or formatting codes in lang 
-4. Adds a "perfect roll" mechanic with a 1% chance, in which a modifier will roll with no downside. It will add "perfect" label below the item and have a unique border
-5. Adds new, animated gradients to all modifiers, each color representing a different tier
-6. Adds a "Cleansing Stone" that can remove any reforge
-7. Changed textures of Pyrite, Limestone, Galena to not infringe on ElocinDev's amazing work.**
+**1. Adds in over a hundred reforges, each with a downside, and a custom name for each modifier + tier combination**
+
+**2. Adds 3 more tiers for a total of 6 reforge tiers, which gates each tier to a specific reforge item**
+
+**3. Allows custom modifier names to have spaces or formatting codes in lang**
+
+**4. Adds a "perfect roll" mechanic with a 1% chance, in which a modifier will roll with no downside. It will add "perfect" label below the item and have a unique border**
+
+**5. Adds new, animated gradients to all modifiers, each color representing a different tier**
+
+**6. Adds a "Cleansing Stone" that can remove any reforge**
+
+**7. Changed textures of Pyrite, Limestone, Galena to not infringe on ElocinDev's amazing work.**
 
 The current config has each tier by itself, meaning you will only roll that specific tier. For example, limestone will only ever roll common.
 
