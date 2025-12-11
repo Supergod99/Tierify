@@ -25,6 +25,7 @@ public abstract class ItemRendererMixin {
     private void renderOverlayMixin(DrawContext context, TextRenderer renderer, ItemStack stack, int x, int y, @Nullable String countLabel, CallbackInfo info) {
         if (stack.hasNbt() && stack.getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY) != null) {
             NbtCompound tierTag = stack.getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY);
+            
 
             String lookupKey;
             if (tierTag.contains("BorderTier")) {
@@ -34,7 +35,7 @@ public abstract class ItemRendererMixin {
             } else {
                 return;
             }
-            
+
             BorderTemplate match = null;
             for (BorderTemplate template : TierifyClient.BORDER_TEMPLATES) {
                 if (template.containsDecider(lookupKey)) {
@@ -42,7 +43,7 @@ public abstract class ItemRendererMixin {
                     break;
                 }
             }
-            
+
             if (match != null) {
                 context.drawTexture(match.getIdentifier(), x, y, 0, 0, 16, 16, 16, 16);
             }
