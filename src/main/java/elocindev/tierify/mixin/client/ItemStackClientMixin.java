@@ -87,14 +87,28 @@ public abstract class ItemStackClientMixin {
                 
                 double value = entry.getValue().getValue();
                 boolean isSetBonus = false;
-
-                // set bonus logic
                 PlayerEntity clientPlayer = MinecraftClient.getInstance().player;
-                if (value > 0 && clientPlayer != null && SetBonusUtils.hasSetBonus(clientPlayer, (ItemStack)(Object)this)) {
-                    value *= 1.25D;  
-                    isSetBonus = true; 
+                
+                if (value > 0 && clientPlayer != null && this.hasNbt()) {
+                    NbtCompound nbt = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+                    if (nbt != null) {
+                        String myTier = nbt.getString(Tierify.NBT_SUBTAG_DATA_KEY);
+                        if (!myTier.isEmpty()) {
+                            int matchCount = 0;
+                            for (ItemStack armor : clientPlayer.getInventory().armor) {
+                                NbtCompound aNbt = armor.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+                                if (aNbt != null && aNbt.getString(Tierify.NBT_SUBTAG_DATA_KEY).equals(myTier)) {
+                                    matchCount++;
+                                }
+                            }
+                            
+                            if (matchCount >= 4) {
+                                value *= 1.25D;  
+                                isSetBonus = true; 
+                            }
+                        }
+                    }
                 }
-
 
                 String format = MODIFIER_FORMAT.format(
                         entry.getValue().getOperation() == EntityAttributeModifier.Operation.MULTIPLY_BASE || entry.getValue().getOperation() == EntityAttributeModifier.Operation.MULTIPLY_TOTAL
@@ -106,7 +120,6 @@ public abstract class ItemStackClientMixin {
                 collect.add(format);                                  
                 collect.add(value > 0.0D);                            
                 collect.add(isSetBonus); 
-
                 map.put(translationKey, collect);
             }
         }
