@@ -213,7 +213,9 @@ public abstract class ItemStackClientMixin {
         target = "Lnet/minecraft/text/MutableText;formatted(Lnet/minecraft/util/Formatting;)Lnet/minecraft/text/MutableText;",
         ordinal = 2))
     private MutableText getFormatting(MutableText text, Formatting formatting) {
-    
+
+        System.out.println("TIERIFY DEBUG: getFormatting called for text: " + text.getString());
+        
         String raw = text.getString();
         if (raw.contains("§x")) {
             return text;
