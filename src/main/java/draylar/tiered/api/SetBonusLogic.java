@@ -21,7 +21,7 @@ public class SetBonusLogic {
     // Unique ID to track our temporary bonus
     private static final UUID SET_BONUS_ID = UUID.fromString("98765432-1234-1234-1234-987654321012");
     private static final String BONUS_NAME = "Tierify Set Bonus";
-
+    
     public static void updatePlayerSetBonus(ServerPlayerEntity player) {
         // Check Chestplate as the "representative" item for the set
         ItemStack chest = player.getEquippedStack(EquipmentSlot.CHEST);
@@ -45,27 +45,23 @@ public class SetBonusLogic {
         for (AttributeTemplate template : attribute.getAttributes()) {
             double baseValue = template.getEntityAttributeModifier().getValue();
 
-            // SAFETY: Only boost positive stats!
+            // Only boost positive stats
             if (baseValue <= 0) continue; 
 
-            EntityAttribute entityAttribute = Registries.ATTRIBUTE.get(new Identifier(template.getAttributeTypeID()));
+            EntityAttribute entityAttribute = net.minecraft.registry.Registries.ATTRIBUTE.get(new Identifier(template.getAttributeTypeID()));
             if (entityAttribute == null) continue;
 
             EntityAttributeInstance instance = player.getAttributeInstance(entityAttribute);
             if (instance == null) continue;
 
-            // Prevent stacking duplicate bonuses
             if (instance.getModifier(SET_BONUS_ID) == null) {
-                
                 double bonusAmount = baseValue * 0.25 * 4; 
-
                 EntityAttributeModifier bonusModifier = new EntityAttributeModifier(
                     SET_BONUS_ID, 
                     BONUS_NAME, 
                     bonusAmount, 
-                    EntityAttributeModifier.Operation.ADDITION
+                    template.getEntityAttributeModifier().getOperation()
                 );
-
                 instance.addTemporaryModifier(bonusModifier);
             }
         }
