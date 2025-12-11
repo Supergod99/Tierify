@@ -71,31 +71,41 @@ public abstract class ItemStackClientMixin {
     private Map<String, ArrayList> map = new HashMap<>();
     private boolean toughnessZero = false;
 
+    @Inject(method = "getTooltip", at = @At("HEAD"))
+    private void clearCache(PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List> info) {
+        this.map.clear();
+    }
+
     @Inject(method = "getTooltip", at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z", ordinal = 6), locals = LocalCapture.CAPTURE_FAILHARD)
     private void storeTooltipInformation(PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List> info, List list, MutableText mutableText, int i, EquipmentSlot var6[], int var7,
             int var8, EquipmentSlot equipmentSlot, Multimap<EntityAttribute, EntityAttributeModifier> multimap) {
+        
         for (Map.Entry<EntityAttribute, EntityAttributeModifier> entry : multimap.entries()) {
             String translationKey = entry.getKey().getTranslationKey();
+            
             if (entry.getValue().getName().contains("tiered:") && !map.containsKey(translationKey)) {
                 
                 double value = entry.getValue().getValue();
-                //Set bonus visual check
                 boolean isSetBonus = false;
+
+                // set bonus logic
                 PlayerEntity clientPlayer = MinecraftClient.getInstance().player;
                 if (value > 0 && clientPlayer != null && SetBonusUtils.hasSetBonus(clientPlayer, (ItemStack)(Object)this)) {
                     value *= 1.25D;  
                     isSetBonus = true; 
                 }
-                
+
+
                 String format = MODIFIER_FORMAT.format(
                         entry.getValue().getOperation() == EntityAttributeModifier.Operation.MULTIPLY_BASE || entry.getValue().getOperation() == EntityAttributeModifier.Operation.MULTIPLY_TOTAL
                                 ? value * 100.0
                                 : (entry.getKey().equals(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE) ? value * 10.0 : value));
 
                 ArrayList collect = new ArrayList<>();
-                collect.add(entry.getValue().getOperation().getId()); // Operation Id
-                collect.add(format); // Value formated
-                collect.add(value > 0.0D); // Value greater 0
+                collect.add(entry.getValue().getOperation().getId()); 
+                collect.add(format);                                  
+                collect.add(value > 0.0D);                            
+                collect.add(isSetBonus); 
 
                 map.put(translationKey, collect);
             }
@@ -106,18 +116,14 @@ public abstract class ItemStackClientMixin {
     private boolean modifyTooltipPlus(List<Text> list, Object text) {
         String translationKey = this.translationKey;
         if (this.map != null && !this.map.isEmpty() && this.map.containsKey(translationKey)) {
-            if (!this.isTiered) {
-                ArrayList collected = map.get(translationKey);
+            ArrayList collected = map.get(translationKey);
+            boolean isSetBonus = collected.size() > 3 && (boolean) collected.get(3);
+            Formatting format = isSetBonus ? Formatting.GOLD : Formatting.BLUE;
 
-                boolean isSetBonus = collected.size() > 3 && (boolean) collected.get(3);
-                String colorCode = isSetBonus ? "§6§l" : "§9"; 
-                Formatting format = isSetBonus ? Formatting.GOLD : Formatting.BLUE;
-                
-                list.add(Text.translatable("tiered.attribute.modifier.plus." + (int) collected.get(0), "§9+" + this.armorModifierFormat,
-                        ((boolean) collected.get(2) ? "§9(+" : "§c(") + (String) collected.get(1) + ((int) collected.get(0) > 0 ? "%)" : ")"),
-                        Text.translatable(translationKey).formatted(format)));
-
-            }
+            list.add(Text.translatable("tiered.attribute.modifier.plus." + (int) collected.get(0), 
+                    (isSetBonus ? "§6§l" : "§9") + "+" + this.armorModifierFormat,
+                    ((boolean) collected.get(2) ? (isSetBonus ? "§6§l" : "§9") + "(+" : "§c(") + (String) collected.get(1) + ((int) collected.get(0) > 0 ? "%)" : ")"),
+                    Text.translatable(translationKey).formatted(format)));
         } else {
             list.add((Text) text);
         }
@@ -137,9 +143,14 @@ public abstract class ItemStackClientMixin {
     private boolean modifyTooltipEquals(List<Text> list, Object text) {
         if (this.map != null && !this.map.isEmpty() && this.map.containsKey(this.translationKey)) {
             ArrayList collected = map.get(translationKey);
-            list.add(Text.translatable("tiered.attribute.modifier.equals." + (int) collected.get(0), "§2 " + this.armorModifierFormat,
-                    ((boolean) collected.get(2) ? "§2(+" : "§c(") + (String) collected.get(1) + ((int) collected.get(0) > 0 ? "%)" : ")"),
-                    Text.translatable(translationKey).formatted(Formatting.DARK_GREEN)));
+            
+            boolean isSetBonus = collected.size() > 3 && (boolean) collected.get(3);
+            Formatting format = isSetBonus ? Formatting.GOLD : Formatting.DARK_GREEN;
+
+            list.add(Text.translatable("tiered.attribute.modifier.equals." + (int) collected.get(0), 
+                    (isSetBonus ? "§6§l" : "§2") + " " + this.armorModifierFormat,
+                    ((boolean) collected.get(2) ? (isSetBonus ? "§6§l" : "§2") + "(+" : "§c(") + (String) collected.get(1) + ((int) collected.get(0) > 0 ? "%)" : ")"),
+                    Text.translatable(translationKey).formatted(format)));
             
         } else {
             list.add((Text) text);
@@ -158,17 +169,21 @@ public abstract class ItemStackClientMixin {
                         ? d * 100.0
                         : (entry.getKey().equals(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE) ? d * 10.0 : d));
 
-        // special case
+        // special case for armor toughness
         if (entry.getKey().equals(EntityAttributes.GENERIC_ARMOR_TOUGHNESS)) {
             if (this.isTiered) {
                 if (this.toughnessZero) {
                     ArrayList collected = map.get(translationKey);
+                    boolean isSetBonus = collected.size() > 3 && (boolean) collected.get(3);
+                    Formatting format = isSetBonus ? Formatting.GOLD : Formatting.BLUE;
+
                     // plus
                     if ((boolean) collected.get(2)) {
-                        list.add(Text.translatable("tiered.attribute.modifier.plus." + (int) collected.get(0), "§9+" + this.armorModifierFormat,
-                                Text.translatable(translationKey).formatted(Formatting.BLUE), ""));
+                        list.add(Text.translatable("tiered.attribute.modifier.plus." + (int) collected.get(0), 
+                                (isSetBonus ? "§6§l" : "§9") + "+" + this.armorModifierFormat,
+                                Text.translatable(translationKey).formatted(format), ""));
                     } else {
-                        // take
+                        // take (Never boosted, always Red)
                         list.add(Text.translatable("tiered.attribute.modifier.take." + (int) collected.get(0), "§c" + this.armorModifierFormat,
                                 Text.translatable(translationKey).formatted(Formatting.RED), ""));
                     }
@@ -177,7 +192,6 @@ public abstract class ItemStackClientMixin {
                 this.toughnessZero = entityAttributeModifier.getValue() < 0.0001D;
             }
         }
-
     }
 
     @Redirect(method = "getTooltip",
@@ -187,15 +201,13 @@ public abstract class ItemStackClientMixin {
     private MutableText getFormatting(MutableText text, Formatting formatting) {
     
         String raw = text.getString();
-        // prevent overriding any animated gradient 
         if (raw.contains("§x")) {
             return text;
         }
-        // no override for modded item names
         if (!isTiered) {
             return text.formatted(formatting);
         }
-        // Apply Tiered style ONLY to Tiered attribute lines
+        
         Identifier tier = new Identifier(this.getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY)
                 .getString(Tierify.NBT_SUBTAG_DATA_KEY));
         PotentialAttribute attribute = Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tier);
@@ -232,17 +244,10 @@ public abstract class ItemStackClientMixin {
                     Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tier);
     
             if (potentialAttribute != null) {
-                // Base modifier label from lang
                 MutableText text = Text.translatable(potentialAttribute.getID() + ".label");
-            
                 String tierKey = elocindev.tierify.screen.client.TierGradientAnimator.getTierFromId(potentialAttribute.getID());
                 text = elocindev.tierify.screen.client.TierGradientAnimator.animate(text, tierKey);
-                
-
-                // vanilla / modded item name stays the same
                 MutableText vanilla = info.getReturnValue().copy();
-            
-                // final combined display name
                 info.setReturnValue(text.append(" ").append(vanilla));
             }
         }
@@ -253,7 +258,6 @@ public abstract class ItemStackClientMixin {
     private void getTooltipMixin(PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> info, List list, MutableText mutableText, int i, EquipmentSlot var6[], int var7,
             int var8, EquipmentSlot equipmentSlot, Multimap multimap) {
 
-                // Perfect Border Tier Override 
         if (this.hasNbt()) {
             NbtCompound tierTag = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             if (tierTag != null && tierTag.getBoolean("Perfect")) {
@@ -307,11 +311,11 @@ public abstract class ItemStackClientMixin {
         double speed = (baseSpeed + addedValue) * (1.0 + multiplyBase) * (1.0 + multiplyTotal);
     
         String correctLabel;
-        if (speed >= 3.0) correctLabel = "§2Very Fast";      // Dark Green
-        else if (speed >= 2.0) correctLabel = "§aFast";      // Green
-        else if (speed >= 1.2) correctLabel = "§fMedium";    // White
-        else if (speed > 0.6) correctLabel = "§cSlow";       // Red 
-        else correctLabel = "§4Very Slow";                   // Dark Red 
+        if (speed >= 3.0) correctLabel = "§2Very Fast";      
+        else if (speed >= 2.0) correctLabel = "§aFast";      
+        else if (speed >= 1.2) correctLabel = "§fMedium";    
+        else if (speed > 0.6) correctLabel = "§cSlow";       
+        else correctLabel = "§4Very Slow";                   
     
         for (int i = 0; i < tooltip.size(); i++) {
             Text line = tooltip.get(i);
@@ -325,9 +329,7 @@ public abstract class ItemStackClientMixin {
     }
 
     private Text replaceSpeedTextRecursively(Text original, String replacementLabel) {
-        
         MutableText newNode = processSingleNode(original, replacementLabel);
-    
         for (Text sibling : original.getSiblings()) {
             newNode.append(replaceSpeedTextRecursively(sibling, replacementLabel));
         }
@@ -337,9 +339,7 @@ public abstract class ItemStackClientMixin {
     private MutableText processSingleNode(Text node, String replacementLabel) {
         MutableText copy = node.copy();
         copy.getSiblings().clear();
-
         String content = copy.getString(); 
-
         String[] targets = {"Very Fast", "Very Slow", "Fast", "Slow", "Medium"};
         
         for (String target : targets) {
