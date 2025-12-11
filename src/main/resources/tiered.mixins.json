@@ -26,7 +26,6 @@
     "client.ItemStackClientMixin",
     "client.AnvilScreenMixin",
     "client.HandledScreenMixin",
-    "client.TieredDrawContextMixin",
     "client.DrawContextMixin",
     "compat.SkillInfoScreenMixin",
     "compat.ModAnvilScreenMixin",
