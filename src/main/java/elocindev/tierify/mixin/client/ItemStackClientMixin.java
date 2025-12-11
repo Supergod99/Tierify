@@ -281,8 +281,7 @@ public abstract class ItemStackClientMixin {
     }
 
     private MutableText processSingleNode(Text node, String replacementLabel) {
-        MutableText copy = node.copy();
-        copy.getSiblings().clear();
+        MutableText copy = MutableText.of(node.getContent()).setStyle(node.getStyle());
         String content = copy.getString(); 
         String[] targets = {"Very Fast", "Very Slow", "Fast", "Slow", "Medium"};
         
