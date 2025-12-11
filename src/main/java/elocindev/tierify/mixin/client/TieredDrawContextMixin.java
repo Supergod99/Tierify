@@ -23,7 +23,7 @@ public class TieredDrawContextMixin {
 
     @Inject(method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;IILnet/minecraft/client/gui/tooltip/TooltipPositioner;)V", at = @At("HEAD"), cancellable = true)
     private void renderTieredTooltip(TextRenderer textRenderer, List<TooltipComponent> components, int x, int y, TooltipPositioner positioner, CallbackInfo ci) {
-      
+        System.out.println("TIERIFY DEBUG: TieredDrawContextMixin is running!");
         if (FabricLoader.getInstance().isModLoaded("tooltipoverhaul")) {
             return;
         }
@@ -38,6 +38,7 @@ public class TieredDrawContextMixin {
         }
 
         NbtCompound nbt = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+        System.out.println("TIERIFY DEBUG: Item " + stack.getName().getString() + " has Tier NBT? " + (nbt != null));
         if (nbt == null) {
             return;
         }
