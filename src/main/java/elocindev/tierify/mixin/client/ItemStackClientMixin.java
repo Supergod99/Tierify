@@ -19,6 +19,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Final;
@@ -97,7 +98,7 @@ public abstract class ItemStackClientMixin {
     private void applyAttributeLogic(List<Text> tooltip) {
         boolean hasSetBonus = checkSetBonus();
 
-        // Group modifiers by Attribute because Vanilla merges them in the tooltip
+        // 1. Calculate Expected Values
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             Multimap<EntityAttribute, EntityAttributeModifier> modifiers = this.getAttributeModifiers(slot);
             if (modifiers.isEmpty()) continue;
@@ -107,7 +108,6 @@ public abstract class ItemStackClientMixin {
                 grouped.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue());
             }
 
-            // Process each Attribute group
             for (Map.Entry<EntityAttribute, List<EntityAttributeModifier>> group : grouped.entrySet()) {
                 EntityAttribute attribute = group.getKey();
                 List<EntityAttributeModifier> mods = group.getValue();
@@ -116,7 +116,6 @@ public abstract class ItemStackClientMixin {
                 double totalWithBonus = 0;
                 boolean hasTiered = false;
 
-                // Sum up the modifiers
                 for (EntityAttributeModifier mod : mods) {
                     double value = mod.getValue();
                     boolean isTiered = mod.getName().contains("tiered:");
@@ -124,17 +123,15 @@ public abstract class ItemStackClientMixin {
 
                     totalBase += value;
 
-                    // Apply bonus ONLY to the Tiered portion
                     if (isTiered && hasSetBonus && value > 0) {
-                        totalWithBonus += (value * 1.25D); 
+                        totalWithBonus += (value * 1.25D); // Boost only the Tiered portion
                     } else {
-                        totalWithBonus += value;
+                        totalWithBonus += value; // Base stats stay the same
                     }
                 }
 
-                // If this attribute group has a tiered component and the values differ, update the tooltip
+                // If buffed, update the tooltip
                 if (hasTiered && Math.abs(totalWithBonus - totalBase) > 0.0001) {
-                    // Determine if it's a percentage or flat value
                     boolean isMultiplier = mods.get(0).getOperation() != EntityAttributeModifier.Operation.ADDITION;
                     
                     double displayBase = totalBase;
@@ -150,48 +147,75 @@ public abstract class ItemStackClientMixin {
 
                     String oldString = MODIFIER_FORMAT.format(displayBase);
                     String newString = MODIFIER_FORMAT.format(displayBonus);
-
-                    // Perform replacement and coloring
-                    replaceValueInTooltip(tooltip, oldString, newString, true);
+                    
+                    // Recursive update to preserve styles (icons)
+                    updateTooltipRecursive(tooltip, oldString, newString, true, false);
                 }
             }
         }
 
-        // Final Pass: Ensure Negative numbers are RED
-        // This fixes the issue where vanilla negatives lose their color
+        // 2. Final Pass: Force RED for negatives
+        // Uses the same recursive logic to avoid breaking icons
+        updateTooltipRecursive(tooltip, "-", "-", false, true);
+    }
+
+    /**
+     * Walks through the Tooltip list and updates nodes safely.
+     * @param tooltip The tooltip list
+     * @param target The string to look for (e.g., "12") or "-"
+     * @param replacement The string to replace it with (e.g., "15")
+     * @param applyGold If true, applies Gold color to the replacement
+     * @param forceRed If true, forces Red color if the node contains the target (used for negatives)
+     */
+    private void updateTooltipRecursive(List<Text> tooltip, String target, String replacement, boolean applyGold, boolean forceRed) {
         for (int i = 0; i < tooltip.size(); i++) {
-            Text line = tooltip.get(i);
-            String content = line.getString();
+            Text originalLine = tooltip.get(i);
             
-            // Check for negative numbers (e.g. "-10" or "-0.5")
-            if (content.contains("-") && content.matches(".*-[0-9].*")) {
-                 // Force Red Style
-                 tooltip.set(i, Text.literal(content).formatted(Formatting.RED));
-            }
+            // Optimization: Skip lines that don't contain the target to avoid object creation
+            if (!originalLine.getString().contains(target)) continue;
+            
+            // Process the line recursively
+            Text newLine = processNodeRecursive(originalLine, target, replacement, applyGold, forceRed);
+            tooltip.set(i, newLine);
         }
     }
 
-    private void replaceValueInTooltip(List<Text> tooltip, String targetValue, String newValue, boolean isBonus) {
-        for (int i = 0; i < tooltip.size(); i++) {
-            Text line = tooltip.get(i);
-            String content = line.getString();
+    private MutableText processNodeRecursive(Text node, String target, String replacement, boolean applyGold, boolean forceRed) {
+        // 1. Create a shallow copy of the current node (Preserves content + style)
+        MutableText newNode = MutableText.of(node.getContent()).setStyle(node.getStyle());
 
-            // Safety check: Ensure we are replacing an actual attribute line (contains space or +)
-            if (content.contains(targetValue) && (content.contains(" ") || content.contains("+"))) {
-                
-                String newContent = content.replace(targetValue, newValue);
-                
-                if (isBonus) {
-                    // If it's a bonus line, turn it GOLD
-                    MutableText newText = Text.literal(newContent).setStyle(Style.EMPTY.withColor(Formatting.GOLD));
-                    tooltip.set(i, newText);
-                } else {
-                    // Otherwise keep original style
-                    tooltip.set(i, Text.literal(newContent).setStyle(line.getStyle()));
+        // 2. Modify the content if this specific node has text
+        String content = newNode.getContent().toString(); // Use toString of content, not getString() which flattens children
+        
+        // LiteralTextContent returns the string, Translatable returns key, etc. 
+        // We generally only want to replace literals that contain numbers.
+        if (!content.isEmpty() && content.contains(target)) {
+            // Check heuristic for negatives (Must look like a number: "-1" or "-.5")
+            boolean isNegativeNumber = forceRed && content.matches(".*-.*[0-9].*");
+
+            if (isNegativeNumber) {
+                newNode.setStyle(newNode.getStyle().withColor(Formatting.RED));
+            } 
+            else if (!forceRed) {
+                // Perform Value Replacement
+                // Heuristic: Check if it's an attribute line (space or +)
+                if (content.contains(" ") || content.contains("+") || content.matches(".*[0-9].*")) {
+                     String newContentText = content.replace(target, replacement);
+                     newNode = Text.literal(newContentText).setStyle(newNode.getStyle());
+                     
+                     if (applyGold) {
+                         newNode.setStyle(newNode.getStyle().withColor(Formatting.GOLD));
+                     }
                 }
-                return; // Only replace the first match to avoid duplicates
             }
         }
+
+        // 3. Process Siblings Recursively
+        for (Text sibling : node.getSiblings()) {
+            newNode.append(processNodeRecursive(sibling, target, replacement, applyGold, forceRed));
+        }
+
+        return newNode;
     }
 
     private boolean checkSetBonus() {
