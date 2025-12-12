@@ -21,8 +21,6 @@ import java.awt.Point;
 
 public class TierifyBorderLayer implements ITooltipLayer {
 
-    public class TierifyBorderLayer implements ITooltipLayer {
-
     @Override
     public void render(TooltipContext ctx, Vec2f pos, Point size, TooltipStyle style, Text rarity, TextRenderer font, CustomFrameData customFrame) {
         if (!ctx.stack().hasNbt()) return;
@@ -32,9 +30,11 @@ public class TierifyBorderLayer implements ITooltipLayer {
             return;
         }
 
+        // UPDATED LOOKUP LOGIC to match Raw IDs
         String tierId = tierTag.getString(Tierify.NBT_SUBTAG_DATA_KEY);
         boolean isPerfect = tierTag.getBoolean("Perfect");
         
+        // We now match against "tiered:perfect" or "tiered:common_armor_1" directly
         String lookupKey = isPerfect ? "tiered:perfect" : tierId;
 
         BorderTemplate match = null;
