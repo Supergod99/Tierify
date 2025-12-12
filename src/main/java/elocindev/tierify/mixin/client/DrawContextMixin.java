@@ -29,35 +29,33 @@ public class DrawContextMixin {
 
     @Inject(method = "drawItemTooltip", at = @At("HEAD"), cancellable = true)
     private void drawItemTooltipMixin(TextRenderer textRenderer, ItemStack stack, int x, int y, CallbackInfo info) {
-        // 1. If Tooltip Overhaul is present, let it handle everything.
+        // If Tooltip Overhaul is present, let it handle rendering.
         if (FabricLoader.getInstance().isModLoaded("tooltipoverhaul") || FabricLoader.getInstance().isModLoaded("legendarytooltips")) {
             return;
         }
 
-        // 2. Check if the item has NBT and the specific Tiered tag
+        // Logic restored from Original Mod (plus Perfect check)
         if (Tierify.CLIENT_CONFIG.tieredTooltip && stack.hasNbt()) {
-            
-            // Use getSubNbt instead of getOrCreate to prevent modifying the stack during render
             NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
             
             if (tierTag != null) {
-                // 3. Resolve the Lookup Key 
+                // 1. Get the Raw ID
                 String tier = tierTag.getString(Tierify.NBT_SUBTAG_DATA_KEY);
-                boolean isPerfect = tierTag.getBoolean("Perfect");
                 
-                // If "Perfect", use the special border key. Otherwise, use the standard Tier ID.
-                String lookupKey = isPerfect ? "{BorderTier:\"tiered:perfect\"}" : "{Tier:\"" + tier + "\"}";
+                // 2. Determine Lookup Key
+                String lookupKey = tier;
+                if (tierTag.getBoolean("Perfect")) {
+                    lookupKey = "tiered:perfect";
+                }
 
-                // 4. Find a matching Border Template
+                // 3. Match against the simple strings in BORDER_TEMPLATES
                 for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
                     if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(lookupKey)) {
 
-                        // 5. Build the tooltip components (Text + Data)
                         List<Text> text = net.minecraft.client.gui.screen.Screen.getTooltipFromItem(MinecraftClient.getInstance(), stack);
                         List<TooltipComponent> list = text.stream().map(Text::asOrderedText).map(TooltipComponent::of).collect(Collectors.toList());
                         stack.getTooltipData().ifPresent(data -> list.add(1, TooltipComponent.of(data)));
 
-                        // 6. Render the custom border and tooltip
                         TieredTooltip.renderTieredTooltipFromComponents(
                             (DrawContext) (Object) this, 
                             textRenderer, 
@@ -67,8 +65,7 @@ public class DrawContextMixin {
                             HoveredTooltipPositioner.INSTANCE, 
                             TierifyClient.BORDER_TEMPLATES.get(i)
                         );
-
-                        // 7. Cancel the vanilla tooltip render so we don't draw double
+                        
                         info.cancel();
                         return;
                     }
