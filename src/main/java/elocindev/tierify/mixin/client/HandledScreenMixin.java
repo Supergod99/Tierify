@@ -16,6 +16,7 @@ import elocindev.tierify.util.TieredTooltip;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -62,7 +63,7 @@ public abstract class HandledScreenMixin extends Screen {
                         if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(lookupKey)) {
                             
                             // Get tooltip text (Vanilla logic)
-                            List<Text> text = this.getTooltipFromItem(stack);
+                            List<Text> text = Screen.getTooltipFromItem(this.client, stack);
                             List<TooltipComponent> components = text.stream()
                                 .map(Text::asOrderedText)
                                 .map(TooltipComponent::of)
