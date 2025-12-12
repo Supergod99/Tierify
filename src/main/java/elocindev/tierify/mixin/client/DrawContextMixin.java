@@ -30,7 +30,7 @@ public class DrawContextMixin {
     @Inject(method = "drawItemTooltip", at = @At("HEAD"), cancellable = true)
     private void drawItemTooltipMixin(TextRenderer textRenderer, ItemStack stack, int x, int y, CallbackInfo info) {
         // If Tooltip Overhaul is present, let it handle rendering.
-        if (FabricLoader.getInstance().isModLoaded("tooltipoverhaul") || FabricLoader.getInstance().isModLoaded("legendarytooltips")) {
+        if (FabricLoader.getInstance().isModLoaded("tooltipoverhaul")) {
             return;
         }
 
