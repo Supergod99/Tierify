@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,26 +38,28 @@ public class TooltipBorderLoader implements SimpleSynchronousResourceReloadListe
                     JsonObject data2 = (JsonObject) data.getAsJsonArray("tooltips").get(u);
                     List<String> decider = new ArrayList<String>();
 
-                    for (int i = 0; i < data2.getAsJsonArray("decider").size(); i++)
-                        decider.add("{Tier:\"" + data2.getAsJsonArray("decider").get(i).getAsString() + "\"}");
-                    
-                    // Perfect tier override support
-                    if (data2.getAsJsonArray("decider").size() == 1 &&
-                        data2.getAsJsonArray("decider").get(0).getAsString().equals("tiered:perfect_border")) {
+                    for (int i = 0; i < data2.getAsJsonArray("decider").size(); i++) {
+                        String deciderId = data2.getAsJsonArray("decider").get(i).getAsString();
                         
-                        // Decider predicate for Perfect items
-                        decider.clear();
-                        decider.add("{BorderTier:\"tiered:perfect\"}");
+                        if (deciderId.equals("tiered:perfect_border")) {
+                            decider.add("tiered:perfect");
+                        } else {
+                            decider.add(deciderId);
+                        }
                     }
 
-                    TierifyClient.BORDER_TEMPLATES.add(new BorderTemplate(data2.get("index").getAsInt(), data2.get("texture").getAsString(),
-                            new BigInteger(data2.get("start_border_gradient").getAsString(), 16).intValue(), new BigInteger(data2.get("end_border_gradient").getAsString(), 16).intValue(),
-                            data2.has("background_gradient") ? new BigInteger(data2.get("background_gradient").getAsString(), 16).intValue() : -267386864, decider));
+                    TierifyClient.BORDER_TEMPLATES.add(new BorderTemplate(
+                            data2.get("index").getAsInt(), 
+                            data2.get("texture").getAsString(),
+                            new BigInteger(data2.get("start_border_gradient").getAsString(), 16).intValue(), 
+                            new BigInteger(data2.get("end_border_gradient").getAsString(), 16).intValue(),
+                            data2.has("background_gradient") ? new BigInteger(data2.get("background_gradient").getAsString(), 16).intValue() : -267386864, 
+                            decider
+                    ));
                 }
             } catch (Exception e) {
                 LOGGER.error("Error occurred while loading resource {}. {}", id.toString(), e.toString());
             }
         });
     }
-
 }
