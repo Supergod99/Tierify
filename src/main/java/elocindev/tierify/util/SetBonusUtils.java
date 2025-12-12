@@ -30,4 +30,29 @@ public class SetBonusUtils {
         // Return true only if we have 4 matches (Full Set)
         return matchCount >= 4;
     }
+
+    // True only if the player has a full matching set AND all 4 pieces are Perfect.
+    public static boolean hasPerfectSetBonus(PlayerEntity player, ItemStack itemStack) {
+        if (!hasSetBonus(player, itemStack)) return false;
+
+        NbtCompound nbt = itemStack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+        if (nbt == null) return false;
+
+        String targetTier = nbt.getString(Tierify.NBT_SUBTAG_DATA_KEY);
+        if (targetTier.isEmpty()) return false;
+
+        for (ItemStack armor : player.getInventory().armor) {
+            if (armor.isEmpty()) return false;
+
+            NbtCompound armorNbt = armor.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+            if (armorNbt == null) return false;
+
+            String armorTier = armorNbt.getString(Tierify.NBT_SUBTAG_DATA_KEY);
+            if (!targetTier.equals(armorTier)) return false;
+
+            if (!armorNbt.getBoolean("Perfect")) return false;
+        }
+
+        return true;
+    }
 }
