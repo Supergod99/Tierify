@@ -21,6 +21,8 @@ public class ItemMixin {
     // but is air at onTakeItem in CraftingResultSlot when quick crafting is used
     @Inject(method = "onCraft", at = @At("TAIL"))
     private void onCraftMixin(ItemStack stack, World world, PlayerEntity player, CallbackInfo info) {
+        if (world == null || player == null) return;
+    
         if (!world.isClient() && !stack.isEmpty() && Tierify.CONFIG.craftingModifier) {
             ModifierUtils.setItemStackAttribute(player, stack, false);
         }
