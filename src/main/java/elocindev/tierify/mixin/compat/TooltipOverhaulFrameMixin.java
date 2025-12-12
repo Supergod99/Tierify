@@ -21,6 +21,8 @@ public class TooltipOverhaulFrameMixin {
     @Inject(method = "of", at = @At("HEAD"), cancellable = true)
     private static void tierify$injectTieredFrame(ItemStack stack, CallbackInfoReturnable<Optional<CustomFrameData>> cir) {
 
+        if (!Tierify.CLIENT_CONFIG.tieredTooltip) return;
+
         NbtCompound nbt = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
         if (nbt == null) return;
 
