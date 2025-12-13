@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import draylar.tiered.api.PotentialAttribute;
 import elocindev.tierify.Tierify;
 import elocindev.tierify.screen.client.TierGradientAnimator;
+import elocindev.tierify.util.SetBonusUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -43,6 +44,26 @@ public abstract class ItemStackClientMixin {
     @Shadow public abstract Multimap<EntityAttribute, EntityAttributeModifier> getAttributeModifiers(EquipmentSlot slot);
     
     @Shadow @Final public static DecimalFormat MODIFIER_FORMAT;
+
+    private double getSetBonusFactor() {
+        PlayerEntity player = MinecraftClient.getInstance().player;
+        if (player == null) return 1.0D;
+    
+        ItemStack self = (ItemStack) (Object) this;
+    
+        if (!SetBonusUtils.hasSetBonus(player, self)) {
+            return 1.0D;
+        }
+    
+        boolean perfect = SetBonusUtils.hasPerfectSetBonus(player, self);
+        double pct = perfect
+                ? Tierify.CONFIG.armorSetPerfectBonusPercent
+                : Tierify.CONFIG.armorSetBonusMultiplier;
+    
+        if (pct < 0.0D) pct = 0.0D;
+    
+        return 1.0D + pct;
+    }
 
     @Inject(method = "getName", at = @At("RETURN"), cancellable = true)
     private void getNameMixin(CallbackInfoReturnable<Text> info) {
@@ -89,33 +110,35 @@ public abstract class ItemStackClientMixin {
     }
 
     private void applyAttributeLogic(List<Text> tooltip) {
-        boolean hasSetBonus = checkSetBonus();
-
+        double setBonusFactor = getSetBonusFactor();
+        boolean hasSetBonus = setBonusFactor > 1.000001D;
+    
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             Multimap<EntityAttribute, EntityAttributeModifier> modifiers = this.getAttributeModifiers(slot);
             if (modifiers.isEmpty()) continue;
-
+    
             Map<EntityAttribute, List<EntityAttributeModifier>> grouped = new HashMap<>();
             for (Map.Entry<EntityAttribute, EntityAttributeModifier> entry : modifiers.entries()) {
                 grouped.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue());
             }
-
+    
             for (Map.Entry<EntityAttribute, List<EntityAttributeModifier>> group : grouped.entrySet()) {
                 EntityAttribute attribute = group.getKey();
                 List<EntityAttributeModifier> mods = group.getValue();
-
+    
                 double totalBase = 0;
                 double totalWithBonus = 0;
                 boolean hasTiered = false;
-
+    
                 for (EntityAttributeModifier mod : mods) {
                     double value = mod.getValue();
                     boolean isTiered = mod.getName().contains("tiered:");
                     if (isTiered) hasTiered = true;
-
+    
                     totalBase += value;
+    
                     if (isTiered && hasSetBonus && value > 0) {
-                        totalWithBonus += (value * 1.25D); 
+                        totalWithBonus += (value * setBonusFactor);
                     } else {
                         totalWithBonus += value;
                     }
