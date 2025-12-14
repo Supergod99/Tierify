@@ -1,6 +1,7 @@
 {
   "items": [
-    "lethality:midas_touch"
+    "lethality:midas_touch",
+    "lethality:gamblers_blade"
   ],
   "base": [
     "terramity:topaz"
