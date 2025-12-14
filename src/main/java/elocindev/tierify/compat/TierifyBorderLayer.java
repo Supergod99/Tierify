@@ -155,6 +155,8 @@ public class TierifyBorderLayer implements ITooltipLayer {
         float gapTop = bgY - 3f;
         float gapBottom = bgY + topPadding;
         float yPos = gapTop + ((gapBottom - gapTop) - scaledHeight) / 2f;
+        float yOffset = (baseHeight - scaledHeight) / 2f;
+        yPos += yOffset;
     
         ctx.push(() -> {
             ctx.translate(xPos, yPos, LayerDepth.BACKGROUND_OVERLAY.getZ() + 10);
