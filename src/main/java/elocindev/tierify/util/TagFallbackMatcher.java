@@ -8,12 +8,6 @@ import net.minecraft.util.Identifier;
 
 import java.util.Locale;
 
-/**
- * Second-layer category matcher used when item tags are missing or incomplete.
- *
- * This is intentionally conservative: it only attempts to infer membership for a small set of
- * "broad" categories that Tierify uses as verifier tags (pickaxes/shovels/hoes/shields/armors/bows/melee).
- */
 public final class TagFallbackMatcher {
 
     private TagFallbackMatcher() {}
@@ -24,13 +18,13 @@ public final class TagFallbackMatcher {
         Item item = stack.getItem();
         Identifier itemId = Registries.ITEM.getId(item);
 
-        // Defensive: if registry cannot resolve, do not guess.
+        // if registry cannot resolve, do not guess.
         if (itemId == null) return false;
 
         String tag = tagId.toString();
         String path = itemId.getPath().toLowerCase(Locale.ROOT);
 
-        // --- Tools ---
+        // Tools
         if (tag.equals("minecraft:pickaxes") || tag.equals("c:pickaxes") || tag.equals("forge:tools/pickaxes")) {
             return (item instanceof PickaxeItem) || path.endsWith("pickaxe");
         }
@@ -43,12 +37,12 @@ public final class TagFallbackMatcher {
             return (item instanceof HoeItem) || path.endsWith("hoe");
         }
 
-        // Paxels show up frequently in modpacks but are inconsistent about tagging.
+        // Paxels
         if (tag.equals("forge:tools/paxels")) {
             return path.contains("paxel");
         }
 
-        // --- Ranged ---
+        // Ranged
         if (tag.equals("c:bows") || tag.equals("forge:weapons/bows")) {
             return (item instanceof BowItem) || (stack.getUseAction() == UseAction.BOW && !path.contains("crossbow"));
         }
@@ -57,20 +51,17 @@ public final class TagFallbackMatcher {
             return (item instanceof CrossbowItem) || path.contains("crossbow");
         }
 
-        // --- Shields ---
+        // Shields
         if (tag.equals("c:shields") || tag.equals("forge:tools/shields")) {
             return (item instanceof ShieldItem) || path.endsWith("shield");
         }
 
-        // --- Armor / equipables ---
-        // Handles the majority of "real armor" items out of the box. Weird chest-slot items
-        // (elytras, backpacks, jetpacks) should be covered by data tags you ship (values required:false).
+        // Armor
         if (tag.equals("c:armors") || tag.startsWith("forge:armor/") || tag.endsWith("_armor")) {
             return (item instanceof ArmorItem) || (item instanceof ElytraItem) || (item instanceof HorseArmorItem);
         }
 
-        // --- Melee weapons ---
-        // First, hard-typed melee.
+        // Melee weapons
         if (tag.equals("c:tools/melee_weapons") || tag.equals("c:melee_weapons") || tag.equals("forge:tools/weapons")) {
             if (item instanceof SwordItem) return true;
             if (item instanceof AxeItem) return true;
@@ -78,17 +69,6 @@ public final class TagFallbackMatcher {
 
             // Do NOT treat generic mining tools as melee in the fallback (axes are already handled above).
             if (item instanceof MiningToolItem) return false;
-
-            // Attribute-based heuristic: if an item provides positive attack damage in mainhand, treat as melee.
-            // This catches many modded "weapon" classes that aren't SwordItem.
-            try {
-                return stack.getAttributeModifiers(EquipmentSlot.MAINHAND)
-                        .get(EntityAttributes.GENERIC_ATTACK_DAMAGE)
-                        .stream()
-                        .anyMatch(mod -> mod.getValue() > 0.0D);
-            } catch (Throwable t) {
-                return false;
-            }
         }
 
         return false;
