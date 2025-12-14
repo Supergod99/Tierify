@@ -5,10 +5,10 @@
     "#forge:tools/bows",
     "#c:tools/bows",
     "experienceobelisk:cognitive_bow",
-		"composite_material:lacerator",
-		"goety:hunters_bow",
-		"mofus_better_end_:bloodbow",
-		"dungeonnowloading:vertex_bow",
-		"brutality:providence"
+	"composite_material:lacerator",
+	"goety:hunters_bow",
+	"mofus_better_end_:bloodbow",
+	"dungeonnowloading:vertex_bow",
+	"brutality:providence"
   ]
 }
