@@ -6,7 +6,6 @@ import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.block.Blocks;
-import net.minecraft.util.UseAction;
 
 import java.util.Locale;
 
@@ -46,7 +45,7 @@ public final class TagFallbackMatcher {
 
         // Ranged
         if (tag.equals("c:bows") || tag.equals("forge:weapons/bows")) {
-            return (item instanceof BowItem) || (stack.getUseAction() == UseAction.BOW && !path.contains("crossbow"));
+            return (item instanceof BowItem) || path.endsWith("bow");
         }
 
         if (tag.equals("c:crossbows") || tag.equals("forge:weapons/crossbows")) {
