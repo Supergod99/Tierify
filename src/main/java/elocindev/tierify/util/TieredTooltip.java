@@ -227,7 +227,6 @@ public class TieredTooltip {
     
         float baseHeight = 9f;
         float scaledHeight = baseHeight * scale;
-        float yOffset = -(baseHeight - scaledHeight) / 2f;
     
         // Interior top area is roughly from (bgY - 3) up to (bgY + topPadding)
         float gapTop = bgY - 3f;
@@ -235,7 +234,7 @@ public class TieredTooltip {
         float yPos = gapTop + ((gapBottom - gapTop) - scaledHeight) / 2f;
     
         context.getMatrices().push();
-        context.getMatrices().translate(xPos, yPos + yOffset, 400.0f);
+        context.getMatrices().translate(xPos, yPos, 400.0f);
         context.getMatrices().scale(scale, scale, 1.0f);
     
         textRenderer.draw(
