@@ -23,7 +23,7 @@ import java.awt.Point;
 
 public class TierifyBorderLayer implements ITooltipLayer {
 
-    private static final float SET_BONUS_LABEL_NUDGE_Y = 10.0f;
+    private static final float SET_BONUS_LABEL_NUDGE_Y = 7.0f;
 
     @Override
     public void render(TooltipContext ctx, Vec2f pos, Point size, TooltipStyle style, Text rarity, TextRenderer font, CustomFrameData customFrame) {
