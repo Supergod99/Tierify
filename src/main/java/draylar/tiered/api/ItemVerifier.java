@@ -70,10 +70,4 @@ public class ItemVerifier {
         return (id == null ? other.id == null : id.equals(other.id))
             && (tag == null ? other.tag == null : tag.equals(other.tag));
     }
-        String thisId = this.id == null ? "" : this.id;
-        String thisTag = this.tag == null ? "" : this.tag;
-        String otherId = other.id == null ? "" : other.id;
-        String otherTag = other.tag == null ? "" : other.tag;
-        return thisId.equals(otherId) && thisTag.equals(otherTag);
-    }
 }
