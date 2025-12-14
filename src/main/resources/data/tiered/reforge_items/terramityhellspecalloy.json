@@ -1,6 +1,8 @@
 {
   "items": [
-    "terramity:unholy_lance"
+    "terramity:unholy_lance",
+    "lethalitymiasma",
+    "lethality:horseless_headless_horsemanns_headtaker"
   ],
   "base": [
     "terramity:hellspec_alloy"
