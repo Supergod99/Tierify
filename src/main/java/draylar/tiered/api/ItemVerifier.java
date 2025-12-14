@@ -49,6 +49,22 @@ public class ItemVerifier {
                 return new ItemStack(Registries.ITEM.get(new Identifier(itemID))).isIn(itemTag);// itemTag.contains(Registry.ITEM.get(new Identifier(itemID)));
             } else {
                 Tierify.LOGGER.error(tag + " was specified as an item verifier tag, but it does not exist!");
+            try {
+                Identifier tagId = new Identifier(tag);
+                TagKey<Item> itemTag = TagKey.of(RegistryKeys.ITEM, tagId);
+
+                Item item = Registries.ITEM.get(new Identifier(itemID));
+                ItemStack stack = new ItemStack(item);
+
+                // Layer 1: real tag membership
+                if (stack.isIn(itemTag)) {
+                    return true;
+                }
+
+                // Layer 2: conservative fallback inference
+                return TagFallbackMatcher.matches(tagId, stack);
+            } catch (Exception e) {
+                Tierify.LOGGER.error("Invalid verifier tag/id: tag=" + tag + " item=" + itemID, e);
             }
         }
 
