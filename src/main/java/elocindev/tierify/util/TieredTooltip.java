@@ -23,7 +23,7 @@ import net.minecraft.client.gui.tooltip.TooltipPositioner;
 @Environment(EnvType.CLIENT)
 public class TieredTooltip {
 
-    private static final float SET_BONUS_LABEL_NUDGE_Y = 10.0f;
+    private static final float SET_BONUS_LABEL_NUDGE_Y = 7.0f;
 
     public static String getPlateForModifier(String modifier) {
         switch(modifier.toLowerCase()) {
