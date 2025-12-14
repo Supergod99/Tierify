@@ -1,10 +1,10 @@
 {
   "items": [
     "lethality:starlight",
-    "letahlity:real_knife",
+    "lethality:real_knife",
     "lethality:hf_meowrasama"
   ],
   "base": [
-    "terramity:pixie_alloy"
+    "lethality:pixie_alloy"
   ]
 }
