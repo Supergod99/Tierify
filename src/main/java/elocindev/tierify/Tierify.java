@@ -96,9 +96,12 @@ public class Tierify implements ModInitializer {
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             server.getPlayerManager().getPlayerList().forEach(player -> {
-                // Run logic once per second
                 if (player.age % 20 == 0) {
-                    SetBonusLogic.updatePlayerSetBonus(player);
+                    if (Tierify.CONFIG.enableArmorSetBonuses) {
+                        SetBonusLogic.updatePlayerSetBonus(player);
+                    } else {
+                        SetBonusLogic.removeSetBonus(player);
+                    }
                 }
             });
         });
