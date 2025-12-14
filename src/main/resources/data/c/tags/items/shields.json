@@ -1,17 +1,53 @@
 {
   "replace": false,
   "values": [
-        "composite_material:amethyst_shield",
-        "composite_material:etherite_shield",
-        "legendary_monsters:shulker_shield",
-        "legendary_monsters:dinosaur_bone_shield",
-        "legendary_monsters:frostbitten_shield",
-        "legendary_monsters:spiky_shield",
-        "nethers_exorcism_reborn:strampler_horn_shield",
-        "species:ricoshield",
-        "tameablebeasts:metal_shield",
-        "tameablebeasts:beetle_shield",
-        "ancient_elements:repelling_shield",
-        "unearthed_journey:scute_shield"
+    {
+      "id": "composite_material:amethyst_shield",
+      "required": false
+    },
+    {
+      "id": "composite_material:etherite_shield",
+      "required": false
+    },
+    {
+      "id": "legendary_monsters:shulker_shield",
+      "required": false
+    },
+    {
+      "id": "legendary_monsters:dinosaur_bone_shield",
+      "required": false
+    },
+    {
+      "id": "legendary_monsters:frostbitten_shield",
+      "required": false
+    },
+    {
+      "id": "legendary_monsters:spiky_shield",
+      "required": false
+    },
+    {
+      "id": "nethers_exorcism_reborn:strampler_horn_shield",
+      "required": false
+    },
+    {
+      "id": "species:ricoshield",
+      "required": false
+    },
+    {
+      "id": "tameablebeasts:metal_shield",
+      "required": false
+    },
+    {
+      "id": "tameablebeasts:beetle_shield",
+      "required": false
+    },
+    {
+      "id": "ancient_elements:repelling_shield",
+      "required": false
+    },
+    {
+      "id": "unearthed_journey:scute_shield",
+      "required": false
+    }
   ]
 }
