@@ -235,7 +235,7 @@ public class TieredTooltip {
         float yOffset = (baseHeight - scaledHeight) / 2f;
         yPos += yOffset;
         float titleTop = bgY + topPadding;
-        float maxY = titleTop - scaledHeight - 0.25f; // keep a tiny gap above the title
+        float maxY = titleTop - scaledHeight + 2.0f;
         if (yPos > maxY) yPos = maxY;
     
         context.getMatrices().push();
