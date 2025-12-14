@@ -23,6 +23,8 @@ import net.minecraft.client.gui.tooltip.TooltipPositioner;
 @Environment(EnvType.CLIENT)
 public class TieredTooltip {
 
+    private static final float SET_BONUS_LABEL_NUDGE_Y = 10.0f;
+
     public static String getPlateForModifier(String modifier) {
         switch(modifier.toLowerCase()) {
             case "common":
@@ -234,9 +236,7 @@ public class TieredTooltip {
         float yPos = gapTop + ((gapBottom - gapTop) - scaledHeight) / 2f;
         float yOffset = (baseHeight - scaledHeight) / 2f;
         yPos += yOffset;
-        float titleTop = bgY + topPadding;
-        float maxY = titleTop - scaledHeight + 2.0f;
-        if (yPos > maxY) yPos = maxY;
+        yPos += SET_BONUS_LABEL_NUDGE_Y;
     
         context.getMatrices().push();
         context.getMatrices().translate(xPos, yPos, 400.0f);
