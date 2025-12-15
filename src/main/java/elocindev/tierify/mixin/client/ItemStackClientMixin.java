@@ -257,10 +257,10 @@ public abstract class ItemStackClientMixin {
                     }
             
                     for (int j = 0; j < newArgs.length; j++) {
-                        Object a = newArgs[j];
-                        if (a instanceof String s) {
-                            if (s.contains(replacement)) {
-                                newArgs[j] = s.replace(replacement, replacementAbs);
+                        if (a instanceof Text t) {
+                            String ts = t.getString();
+                            if (ts.contains(replacement)) {
+                                newArgs[j] = Text.literal(ts.replace(replacement, replacementAbs)).setStyle(t.getStyle());
                             }
                         }
                     }
@@ -286,12 +286,12 @@ public abstract class ItemStackClientMixin {
         
             // If the line is a "+ ..." line but the replacement is negative, flip leading '+' to '-'
             if (oldText.trim().startsWith("+") && replacementNeg) {
-                newText = newText.replaceFirst("\\+", "-");
+                newText = newText.replaceFirst("^\\s*\\+", "-");
             }
         
             // If the line is a "- ..." line but the replacement is positive, flip leading '-' to '+'
             if (oldText.trim().startsWith("-") && !replacementNeg) {
-                newText = newText.replaceFirst("-", "+");
+                newText = newText.replaceFirst("^\\s*-", "+");
             }
         
             newNode = Text.literal(newText).setStyle(node.getStyle());
