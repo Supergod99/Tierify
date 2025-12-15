@@ -1,6 +1,7 @@
 package elocindev.tierify.mixin.client;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +27,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
+import net.minecraft.text.OrderedText;
 
 @Environment(EnvType.CLIENT)
 @Mixin(HandledScreen.class)
@@ -64,12 +66,29 @@ public abstract class HandledScreenMixin extends Screen {
                             
                             // Get tooltip text (Vanilla logic)
                             List<Text> text = Screen.getTooltipFromItem(this.client, stack);
-                            List<TooltipComponent> components = text.stream()
-                                .map(Text::asOrderedText)
-                                .map(TooltipComponent::of)
-                                .collect(Collectors.toList());
+                            // Vanilla-like wrapping: cap width to the screen
+                            int maxWidth = this.width - 16;
+                            List<TooltipComponent> components = new ArrayList<>();
+                            int dataInsertIndex = 1; // will be corrected after title is processed
                             
-                            stack.getTooltipData().ifPresent(data -> components.add(1, TooltipComponent.of(data)));
+                            for (int lineIndex = 0; lineIndex < text.size(); lineIndex++) {
+                                Text line = text.get(lineIndex);
+                                // Wrap each line to the max width
+                                List<OrderedText> wrapped = this.textRenderer.wrapLines(line, maxWidth);
+                        
+                                for (OrderedText ot : wrapped) {
+                                    components.add(TooltipComponent.of(ot));
+                                }
+                                // TooltipData should be inserted after the full (possibly wrapped) title block
+                                if (lineIndex == 0) {
+                                    dataInsertIndex = components.size();
+                                }
+                            }
+                            
+                            stack.getTooltipData().ifPresent(data -> {
+                                int idx = Math.min(Math.max(dataInsertIndex, 1), components.size());
+                                components.add(idx, TooltipComponent.of(data));
+                            });
 
                             // Render Custom Border
                             TieredTooltip.renderTieredTooltipFromComponents(
