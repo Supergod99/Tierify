@@ -158,7 +158,6 @@ public abstract class ItemStackClientMixin {
         }
 
         if (this.hasNbt() && this.getSubNbt(Tierify.NBT_SUBTAG_KEY) != null) {
-            fixAttributeModifierSignMismatches(tooltip);
             applyAttributeLogic(tooltip);
             fixAttributeModifierSignMismatches(tooltip);
             fixRedPlusLines(tooltip);
@@ -452,9 +451,9 @@ public abstract class ItemStackClientMixin {
                 continue;
             }
     
-            // preserve vanilla structure by flipping the translation key
             if (line.getContent() instanceof TranslatableTextContent tr) {
                 String key = tr.getKey();
+    
                 if (key.startsWith("attribute.modifier.plus.")) {
                     String suffix = key.substring("attribute.modifier.plus.".length());
                     Object[] newArgs = stripLeadingSigns(tr.getArgs());
@@ -466,16 +465,36 @@ public abstract class ItemStackClientMixin {
                     tooltip.set(i, fixed);
     
                     if (SIGN_FIX_DEBUG) {
-                        Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Applied translatable flip idx={} fromKey={} toKey={}",
+                        Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Applied vanilla translatable flip idx={} fromKey={} toKey={}",
                                 i, key, "attribute.modifier.take." + suffix);
                     }
                     continue;
-                } else if (SIGN_FIX_DEBUG) {
-                    Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Candidate was translatable but not 'attribute.modifier.plus.*' idx={} key={}",
-                            i, key);
                 }
-            }
     
+                // apothic attributes modifier lines
+                if ("attributeslib.modifier.plus".equals(key)) {
+                    Object[] newArgs = stripLeadingSigns(tr.getArgs());
+    
+                    MutableText fixed = Text.translatable("attributeslib.modifier.take", newArgs)
+                            .setStyle(line.getStyle());
+    
+                    for (Text sibling : line.getSiblings()) fixed.append(sibling);
+                    tooltip.set(i, fixed);
+    
+                    if (SIGN_FIX_DEBUG) {
+                        Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Applied AttributesLib translatable flip idx={} fromKey={} toKey={}",
+                                i, key, "attributeslib.modifier.take");
+                    }
+                    continue;
+                }
+    
+                if (SIGN_FIX_DEBUG) {
+                    Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Candidate was translatable but unsupported idx={} key={} text='{}'",
+                            i, key, trimmed);
+                }
+                continue;
+            }
+
             if (line.getSiblings().isEmpty()) {
                 String fixedString = line.getString().replaceFirst("^\\s*\\+", "-");
                 tooltip.set(i, Text.literal(fixedString).setStyle(line.getStyle()));
@@ -489,8 +508,6 @@ public abstract class ItemStackClientMixin {
             }
         }
     }
-
-
 
     private void updateTooltipRecursive(List<Text> tooltip, String target, String replacement, boolean applyGold) {
         for (int i = 0; i < tooltip.size(); i++) {
