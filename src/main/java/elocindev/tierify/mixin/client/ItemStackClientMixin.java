@@ -399,6 +399,30 @@ public abstract class ItemStackClientMixin {
         return false;
     }
 
+    private boolean hasRedRecursive(Text t, TextColor red, TextColor darkRed) {
+        if (t == null) return false;
+    
+        TextColor c = t.getStyle().getColor();
+        if (c != null) {
+            // Exact matches (vanilla Formatting.RED / DARK_RED)
+            if (Objects.equals(c, red) || Objects.equals(c, darkRed)) return true;
+    
+            // Heuristic match (catches Tooltip Overhaul / custom dark reds)
+            if (isRedLike(c)) return true;
+        }
+    
+        if (t.getContent() instanceof TranslatableTextContent tr) {
+            for (Object arg : tr.getArgs()) {
+                if (arg instanceof Text at && hasRedRecursive(at, red, darkRed)) return true;
+            }
+        }
+    
+        for (Text sib : t.getSiblings()) {
+            if (hasRedRecursive(sib, red, darkRed)) return true;
+        }
+    
+        return false;
+    }
     
     private Object[] stripLeadingSigns(Object[] args) {
         Object[] out = new Object[args.length];
@@ -436,13 +460,14 @@ public abstract class ItemStackClientMixin {
     
             // Must be visibly red/dark-red somewhere in the component tree
             boolean redLike = hasRedRecursive(line, red, darkRed);
-            if (!redLike) continue;
-    
-            if (SIGN_FIX_DEBUG) {
-                String k = (line.getContent() instanceof TranslatableTextContent tr) ? tr.getKey() : "<non-translatable>";
-                TextColor topColor = line.getStyle().getColor();
-                Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Candidate idx={} key={} topColor={} text='{}'",
-                        i, k, topColor, trimmed);
+            if (!redLike) {
+                if (SIGN_FIX_DEBUG) {
+                    String k = (line.getContent() instanceof TranslatableTextContent tr2) ? tr2.getKey() : "<non-translatable>";
+                    TextColor topColor = line.getStyle().getColor();
+                    Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Skipped (not redLike) idx={} key={} topColor={} text='{}'",
+                            i, k, topColor, trimmed);
+                }
+                continue;
             }
     
             // preserve vanilla structure by flipping the translation key
