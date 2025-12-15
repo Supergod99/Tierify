@@ -381,24 +381,6 @@ public abstract class ItemStackClientMixin {
         return r >= 0x80 && g <= 0x60 && b <= 0x60;
     }
     
-    private boolean hasRedLikeRecursive(Text t) {
-        if (t == null) return false;
-    
-        if (isRedLike(t.getStyle().getColor())) return true;
-    
-        if (t.getContent() instanceof TranslatableTextContent tr) {
-            for (Object arg : tr.getArgs()) {
-                if (arg instanceof Text at && hasRedLikeRecursive(at)) return true;
-            }
-        }
-    
-        for (Text sib : t.getSiblings()) {
-            if (hasRedLikeRecursive(sib)) return true;
-        }
-    
-        return false;
-    }
-
     private boolean hasRedRecursive(Text t, TextColor red, TextColor darkRed) {
         if (t == null) return false;
     
