@@ -239,7 +239,34 @@ public abstract class ItemStackClientMixin {
             }
 
             if (changed) {
-                MutableText newTranslatable = Text.translatable(translatable.getKey(), newArgs).setStyle(node.getStyle());
+                String key = translatable.getKey();
+            
+                boolean isAttrModifier =
+                        key.startsWith("attribute.modifier.plus.") ||
+                        key.startsWith("attribute.modifier.take.");
+            
+                boolean replacementNeg = replacement.startsWith("-");
+                String replacementAbs = replacementNeg ? replacement.substring(1) : replacement;
+            
+                String newKey = key;
+                if (isAttrModifier) {
+                    if (replacementNeg && key.startsWith("attribute.modifier.plus.")) {
+                        newKey = "attribute.modifier.take." + key.substring("attribute.modifier.plus.".length());
+                    } else if (!replacementNeg && key.startsWith("attribute.modifier.take.")) {
+                        newKey = "attribute.modifier.plus." + key.substring("attribute.modifier.take.".length());
+                    }
+            
+                    for (int j = 0; j < newArgs.length; j++) {
+                        Object a = newArgs[j];
+                        if (a instanceof String s) {
+                            if (s.contains(replacement)) {
+                                newArgs[j] = s.replace(replacement, replacementAbs);
+                            }
+                        }
+                    }
+                }
+            
+                MutableText newTranslatable = Text.translatable(newKey, newArgs).setStyle(node.getStyle());
                 for (Text sibling : node.getSiblings()) {
                     newTranslatable.append(processNodeRecursive(sibling, target, replacement));
                 }
@@ -250,11 +277,24 @@ public abstract class ItemStackClientMixin {
         // Handle Literal (Modded)
         MutableText newNode = node.copy();
         if (node.getString().contains(target) && (node.getContent() instanceof net.minecraft.text.LiteralTextContent)) {
-             String oldText = node.getString();
-             if (oldText.contains(target)) {
-                 String newText = oldText.replace(target, replacement);
-                 newNode = Text.literal(newText).setStyle(node.getStyle());
-             }
+            String oldText = node.getString();
+        
+            boolean replacementNeg = replacement.startsWith("-");
+            String replacementAbs = replacementNeg ? replacement.substring(1) : replacement;
+        
+            String newText = oldText.replace(target, replacementAbs);
+        
+            // If the line is a "+ ..." line but the replacement is negative, flip leading '+' to '-'
+            if (oldText.trim().startsWith("+") && replacementNeg) {
+                newText = newText.replaceFirst("\\+", "-");
+            }
+        
+            // If the line is a "- ..." line but the replacement is positive, flip leading '-' to '+'
+            if (oldText.trim().startsWith("-") && !replacementNeg) {
+                newText = newText.replaceFirst("-", "+");
+            }
+        
+            newNode = Text.literal(newText).setStyle(node.getStyle());
         }
         
         // Handle Siblings
