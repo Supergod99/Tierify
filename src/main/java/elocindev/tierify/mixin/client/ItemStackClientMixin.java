@@ -46,8 +46,6 @@ public abstract class ItemStackClientMixin {
     
     @Shadow @Final public static DecimalFormat MODIFIER_FORMAT;
 
-    private static final boolean SIGN_FIX_DEBUG = true;
-
     private double getSetBonusFactor() {
         if (!Tierify.CONFIG.enableArmorSetBonuses) return 1.0D;
         PlayerEntity player = MinecraftClient.getInstance().player;
@@ -378,7 +376,7 @@ public abstract class ItemStackClientMixin {
         // This catches Formatting.RED, Formatting.DARK_RED, and custom dark reds used by other renderers.
         return r >= 0x80 && g <= 0x60 && b <= 0x60;
     }
-    
+
     private boolean hasRedRecursive(Text t, TextColor red, TextColor darkRed) {
         if (t == null) return false;
     
@@ -423,87 +421,44 @@ public abstract class ItemStackClientMixin {
         }
         return out;
     }
-    
     private void fixRedPlusLines(List<Text> tooltip) {
         TextColor red = TextColor.fromFormatting(Formatting.RED);
         TextColor darkRed = TextColor.fromFormatting(Formatting.DARK_RED);
-    
+
         for (int i = 0; i < tooltip.size(); i++) {
             Text line = tooltip.get(i);
             if (line == null) continue;
-    
+
             String trimmed = line.getString().trim();
-    
+
             // Only touch attribute-like lines that begin with "+"
-            boolean startsPlusDigit = trimmed.matches("^\\+\\s*\\d.*");
-            if (!startsPlusDigit) continue;
-    
+            if (!trimmed.matches("^\+\s*\d.*")) continue;
+
             // Must be visibly red/dark-red somewhere in the component tree
-            boolean redLike = hasRedRecursive(line, red, darkRed);
-            if (!redLike) {
-                if (SIGN_FIX_DEBUG) {
-                    String k = (line.getContent() instanceof TranslatableTextContent tr2) ? tr2.getKey() : "<non-translatable>";
-                    TextColor topColor = line.getStyle().getColor();
-                    Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Skipped (not redLike) idx={} key={} topColor={} text='{}'",
-                            i, k, topColor, trimmed);
-                }
-                continue;
-            }
-    
+            if (!hasRedRecursive(line, red, darkRed)) continue;
+
+            // Prefer key flipping when possible (works for vanilla and libraries that mirror the pattern)
             if (line.getContent() instanceof TranslatableTextContent tr) {
                 String key = tr.getKey();
-    
-                if (key.startsWith("attribute.modifier.plus.")) {
-                    String suffix = key.substring("attribute.modifier.plus.".length());
+
+                // Generalized: attribute.modifier.plus.* -> attribute.modifier.take.*,
+                //              attributeslib.modifier.plus -> attributeslib.modifier.take, etc.
+                if (key.contains("modifier.plus")) {
+                    String newKey = key.replace("modifier.plus", "modifier.take");
                     Object[] newArgs = stripLeadingSigns(tr.getArgs());
-    
-                    MutableText fixed = Text.translatable("attribute.modifier.take." + suffix, newArgs)
-                            .setStyle(line.getStyle());
-    
+
+                    MutableText fixed = Text.translatable(newKey, newArgs).setStyle(line.getStyle());
                     for (Text sibling : line.getSiblings()) fixed.append(sibling);
+
                     tooltip.set(i, fixed);
-    
-                    if (SIGN_FIX_DEBUG) {
-                        Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Applied vanilla translatable flip idx={} fromKey={} toKey={}",
-                                i, key, "attribute.modifier.take." + suffix);
-                    }
                     continue;
                 }
-    
-                // apothic attributes modifier lines
-                if ("attributeslib.modifier.plus".equals(key)) {
-                    Object[] newArgs = stripLeadingSigns(tr.getArgs());
-    
-                    MutableText fixed = Text.translatable("attributeslib.modifier.take", newArgs)
-                            .setStyle(line.getStyle());
-    
-                    for (Text sibling : line.getSiblings()) fixed.append(sibling);
-                    tooltip.set(i, fixed);
-    
-                    if (SIGN_FIX_DEBUG) {
-                        Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Applied AttributesLib translatable flip idx={} fromKey={} toKey={}",
-                                i, key, "attributeslib.modifier.take");
-                    }
-                    continue;
-                }
-    
-                if (SIGN_FIX_DEBUG) {
-                    Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Candidate was translatable but unsupported idx={} key={} text='{}'",
-                            i, key, trimmed);
-                }
-                continue;
             }
 
+            // Literal fallback (only safe when there are no siblings)
             if (line.getSiblings().isEmpty()) {
-                String fixedString = line.getString().replaceFirst("^\\s*\\+", "-");
+                String fixedString = line.getString().replaceFirst("^\s*\+", "-");
                 tooltip.set(i, Text.literal(fixedString).setStyle(line.getStyle()));
-    
-                if (SIGN_FIX_DEBUG) {
-                    Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Applied literal fallback idx={} result='{}'",
-                            i, fixedString.trim());
-                }
-            } else if (SIGN_FIX_DEBUG) {
-                Tierify.LOGGER.info("[SignFix][fixRedPlusLines] Candidate skipped (non-translatable and has siblings) idx={}", i);
             }
         }
     }
@@ -629,24 +584,6 @@ public abstract class ItemStackClientMixin {
         }
 
         return newNode;
-    }
-
-    private boolean checkSetBonus() {
-        PlayerEntity clientPlayer = MinecraftClient.getInstance().player;
-        if (clientPlayer == null || !this.hasNbt()) return false;
-
-        NbtCompound nbt = this.getSubNbt(Tierify.NBT_SUBTAG_KEY);
-        if (nbt == null) return false;
-
-        String myTier = nbt.getString(Tierify.NBT_SUBTAG_DATA_KEY);
-        if (myTier.isEmpty()) return false;
-
-        int matchCount = 0;
-        for (ItemStack armor : clientPlayer.getInventory().armor) {
-            NbtCompound aNbt = armor.getSubNbt(Tierify.NBT_SUBTAG_KEY);
-            if (aNbt != null && aNbt.getString(Tierify.NBT_SUBTAG_DATA_KEY).equals(myTier)) matchCount++;
-        }
-        return matchCount >= 4;
     }
 
     private void fixAttackSpeedText(List<Text> tooltip) {
