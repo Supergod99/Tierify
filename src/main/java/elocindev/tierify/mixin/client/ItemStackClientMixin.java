@@ -95,6 +95,7 @@ public abstract class ItemStackClientMixin {
 
         if (this.hasNbt() && this.getSubNbt(Tierify.NBT_SUBTAG_KEY) != null) {
             applyAttributeLogic(tooltip);
+            fixAttributeModifierSignMismatches(tooltip);
         }
 
         fixAttackSpeedText(tooltip);
@@ -183,6 +184,124 @@ public abstract class ItemStackClientMixin {
             }
         }
     }
+
+    private void fixAttributeModifierSignMismatches(List<Text> tooltip) {
+        // Build per-slot sums exactly like vanilla does (sum by attribute + operation).
+        Map<EquipmentSlot, Map<String, double[]>> sums = new EnumMap<>(EquipmentSlot.class);
+    
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            Multimap<EntityAttribute, EntityAttributeModifier> modifiers = this.getAttributeModifiers(slot);
+            if (modifiers == null || modifiers.isEmpty()) continue;
+    
+            Map<String, double[]> perAttr = new HashMap<>();
+            for (Map.Entry<EntityAttribute, EntityAttributeModifier> e : modifiers.entries()) {
+                EntityAttribute attr = e.getKey();
+                EntityAttributeModifier mod = e.getValue();
+    
+                // Map operation -> vanilla tooltip index (0/1/2)
+                int opIdx = switch (mod.getOperation()) {
+                    case ADDITION -> 0;
+                    case MULTIPLY_BASE -> 1;
+                    case MULTIPLY_TOTAL -> 2;
+                };
+    
+                String attrKey = attr.getTranslationKey();
+                perAttr.computeIfAbsent(attrKey, k -> new double[3])[opIdx] += mod.getValue();
+            }
+    
+            sums.put(slot, perAttr);
+        }
+    
+        // Track which slot we are currently in while iterating tooltip lines.
+        EquipmentSlot currentSlot = null;
+    
+        for (int i = 0; i < tooltip.size(); i++) {
+            Text line = tooltip.get(i);
+            if (!(line.getContent() instanceof TranslatableTextContent tr)) continue;
+    
+            String key = tr.getKey();
+    
+            // Update current slot when we hit a "When on X:" header.
+            // Vanilla uses these keys: item.modifiers.mainhand/offhand/head/chest/legs/feet
+            if (key.startsWith("item.modifiers.")) {
+                currentSlot = switch (key) {
+                    case "item.modifiers.mainhand", "item.modifiers.hand" -> EquipmentSlot.MAINHAND;
+                    case "item.modifiers.offhand" -> EquipmentSlot.OFFHAND;
+                    case "item.modifiers.head" -> EquipmentSlot.HEAD;
+                    case "item.modifiers.chest" -> EquipmentSlot.CHEST;
+                    case "item.modifiers.legs" -> EquipmentSlot.LEGS;
+                    case "item.modifiers.feet" -> EquipmentSlot.FEET;
+                    default -> currentSlot;
+                };
+                continue;
+            }
+    
+            boolean isPlus = key.startsWith("attribute.modifier.plus.");
+            boolean isTake = key.startsWith("attribute.modifier.take.");
+            if (!isPlus && !isTake) continue;
+    
+            // Need the operation index (0/1/2) from the translation key suffix.
+            int opIdx;
+            try {
+                opIdx = Integer.parseInt(key.substring(key.lastIndexOf('.') + 1));
+            } catch (Exception ignored) {
+                continue;
+            }
+    
+            // Resolve which attribute this line refers to by finding a Text arg whose content is translatable.
+            String attrTranslationKey = null;
+            for (Object arg : tr.getArgs()) {
+                if (arg instanceof Text t && t.getContent() instanceof TranslatableTextContent at) {
+                    attrTranslationKey = at.getKey();
+                    break;
+                }
+            }
+            if (attrTranslationKey == null) continue;
+    
+            // If we can’t determine the slot context, we cannot safely correct.
+            if (currentSlot == null) continue;
+    
+            Map<String, double[]> perAttr = sums.get(currentSlot);
+            if (perAttr == null) continue;
+    
+            double[] ops = perAttr.get(attrTranslationKey);
+            if (ops == null) continue;
+    
+            boolean shouldBeNegative = ops[opIdx] < -1.0e-9;
+    
+            // If sign already matches, do nothing.
+            if ((shouldBeNegative && isTake) || (!shouldBeNegative && isPlus)) continue;
+    
+            String newKey = (shouldBeNegative ? "attribute.modifier.take." : "attribute.modifier.plus.") + opIdx;
+    
+            // Ensure the numeric arg is unsigned (vanilla expects abs() because sign is in the translation).
+            Object[] args = tr.getArgs();
+            Object[] newArgs = new Object[args.length];
+            for (int j = 0; j < args.length; j++) {
+                Object a = args[j];
+                if (a instanceof String s) {
+                    newArgs[j] = s.replaceFirst("^[+\\-]", "");
+                } else if (a instanceof Text t) {
+                    String ts = t.getString();
+                    if (ts.startsWith("-") || ts.startsWith("+")) {
+                        newArgs[j] = Text.literal(ts.replaceFirst("^[+\\-]", "")).setStyle(t.getStyle());
+                    } else {
+                        newArgs[j] = a;
+                    }
+                } else {
+                    newArgs[j] = a;
+                }
+            }
+    
+            MutableText fixed = Text.translatable(newKey, newArgs).setStyle(line.getStyle());
+            for (Text sibling : line.getSiblings()) {
+                fixed.append(sibling);
+            }
+    
+            tooltip.set(i, fixed);
+        }
+    }
+
 
     private void updateTooltipRecursive(List<Text> tooltip, String target, String replacement, boolean applyGold) {
         for (int i = 0; i < tooltip.size(); i++) {
