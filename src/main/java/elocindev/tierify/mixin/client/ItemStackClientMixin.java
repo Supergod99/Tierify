@@ -257,6 +257,7 @@ public abstract class ItemStackClientMixin {
                     }
             
                     for (int j = 0; j < newArgs.length; j++) {
+                        Object a = newArgs[j];
                         if (a instanceof Text t) {
                             String ts = t.getString();
                             if (ts.contains(replacement)) {
