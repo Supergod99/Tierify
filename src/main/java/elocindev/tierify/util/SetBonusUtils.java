@@ -24,7 +24,7 @@ public class SetBonusUtils {
     public static boolean hasSetBonus(PlayerEntity player, ItemStack itemStack) {
         if (!Tierify.CONFIG.enableArmorSetBonuses) return false;
         if (player == null || itemStack.isEmpty()) return false;
-
+        if (!isEquippedArmorStack(player, itemStack)) return false;
         // Get the Tier ID from the item being looked at
         NbtCompound nbt = itemStack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
         if (nbt == null) return false;
@@ -49,6 +49,7 @@ public class SetBonusUtils {
         if (!Tierify.CONFIG.enableArmorSetBonuses) return null;
         if (player == null || stack == null || stack.isEmpty()) return null;
         if (!(stack.getItem() instanceof ArmorItem)) return null;
+        if (!isEquippedArmorStack(player, stack)) return null;
     
         if (hasPerfectSetBonus(player, stack)) {
             int pct = (int) Math.round(Tierify.CONFIG.armorSetPerfectBonusPercent * 100.0);
