@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "tiered",
   "version": "${version}",
-  "name": "Tierify",
-  "description": "Adds quality tiers to armor, weapons and tools.",
+  "name": "Echelon",
+  "description": "Adds quality tiers to armor, weapons and tools",
   "authors": [
     "d0ugdimmadome",
     "ElocinDev (Tierify)",
@@ -11,12 +11,10 @@
     "Globox_Z (TieredZ)"
   ],
   "contributors": [
-    "Sweenuss (Contributor)",
-    "Helton Yan (Sound Assets)"
   ],
   "contact": {
     "issues": "https://github.com/nvb-uy/Tierify/issues",
-    "homepage": "https://www.curseforge.com/minecraft/mc-mods/tierify"
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/echelon-linggango-variant"
   },
   "license": "MIT",
   "icon": "assets/tiered/icon.png",
