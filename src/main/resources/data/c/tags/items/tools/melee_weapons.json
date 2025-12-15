@@ -1613,7 +1613,10 @@
       "id": "foolish:astral_edge_sword",
       "required": false
     },
-    "minecraft:mace",
+    {
+      "id": "minecraft:mace",
+      "required": false
+    },
     {
       "id": "brutality:cinder_block",
       "required": false
