@@ -83,7 +83,7 @@ public class TieredTooltip {
         }
         
         // Reserve real space above the name
-        final int setBonusHeaderHeight = 9; // same magnitude as Perfect's extra height
+        final int setBonusHeaderHeight = 6; // same magnitude as Perfect's extra height
         if (setBonusLabel != null) {
             topPadding += setBonusHeaderHeight;
         }
