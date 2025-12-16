@@ -23,7 +23,7 @@ import net.minecraft.client.gui.tooltip.TooltipPositioner;
 @Environment(EnvType.CLIENT)
 public class TieredTooltip {
 
-    private static final float SET_BONUS_LABEL_NUDGE_Y = 4.0f;
+    private static final float SET_BONUS_LABEL_NUDGE_Y = 0.0f;
 
     public static String getPlateForModifier(String modifier) {
         switch(modifier.toLowerCase()) {
@@ -69,10 +69,27 @@ public class TieredTooltip {
 
         i += 8; // Horizontal Padding
         
-        int topPadding = 4;
+        int baseTopPadding = 4;
+        int topPadding = baseTopPadding;
         int bottomPadding = 4;
         
-        j += topPadding + bottomPadding; 
+        // Determine if we need a reserved header band for Set Bonus
+        MinecraftClient client = MinecraftClient.getInstance();
+        ItemStack stack = TierifyClient.CURRENT_TOOLTIP_STACK;
+        MutableText setBonusLabel = null;
+        
+        if (client.player != null && stack != null && !stack.isEmpty()) {
+            setBonusLabel = SetBonusUtils.getSetBonusActiveLabel(client.player, stack);
+        }
+        
+        // Reserve real space above the name
+        final int setBonusHeaderHeight = 12; // same magnitude as Perfect's extra height
+        if (setBonusLabel != null) {
+            topPadding += setBonusHeaderHeight;
+        }
+        
+        j += topPadding + bottomPadding;
+
         
         // Extra height for Perfect label
         if (borderTemplate.getIndex() == 6) {    
@@ -231,7 +248,7 @@ public class TieredTooltip {
         float scaledHeight = baseHeight * scale;
     
         // Interior top area is roughly from (bgY - 3) up to (bgY + topPadding)
-        float gapTop = bgY - 3f;
+        float gapTop = bgY;
         float gapBottom = bgY + topPadding;
         float yPos = gapTop + ((gapBottom - gapTop) - scaledHeight) / 2f;
         float yOffset = (baseHeight - scaledHeight) / 2f;
