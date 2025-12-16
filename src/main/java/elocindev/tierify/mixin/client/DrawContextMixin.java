@@ -18,6 +18,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.tooltip.TooltipPositioner;
 import net.minecraft.client.gui.tooltip.HoveredTooltipPositioner;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
 import net.minecraft.client.gui.screen.Screen;
@@ -30,70 +31,54 @@ import net.minecraft.text.OrderedText;
 @Mixin(DrawContext.class)
 public class DrawContextMixin {
 
-    @Inject(method = "drawItemTooltip", at = @At("HEAD"), cancellable = true)
-    private void drawItemTooltipMixin(TextRenderer textRenderer, ItemStack stack, int x, int y, CallbackInfo info) {
-        // If Tooltip Overhaul is present, let it handle rendering.
-        if (FabricLoader.getInstance().isModLoaded("tooltipoverhaul")) {
-            return;
-        }
+    @Inject(method = "drawItemTooltip", at = @At("HEAD"))
+    private void tierify$captureStackForTooltip(TextRenderer textRenderer, ItemStack stack, int x, int y, CallbackInfo ci) {
+        TierifyClient.CURRENT_TOOLTIP_STACK = stack;
+    }
+    
+    @Inject(method = "drawItemTooltip", at = @At("RETURN"))
+    private void tierify$clearStackForTooltip(TextRenderer textRenderer, ItemStack stack, int x, int y, CallbackInfo ci) {
+        TierifyClient.CURRENT_TOOLTIP_STACK = ItemStack.EMPTY;
+    }
 
-        // Logic restored from Original Mod (plus Perfect check)
-        if (Tierify.CLIENT_CONFIG.tieredTooltip && stack.hasNbt()) {
-            NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
-            
-            if (tierTag != null) {
-                // 1. Get the Raw ID
-                String tier = tierTag.getString(Tierify.NBT_SUBTAG_DATA_KEY);
-                
-                // 2. Determine Lookup Key
-                String lookupKey = tier;
-                if (tierTag.getBoolean("Perfect")) {
-                    lookupKey = "tiered:perfect";
-                }
-
-                // 3. Match against the simple strings in BORDER_TEMPLATES
-                for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
-                    if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(lookupKey)) {
-
-                        List<Text> text = Screen.getTooltipFromItem(MinecraftClient.getInstance(), stack);
-                        // Use the window width here 
-                        int maxWidth = Math.min(((DrawContext)(Object)this).getScaledWindowWidth() - 16, 280);
-                        List<TooltipComponent> list = new ArrayList<>();
-                        int dataInsertIndex = 1;
-           
-                        for (int lineIndex = 0; lineIndex < text.size(); lineIndex++) {
-                            Text line = text.get(lineIndex);
-                            List<OrderedText> wrapped = textRenderer.wrapLines(line, maxWidth);
-                        
-                            for (OrderedText ot : wrapped) {
-                                list.add(TooltipComponent.of(ot));
-                            }
-                        
-                            if (lineIndex == 0) {
-                                dataInsertIndex = list.size();
-                            }
-                        }
-
-                        final int insertIndex = dataInsertIndex;
-                        stack.getTooltipData().ifPresent(data -> {
-                            int idx = Math.min(Math.max(insertIndex, 1), list.size());
-                            list.add(idx, TooltipComponent.of(data));
-                        });
-
-                        TieredTooltip.renderTieredTooltipFromComponents(
-                            (DrawContext) (Object) this, 
-                            textRenderer, 
-                            list, 
-                            x, 
-                            y, 
-                            HoveredTooltipPositioner.INSTANCE, 
-                            TierifyClient.BORDER_TEMPLATES.get(i)
-                        );
-                        
-                        info.cancel();
-                        return;
-                    }
-                }
+    @Inject(
+        method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;IILnet/minecraft/client/gui/tooltip/TooltipPositioner;)V",
+        at = @At("HEAD"),
+        cancellable = true
+    )
+    private void tierify$drawTooltipFromComponents(
+        TextRenderer textRenderer,
+        List<TooltipComponent> components,
+        int x, int y,
+        TooltipPositioner positioner,
+        CallbackInfo ci
+    ) {
+        if (FabricLoader.getInstance().isModLoaded("tooltipoverhaul")) return;
+    
+        ItemStack stack = TierifyClient.CURRENT_TOOLTIP_STACK;
+        if (stack == null || stack.isEmpty()) return;
+    
+        if (!Tierify.CLIENT_CONFIG.tieredTooltip || !stack.hasNbt()) return;
+    
+        NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+        if (tierTag == null) return;
+    
+        String tier = tierTag.getString(Tierify.NBT_SUBTAG_DATA_KEY);
+        String lookupKey = tierTag.getBoolean("Perfect") ? "tiered:perfect" : tier;
+    
+        for (int i = 0; i < TierifyClient.BORDER_TEMPLATES.size(); i++) {
+            if (TierifyClient.BORDER_TEMPLATES.get(i).containsDecider(lookupKey)) {
+                TieredTooltip.renderTieredTooltipFromComponents(
+                    (DrawContext)(Object)this,
+                    textRenderer,
+                    components,
+                    x,
+                    y,
+                    positioner,
+                    TierifyClient.BORDER_TEMPLATES.get(i)
+                );
+                ci.cancel();
+                return;
             }
         }
     }
