@@ -52,16 +52,4 @@ public abstract class HandledScreenMixin extends Screen {
     private void tierify$clearHoveredStack(DrawContext context, int x, int y, CallbackInfo ci) {
         TierifyClient.CURRENT_TOOLTIP_STACK = ItemStack.EMPTY;
     }
-    
-    @Inject(method = "render", at = @At("HEAD"))
-    private void captureHandledStack(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo info) {
-        if (this.focusedSlot != null && this.focusedSlot.hasStack()) {
-            TierifyClient.CURRENT_TOOLTIP_STACK = this.focusedSlot.getStack();
-        }
-    }
-
-    @Inject(method = "render", at = @At("RETURN"))
-    private void releaseHandledStack(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo info) {
-        TierifyClient.CURRENT_TOOLTIP_STACK = ItemStack.EMPTY;
-    }
 }
