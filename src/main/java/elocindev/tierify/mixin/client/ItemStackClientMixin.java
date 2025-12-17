@@ -158,6 +158,7 @@ public abstract class ItemStackClientMixin {
             applyAttributeLogic(tooltip);
             fixAttributeModifierSignMismatches(tooltip);
             fixRedPlusLines(tooltip);
+            removeSignedZeroAttributeLines(tooltip);
         }
 
         fixAttackSpeedText(tooltip);
@@ -462,6 +463,69 @@ public abstract class ItemStackClientMixin {
             }
         }
     }
+
+    private static final double ZERO_EPS = 1.0e-9;
+    private void removeSignedZeroAttributeLines(List<Text> tooltip) {
+        for (int i = tooltip.size() - 1; i >= 0; i--) {
+            Text line = tooltip.get(i);
+            if (line == null) continue;
+    
+            String raw = line.getString();
+            if (raw == null || raw.isEmpty()) continue;
+    
+            // Strip formatting codes (§x), then trim.
+            String s = raw.replaceAll("§.", "").trim();
+            if (s.length() < 2) continue;
+    
+            char sign = s.charAt(0);
+            if (sign != '+' && sign != '-') continue;
+    
+            // Must look like a numeric modifier line (sign followed by digit or '.')
+            char next = s.charAt(1);
+            if (!(Character.isDigit(next) || next == '.')) continue;
+    
+            // Parse leading number right after the sign (stops before %, space, attribute name, etc.)
+            double value;
+            try {
+                int p = 1;
+                while (p < s.length() && Character.isWhitespace(s.charAt(p))) p++;
+    
+                int start = p;
+                boolean seenDigit = false;
+                boolean seenDot = false;
+    
+                while (p < s.length()) {
+                    char c = s.charAt(p);
+                    if (Character.isDigit(c)) {
+                        seenDigit = true;
+                        p++;
+                        continue;
+                    }
+                    if (c == '.' && !seenDot) {
+                        seenDot = true;
+                        p++;
+                        continue;
+                    }
+                    break;
+                }
+    
+                if (!seenDigit && !seenDot) continue;
+    
+                String num = s.substring(start, p);
+                value = Double.parseDouble(num);
+            } catch (Exception ignored) {
+                continue;
+            }
+    
+            if (Math.abs(value) <= ZERO_EPS) {
+                if (SIGN_FIX_DEBUG) {
+                    Tierify.LOGGER.info("[SignFix][removeSignedZero] Removed idx={} text='{}'", i, raw);
+                }
+                tooltip.remove(i);
+            }
+        }
+    }
+
 
     private void updateTooltipRecursive(List<Text> tooltip, String target, String replacement, boolean applyGold) {
         for (int i = 0; i < tooltip.size(); i++) {
