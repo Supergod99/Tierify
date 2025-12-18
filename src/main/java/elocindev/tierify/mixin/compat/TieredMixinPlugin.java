@@ -27,7 +27,9 @@ public class TieredMixinPlugin implements IMixinConfigPlugin {
         if (!FabricLoader.getInstance().isModLoaded("easyanvils") && mixinClassName.contains("ModAnvilScreenMixin"))
             return false;
         if (mixinClassName.contains("TooltipOverhaul") || mixinClassName.contains("TooltipRendererAccessor")) {
-            return FabricLoader.getInstance().isModLoaded("tooltipoverhaul");
+            // ONLY load if mod is present AND we are on the Client
+            return FabricLoader.getInstance().isModLoaded("tooltipoverhaul") 
+                   && FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT;
         }
         return true;
     }
