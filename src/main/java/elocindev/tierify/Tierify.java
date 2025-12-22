@@ -274,11 +274,15 @@ public class Tierify implements ModInitializer {
         });
     }
 
-    public static void updateItemStackNbt(PlayerInventory playerInventory) {
+   public static void updateItemStackNbt(PlayerInventory playerInventory) {
         for (int u = 0; u < playerInventory.size(); u++) {
             ItemStack itemStack = playerInventory.getStack(u);
             if (!itemStack.isEmpty() && itemStack.getSubNbt(Tierify.NBT_SUBTAG_KEY) != null) {
-
+                // Inject unique ID for existing items 
+                NbtCompound tierTag = itemStack.getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY);
+                if (!tierTag.contains("TierUUID")) {
+                    tierTag.putUuid("TierUUID", UUID.randomUUID());
+                }
                 // Check if attribute exists
                 List<String> attributeIds = new ArrayList<>();
                 Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().forEach((id, attribute) -> {
