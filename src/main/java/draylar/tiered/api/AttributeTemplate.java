@@ -68,8 +68,19 @@ public class  AttributeTemplate {
      */
     public void realize(Multimap<EntityAttribute, EntityAttributeModifier> multimap, EquipmentSlot slot, ItemStack stack) {
         
-        // FIX: Generate a unique UUID based on the Attribute Type + Slot + Item Name
-        UUID uniqueID = UUID.nameUUIDFromBytes((attributeTypeID + "_" + slot.getName() + "_" + stack.getItem().getTranslationKey()).getBytes());
+        // FIX: Use the unique TierUUID from NBT if available
+        String salt;
+        NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+        
+        if (tierTag != null && tierTag.contains("TierUUID")) {
+            // Use the persistent unique ID assigned to this specific item
+            salt = tierTag.getUuid("TierUUID").toString();
+        } else {
+            // Fallback for old items (collisions possible here, but fixed on reforge)
+            salt = stack.getItem().getTranslationKey();
+        }
+
+        UUID uniqueID = UUID.nameUUIDFromBytes((attributeTypeID + "_" + slot.getName() + "_" + salt).getBytes());
 
         EntityAttributeModifier cloneModifier = new EntityAttributeModifier(
             uniqueID,
@@ -80,7 +91,7 @@ public class  AttributeTemplate {
 
         EntityAttribute key = Registries.ATTRIBUTE.get(new Identifier(attributeTypeID));
         if (key == null) {
-            Tierify.LOGGER.warn(String.format("%s was referenced as an attribute type, but it does not exist! A data file in /tiered/item_attributes/ has an invalid type property.", attributeTypeID));
+            Tierify.LOGGER.warn(String.format("%s was referenced as an attribute type, but it does not exist!", attributeTypeID));
         } else {
             multimap.put(key, cloneModifier);
         }
