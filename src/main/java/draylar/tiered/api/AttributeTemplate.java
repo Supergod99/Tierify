@@ -10,6 +10,7 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import java.util.UUID;
 
 /**
