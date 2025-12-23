@@ -12,10 +12,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(LivingEntity.class)
+@Mixin(value = LivingEntity.class, priority = 500)
 public class LethalityScalingFixMixin {
 
-    @Inject(method = "getDamageAfterArmorAbsorb", at = @At("HEAD"), cancellable = true, priority = 500)
+    @Inject(method = "getDamageAfterArmorAbsorb", at = @At("HEAD"), cancellable = true)
     private void fixBrutalityMath(DamageSource source, float amount, CallbackInfoReturnable<Float> cir) {
         if (source.getAttacker() instanceof net.minecraft.entity.player.Player player) {
             
