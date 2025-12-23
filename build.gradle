@@ -31,8 +31,6 @@ dependencies {
 
 	// Necronomicon
 	modImplementation "maven.modrinth:necronomicon:${project.necronomicon_version}-fabric"
-	// curios
-	modCompileOnly "top.theillusivec4.curios:curios-forge:5.14.1+1.20.1"
 	
 	modImplementation include ('com.fasterxml.jackson.core:jackson-core:2.15.2')
 	modImplementation include ('com.fasterxml.jackson.core:jackson-databind:2.15.2')
@@ -82,6 +80,10 @@ dependencies {
 	modCompileOnly ("curse.maven:easy-anvils-682567:4556543"),{
     	exclude(group: "net.fabricmc.fabric-api")
   	}
+
+	// curios
+	modCompileOnly ("curse.maven:curios-309927:6418456")
+	
 	// Additional Entity Attributes
 	// modImplementation include ("com.github.DaFuqs:AdditionalEntityAttributes:d0cd35d"), {
 	// 	exclude(group: "net.fabricmc.fabric-api")
