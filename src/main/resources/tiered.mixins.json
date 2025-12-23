@@ -21,7 +21,7 @@
     "ArmorStandEntityMixin",
     "ArmorItemMixin",
     "EnchantmentHelperMixin",
-    "compat.BrutalityStackingFixMixin"
+    "compat.CuriosSafeStackingMixin"
   ],
   "client": [
     "client.ItemStackClientMixin",
