@@ -13,16 +13,14 @@ import top.theillusivec4.curios.api.SlotContext;
 
 import java.util.UUID;
 
-// CRITICAL FIX:
-// 1. We use 'targets' (String) instead of ICurioItem.class to prevent the "is an interface" crash.
-// 2. We set 'remap = false' so Mixin doesn't try to find Fabric mappings for this Forge interface.
+// 1. TARGET: We use 'targets' + 'remap=false' to safely locate the Forge Interface.
 @Mixin(targets = "top.theillusivec4.curios.api.type.capability.ICurioItem", remap = false)
-public class CuriosInterfaceMixin {
-    // We use the simple method name "getAttributeModifiers" to avoid signature mismatch errors.
+public interface CuriosInterfaceMixin { 
+    // 2. INJECTION: We rely on the method name "getAttributeModifiers".
+    //    Since we are in an interface (Java 16+), we can use private methods for logic.
     @Inject(method = "getAttributeModifiers", at = @At("RETURN"), cancellable = true, remap = false)
     private void fixBrutalityStacking(SlotContext slotContext, UUID uuid, ItemStack stack, CallbackInfoReturnable<Multimap<EntityAttribute, EntityAttributeModifier>> cir) {
-        // 1. SAFETY CHECK
-        // If stack is null/empty, or NOT a Brutality item, stop immediately.
+        // Safety Check: If stack is null/empty or NOT a Brutality item, stop.
         if (stack == null || stack.isEmpty()) return;
         String itemId = stack.getItem().toString(); 
         if (!itemId.contains("brutality")) {
@@ -30,12 +28,12 @@ public class CuriosInterfaceMixin {
         }
         Multimap<EntityAttribute, EntityAttributeModifier> originalMap = cir.getReturnValue();
         if (originalMap == null || originalMap.isEmpty()) return;
-        // 2. THE FIX: Rebuild map with Unique UUIDs
-        ImmutableMultimap.Builder<EntityAttribute, EntityAttributeModifier> newMap = ImmutableMultimap.builder();
 
+        // The Fix: Rebuild map with Unique UUIDs
+        ImmutableMultimap.Builder<EntityAttribute, EntityAttributeModifier> newMap = ImmutableMultimap.builder();
         originalMap.forEach((attribute, modifier) -> {
             // Salt: Original UUID + Slot Name + Slot Index
-            // This ensures every slot has a unique UUID for the attribute.
+            // This guarantees a unique UUID per slot, fixing the stacking issue.
             String salt = modifier.getId().toString() + ":" + slotContext.identifier() + ":" + slotContext.index();
             UUID uniqueID = UUID.nameUUIDFromBytes(salt.getBytes());
 
@@ -45,10 +43,8 @@ public class CuriosInterfaceMixin {
                 modifier.getValue(),
                 modifier.getOperation()
             );
-
             newMap.put(attribute, newModifier);
         });
-
         cir.setReturnValue(newMap.build());
     }
 }
