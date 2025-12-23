@@ -17,11 +17,13 @@ import java.util.UUID;
 @Mixin(ICurioItem.class)
 public class CuriosInterfaceMixin {
 
+    // We use remap = false because this is an external library method.
+    // We strictly use the NAME only, to avoid descriptor mismatches (Yarn vs Intermediary).
     @Inject(method = "getAttributeModifiers", at = @At("RETURN"), cancellable = true, remap = false)
-    private void fixBrutalityStacking(SlotContext slotContext, UUID uuid, ItemStack stack, CallbackInfoReturnable<Multimap<EntityAttribute, EntityAttributeModifier>> cir) {   
-        // If the stack is empty or NOT a Brutality item, stop immediately.
+    private void fixBrutalityStacking(SlotContext slotContext, UUID uuid, ItemStack stack, CallbackInfoReturnable<Multimap<EntityAttribute, EntityAttributeModifier>> cir) {
+        
+        // 1. SAFETY CHECK
         if (stack == null || stack.isEmpty()) return;
-        // We use string checking to verify the mod ID without importing broken classes.
         String itemId = stack.getItem().toString(); 
         if (!itemId.contains("brutality")) {
             return;
@@ -29,11 +31,9 @@ public class CuriosInterfaceMixin {
 
         Multimap<EntityAttribute, EntityAttributeModifier> originalMap = cir.getReturnValue();
         if (originalMap == null || originalMap.isEmpty()) return;
-        // Rebuild the attribute map with unique UUIDs.
+        // 2. THE FIX
         ImmutableMultimap.Builder<EntityAttribute, EntityAttributeModifier> newMap = ImmutableMultimap.builder();
         originalMap.forEach((attribute, modifier) -> {
-            // Generate a unique salt based on: Original UUID + Slot Name + Slot Index
-            // This guarantees that two identical Rings in two different slots get different UUIDs.
             String salt = modifier.getId().toString() + ":" + slotContext.identifier() + ":" + slotContext.index();
             UUID uniqueID = UUID.nameUUIDFromBytes(salt.getBytes());
 
