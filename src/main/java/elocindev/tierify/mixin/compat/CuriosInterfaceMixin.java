@@ -13,28 +13,23 @@ import top.theillusivec4.curios.api.SlotContext;
 
 import java.util.UUID;
 
-// We use targets + remap = false to safely mix into the Forge Interface.
-// This prevents the "Target type mismatch: is an interface" crash.
+// CRITICAL FIX:
+// 1. We use 'targets' (String) instead of ICurioItem.class to prevent the "is an interface" crash.
+// 2. We set 'remap = false' so Mixin doesn't try to find Fabric mappings for this Forge interface.
 @Mixin(targets = "top.theillusivec4.curios.api.type.capability.ICurioItem", remap = false)
 public class CuriosInterfaceMixin {
-
-    // We rely on the method name "getAttributeModifiers" without the signature 
-    // to avoid mapping issues between Yarn/Intermediary/Forge.
+    // We use the simple method name "getAttributeModifiers" to avoid signature mismatch errors.
     @Inject(method = "getAttributeModifiers", at = @At("RETURN"), cancellable = true, remap = false)
     private void fixBrutalityStacking(SlotContext slotContext, UUID uuid, ItemStack stack, CallbackInfoReturnable<Multimap<EntityAttribute, EntityAttributeModifier>> cir) {
-        
         // 1. SAFETY CHECK
         // If stack is null/empty, or NOT a Brutality item, stop immediately.
         if (stack == null || stack.isEmpty()) return;
-        
         String itemId = stack.getItem().toString(); 
         if (!itemId.contains("brutality")) {
             return;
         }
-
         Multimap<EntityAttribute, EntityAttributeModifier> originalMap = cir.getReturnValue();
         if (originalMap == null || originalMap.isEmpty()) return;
-
         // 2. THE FIX: Rebuild map with Unique UUIDs
         ImmutableMultimap.Builder<EntityAttribute, EntityAttributeModifier> newMap = ImmutableMultimap.builder();
 
