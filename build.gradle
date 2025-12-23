@@ -39,7 +39,8 @@ dependencies {
 	modImplementation("curse.maven:tooltip-overhaul-1327508:7096298") {
     	exclude(group: "net.fabricmc.fabric-api")
 	} 
-
+	// Brutality
+	modImplementation("curse.maven:brutality-1298802:7224161")
 
 	// ModMenu
     modCompileOnly modRuntimeOnly("com.terraformersmc:modmenu:${project.mod_menu_version}") {
