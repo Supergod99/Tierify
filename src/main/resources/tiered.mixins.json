@@ -31,7 +31,8 @@
     "compat.ModAnvilScreenMixin",
     "compat.TooltipOverhaulFrameMixin",
     "compat.TooltipOverhaulRenderMixin",
-    "compat.TooltipRendererAccessor"
+    "compat.TooltipRendererAccessor",
+    "compat.BrutalityStackingFixMixin"
   ],
   "injectors": {
     "defaultRequire": 1
