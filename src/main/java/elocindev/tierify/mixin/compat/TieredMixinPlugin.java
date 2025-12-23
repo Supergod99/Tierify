@@ -30,9 +30,6 @@ public class TieredMixinPlugin implements IMixinConfigPlugin {
             return FabricLoader.getInstance().isModLoaded("tooltipoverhaul") 
                    && FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT;
         }
-        if (mixinClassName.contains("BrutalityStackingFixMixin")) {
-            return FabricLoader.getInstance().isModLoaded("brutality");
-        }
         return true;
     }
 
