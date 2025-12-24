@@ -152,40 +152,42 @@ public class Tierify implements ModInitializer {
         });
         // ... inside onInitialize ...
         ModifyItemAttributeModifiersCallback.EVENT.register((itemStack, slot, modifiers) -> {
-            NbtCompound tierTag = itemStack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
-            if (tierTag == null) return;
-        
-            String tierStr = tierTag.getString(Tierify.NBT_SUBTAG_DATA_KEY);
-            if (tierStr == null || tierStr.isEmpty()) return;
-        
-            Identifier tier = new Identifier(tierStr);
-            PotentialAttribute potentialAttribute = Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tier);
-            if (potentialAttribute == null) return;
-        
-            boolean isPerfect = tierTag.getBoolean("Perfect");
-        
-            for (AttributeTemplate template : potentialAttribute.getAttributes()) {
-        
-                // Respect Perfect: skip negative “downsides”
-                double amount = template.getEntityAttributeModifier().getValue();
-                if (isPerfect && amount < 0.0D) continue;
-        
-                // Required slots
-                if (template.getRequiredEquipmentSlots() != null) {
-                    List<EquipmentSlot> required = new ArrayList<>(Arrays.asList(template.getRequiredEquipmentSlots()));
-                    if (required.contains(slot)) {
-                        if (!TierifyCompatUtil.hasSameModifierAlready(modifiers, template, slot, itemStack)) {
-                            template.realize(modifiers, slot, itemStack);
-                        }
-                    }
-                }
-        
-                // Optional slots
-                if (template.getOptionalEquipmentSlots() != null) {
-                    List<EquipmentSlot> optional = new ArrayList<>(Arrays.asList(template.getOptionalEquipmentSlots()));
-                    if (optional.contains(slot) && Tierify.isPreferredEquipmentSlot(itemStack, slot)) {
-                        if (!TierifyCompatUtil.hasSameModifierAlready(modifiers, template, slot, itemStack)) {
-                            template.realize(modifiers, slot, itemStack);
+            if (itemStack.getSubNbt(Tierify.NBT_SUBTAG_KEY) != null) {
+                Identifier tier = new Identifier(itemStack.getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY).getString(Tierify.NBT_SUBTAG_DATA_KEY));
+
+                if (!itemStack.hasNbt() || !itemStack.getNbt().contains("AttributeModifiers", 9)) {
+                    PotentialAttribute potentialAttribute = Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tier);
+                    if (potentialAttribute != null) {
+                        // Read perfect flag from NBT
+                        NbtCompound tierTag = itemStack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+                        boolean isPerfect = tierTag != null && tierTag.getBoolean("Perfect");
+                    
+                        for (AttributeTemplate template : potentialAttribute.getAttributes()) {
+                            double amount = template.getEntityAttributeModifier().getValue();
+                    
+                            // downside = negative amount ⇒ skip it on perfect rolls
+                            if (isPerfect && amount < 0.0D) {
+                                continue;
+                            }
+                            
+                            // get required equipment slots
+                            if (template.getRequiredEquipmentSlots() != null) {
+                                List<EquipmentSlot> requiredEquipmentSlots = new ArrayList<>(Arrays.asList(template.getRequiredEquipmentSlots()));
+
+                                if (requiredEquipmentSlots.contains(slot))
+                                    // UPDATE: Pass 'itemStack' here
+                                    template.realize(modifiers, slot, itemStack);
+                            }
+
+                            // get optional equipment slots
+                            if (template.getOptionalEquipmentSlots() != null) {
+                                List<EquipmentSlot> optionalEquipmentSlots = new ArrayList<>(Arrays.asList(template.getOptionalEquipmentSlots()));
+
+                                // optional equipment slots are valid ONLY IF the equipment slot is valid for the thing
+                                if (optionalEquipmentSlots.contains(slot) && Tierify.isPreferredEquipmentSlot(itemStack, slot)) {
+                                    template.realize(modifiers, slot, itemStack);
+                                }
+                            }
                         }
                     }
                 }
