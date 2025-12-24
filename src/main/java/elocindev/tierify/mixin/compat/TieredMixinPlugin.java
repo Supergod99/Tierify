@@ -22,14 +22,39 @@ public class TieredMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (!FabricLoader.getInstance().isModLoaded("levelz") && mixinClassName.contains("SkillInfoScreenMixin"))
+        var loader = FabricLoader.getInstance();
+        if (!loader.isModLoaded("levelz") && mixinClassName.endsWith("SkillInfoScreenMixin")) {
             return false;
-        if (!FabricLoader.getInstance().isModLoaded("easyanvils") && mixinClassName.contains("ModAnvilScreenMixin"))
-            return false;
-        if (mixinClassName.contains("TooltipOverhaul") || mixinClassName.contains("TooltipRendererAccessor")) {
-            return FabricLoader.getInstance().isModLoaded("tooltipoverhaul") 
-                   && FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT;
         }
+        if (!loader.isModLoaded("easyanvils") && mixinClassName.endsWith("ModAnvilScreenMixin")) {
+            return false;
+        }
+        if (mixinClassName.contains("TooltipOverhaul") || mixinClassName.contains("TooltipRendererAccessor")) {
+            return loader.isModLoaded("tooltipoverhaul")
+                    && loader.getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT;
+        }
+        // Curios + Brutality compat
+        if (mixinClassName.endsWith("CuriosBrutalityUuidSaltMixin")) {
+            return loader.isModLoaded("curios") && loader.isModLoaded("brutality");
+        }
+        // Brutality + AttributesLib armor pipeline compat
+        if (mixinClassName.endsWith("LethalityScalingFixMixin")) {
+            return loader.isModLoaded("brutality")
+                    || loader.isModLoaded("attributeslib")
+                    || loader.isModLoaded("apothic_attributes");
+        }
+        
+        String lower = mixinClassName.toLowerCase();
+        if (lower.contains("curios")) {
+            return loader.isModLoaded("curios");
+        }
+        if (lower.contains("brutality")) {
+            return loader.isModLoaded("brutality");
+        }
+        if (lower.contains("attributeslib") || lower.contains("apothic")) {
+            return loader.isModLoaded("attributeslib") || loader.isModLoaded("apothic_attributes");
+        }
+    
         return true;
     }
 
