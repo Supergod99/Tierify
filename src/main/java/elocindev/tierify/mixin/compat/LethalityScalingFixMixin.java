@@ -25,20 +25,24 @@ public abstract class LethalityScalingFixMixin {
     @Unique private static final Identifier BRUTALITY_LETHALITY_ID = new Identifier("brutality", "lethality");
     @Unique private static final Identifier BRUTALITY_ARMOR_PEN_ID = new Identifier("brutality", "armor_penetration");
 
-    @Unique private static final double EPS = 1.0e-6;
+    @Unique private static final Identifier ATTRIBLIB_ARMOR_PIERCE_ID = new Identifier("attributeslib", "armor_pierce");
+    @Unique private static final Identifier ATTRIBLIB_ARMOR_SHRED_ID  = new Identifier("attributeslib", "armor_shred");
 
-    // % of D0 per excess lethality point 
+    @Unique private static final double EPS = 1.0e-6;
+    @Unique private static final float  ARMOR_BYPASS_EPS = 0.001F;
+
+    // % of D0 per excess lethality point
     @Unique private static final double EXCESS_BONUS_PER_POINT = 0.10;
 
-    // Pure numeric safety 
+    // Pure numeric safety
     @Unique private static final double MAX_DAMAGE_OUT = 1.0e12;
 
-    // AttributesLib reflection cache
+    // AttributesLib reflection cache (primitive-only, Yarn-safe)
     @Unique private static volatile boolean AL_LOOKED_UP = false;
-    @Unique private static volatile Method AL_GET_DAMAGE_AFTER_ARMOR = null;
+    @Unique private static volatile Method AL_GET_ARMOR_DR = null;
 
     @Inject(method = "applyArmorToDamage", at = @At("HEAD"), cancellable = true)
-    private void echelon$applyArmorToDamage_lethalityFix(DamageSource source, float amount, CallbackInfoReturnable<Float> cir) {
+    private void echelon$applyArmorToDamage_combinedArmorBypass(DamageSource source, float amount, CallbackInfoReturnable<Float> cir) {
         Float out = echelon$compute(source, amount);
         if (out != null) cir.setReturnValue(out);
     }
@@ -51,7 +55,7 @@ public abstract class LethalityScalingFixMixin {
         require = 0,
         expect = 0
     )
-    private void echelon$getDamageAfterArmorAbsorb_lethalityFix(DamageSource source, float amount, CallbackInfoReturnable<Float> cir) {
+    private void echelon$getDamageAfterArmorAbsorb_combinedArmorBypass(DamageSource source, float amount, CallbackInfoReturnable<Float> cir) {
         Float out = echelon$compute(source, amount);
         if (out != null) cir.setReturnValue(out);
     }
@@ -64,7 +68,7 @@ public abstract class LethalityScalingFixMixin {
         require = 0,
         expect = 0
     )
-    private void echelon$method_26323_lethalityFix(DamageSource source, float amount, CallbackInfoReturnable<Float> cir) {
+    private void echelon$method_26323_combinedArmorBypass(DamageSource source, float amount, CallbackInfoReturnable<Float> cir) {
         Float out = echelon$compute(source, amount);
         if (out != null) cir.setReturnValue(out);
     }
@@ -77,25 +81,64 @@ public abstract class LethalityScalingFixMixin {
 
         if (!(source.getAttacker() instanceof LivingEntity attacker)) return null;
 
-        EntityAttribute lethAttr = Registries.ATTRIBUTE.get(BRUTALITY_LETHALITY_ID);
-        if (lethAttr == null) return null;
-
-        EntityAttributeInstance lethInst = attacker.getAttributeInstance(lethAttr);
-        if (lethInst == null) return null;
-
-        double lethality = lethInst.getValue();
-        if (!Double.isFinite(lethality) || Math.abs(lethality) < EPS) return null; // no lethality => no override
-
-        // Brutality’s model: armor * (2 - armorPen)
-        double armorPen = 1.0; // Brutality baseline behavior effectively assumes 1.0 means "no change"
-        EntityAttribute penAttr = Registries.ATTRIBUTE.get(BRUTALITY_ARMOR_PEN_ID);
-        if (penAttr != null) {
-            EntityAttributeInstance penInst = attacker.getAttributeInstance(penAttr);
-            if (penInst != null) {
-                double v = penInst.getValue();
-                if (Double.isFinite(v)) armorPen = v;
+        // Collect Brutality values (do NOT early-return if missing; we might still need AL pierce/shred)
+        double lethality = 0.0;
+        {
+            EntityAttribute lethAttr = Registries.ATTRIBUTE.get(BRUTALITY_LETHALITY_ID);
+            if (lethAttr != null) {
+                EntityAttributeInstance lethInst = attacker.getAttributeInstance(lethAttr);
+                if (lethInst != null) {
+                    double v = lethInst.getValue();
+                    if (Double.isFinite(v)) lethality = v;
+                }
             }
         }
+
+        double armorPen = 1.0; // Brutality default "no change"
+        {
+            EntityAttribute penAttr = Registries.ATTRIBUTE.get(BRUTALITY_ARMOR_PEN_ID);
+            if (penAttr != null) {
+                EntityAttributeInstance penInst = attacker.getAttributeInstance(penAttr);
+                if (penInst != null) {
+                    double v = penInst.getValue();
+                    if (Double.isFinite(v)) armorPen = v;
+                }
+            }
+        }
+
+        // Collect AttributesLib values
+        double pierce = 0.0;
+        {
+            EntityAttribute pierceAttr = Registries.ATTRIBUTE.get(ATTRIBLIB_ARMOR_PIERCE_ID);
+            if (pierceAttr != null) {
+                EntityAttributeInstance inst = attacker.getAttributeInstance(pierceAttr);
+                if (inst != null) {
+                    double v = inst.getValue();
+                    if (Double.isFinite(v)) pierce = v;
+                }
+            }
+        }
+
+        double shred = 0.0;
+        {
+            EntityAttribute shredAttr = Registries.ATTRIBUTE.get(ATTRIBLIB_ARMOR_SHRED_ID);
+            if (shredAttr != null) {
+                EntityAttributeInstance inst = attacker.getAttributeInstance(shredAttr);
+                if (inst != null) {
+                    double v = inst.getValue();
+                    if (Double.isFinite(v)) shred = v;
+                }
+            }
+        }
+
+        // If nothing relevant is present, do not override vanilla/other mods.
+        boolean hasEffect =
+            (Math.abs(lethality) > EPS) ||
+            (Math.abs(armorPen - 1.0) > EPS) ||
+            (pierce > ARMOR_BYPASS_EPS) ||
+            (shred > ARMOR_BYPASS_EPS);
+
+        if (!hasEffect) return null;
 
         LivingEntity target = (LivingEntity) (Object) this;
 
@@ -105,43 +148,66 @@ public abstract class LethalityScalingFixMixin {
         float toughness = (float) target.getAttributeValue(EntityAttributes.GENERIC_ARMOR_TOUGHNESS);
         if (!Float.isFinite(toughness)) toughness = 0.0F;
 
-        // Numeric safety only: block negative multipliers.
+        // Brutality armor pen: armor *= (2 - armorPen) (with safety clamps)
         double multD = 2.0 - armorPen;
         if (!Double.isFinite(multD)) multD = 1.0;
-        if (multD < 0.0) multD = 0.0;              // prevent negative effective armor
-        if (multD > 10.0) multD = 10.0;            // extreme safety; should never hit in normal gameplay
+        if (multD < 0.0) multD = 0.0;     // prevent negative effective armor
+        if (multD > 10.0) multD = 10.0;   // extreme safety
 
-        float effectiveArmorBeforeLethality = (float) (armor * multD);
-        if (!Float.isFinite(effectiveArmorBeforeLethality)) return null;
+        float effectiveArmor = (float) (armor * multD);
+        if (!Float.isFinite(effectiveArmor)) return null;
 
-        // Baseline: armor+pen but no lethality (so lethality never reduces damage)
-        float baselineArmor = Math.max(0.0F, effectiveArmorBeforeLethality);
-        float baseline = echelon$afterArmorCompat(target, source, amount, baselineArmor, toughness);
+        // AttributesLib bypass resistance based on toughness
+        float bypassResist = Math.min(toughness * 0.02F, 0.6F);
+        float bypassMult = 1.0F - bypassResist;
+
+        // Armor Shred (%)
+        if (shred > ARMOR_BYPASS_EPS) {
+            float s = (float) shred;
+            if (!Float.isFinite(s) || s < 0.0F) s = 0.0F;
+            s *= bypassMult;
+            if (s > 1.0F) s = 1.0F; // avoid flipping armor negative by % shred
+            effectiveArmor *= (1.0F - s);
+        }
+
+        // Armor Pierce (flat)
+        if (pierce > ARMOR_BYPASS_EPS) {
+            float p = (float) pierce;
+            if (!Float.isFinite(p) || p < 0.0F) p = 0.0F;
+            p *= bypassMult;
+            effectiveArmor -= p;
+        }
+
+        // Lethality subtraction + "excess lethality" bonus 
+        double leth = lethality;
+        if (!Double.isFinite(leth) || leth < 0.0) leth = 0.0;
+
+        float armorBeforeLethality = Math.max(0.0F, effectiveArmor);
+
+        // Baseline: armor+pen+AL bypass but no lethality (so lethality never reduces damage)
+        float baseline = echelon$afterArmorCompat(amount, armorBeforeLethality, toughness);
         if (!Float.isFinite(baseline) || baseline < 0.0F) baseline = 0.0F;
 
-        // Apply lethality; do NOT allow negative armor into formulas
-        float reducedArmor = effectiveArmorBeforeLethality - (float) lethality;
+        float reducedArmor = armorBeforeLethality - (float) leth;
         float excess = 0.0F;
         if (reducedArmor < 0.0F) {
-            excess = -reducedArmor; // = lethality - effectiveArmorBeforeLethality
+            excess = -reducedArmor;
             reducedArmor = 0.0F;
         }
 
-        float afterArmor = echelon$afterArmorCompat(target, source, amount, reducedArmor, toughness);
+        float afterArmor = echelon$afterArmorCompat(amount, reducedArmor, toughness);
         if (!Float.isFinite(afterArmor) || afterArmor < 0.0F) afterArmor = 0.0F;
 
-        // D0: damage at 0 armor under the active armor rules 
-        float d0 = echelon$afterArmorCompat(target, source, amount, 0.0F, toughness);
+        float d0 = echelon$afterArmorCompat(amount, 0.0F, toughness);
         if (!Float.isFinite(d0) || d0 < 0.0F) d0 = amount;
 
-        // Uncapped linear % bonus based on "excess lethality"
         double bonus = (double) d0 * (excess * EXCESS_BONUS_PER_POINT);
         double out = (double) afterArmor + bonus;
 
         // Guarantee lethality never reduces damage
         if (out < baseline) out = baseline;
 
-        // Numeric safety only
+        // Numeric safety
         if (!Double.isFinite(out)) out = baseline;
         if (out < 0.0) out = 0.0;
         if (out > MAX_DAMAGE_OUT) out = MAX_DAMAGE_OUT;
@@ -150,38 +216,44 @@ public abstract class LethalityScalingFixMixin {
     }
 
     @Unique
-    private static float echelon$afterArmorCompat(LivingEntity target, DamageSource source, float damage, float armor, float toughness) {
-        Method m = echelon$getALMethod();
+    private static float echelon$afterArmorCompat(float damage, float armor, float toughness) {
+        if (armor <= 0.0F) return damage;
+
+        Method m = echelon$getALArmorDRMethod();
         if (m != null) {
             try {
-                Object r = m.invoke(null, target, source, damage, armor, toughness);
-                if (r instanceof Number n) return n.floatValue();
+                Object r = m.invoke(null, damage, armor, toughness);
+                if (r instanceof Number n) {
+                    float factor = n.floatValue();
+                    if (Float.isFinite(factor)) return damage * factor;
+                }
             } catch (Throwable ignored) {
                 // fall back
             }
         }
+
+        // Vanilla fallback
         return DamageUtil.getDamageLeft(damage, armor, toughness);
     }
 
     @Unique
-    private static Method echelon$getALMethod() {
-        if (AL_LOOKED_UP) return AL_GET_DAMAGE_AFTER_ARMOR;
+    private static Method echelon$getALArmorDRMethod() {
+        if (AL_LOOKED_UP) return AL_GET_ARMOR_DR;
         AL_LOOKED_UP = true;
 
         try {
             Class<?> cls = Class.forName("dev.shadowsoffire.attributeslib.api.ALCombatRules");
             for (Method m : cls.getMethods()) {
-                if (!m.getName().equals("getDamageAfterArmor")) continue;
+                if (!m.getName().equals("getArmorDamageReduction")) continue;
                 Class<?>[] p = m.getParameterTypes();
-                if (p.length == 5 && p[2] == float.class && p[3] == float.class && p[4] == float.class) {
-                    AL_GET_DAMAGE_AFTER_ARMOR = m;
+                if (p.length == 3 && p[0] == float.class && p[1] == float.class && p[2] == float.class) {
+                    AL_GET_ARMOR_DR = m;
                     break;
                 }
             }
         } catch (Throwable ignored) {
-            AL_GET_DAMAGE_AFTER_ARMOR = null;
+            AL_GET_ARMOR_DR = null;
         }
-
-        return AL_GET_DAMAGE_AFTER_ARMOR;
+        return AL_GET_ARMOR_DR;
     }
 }
