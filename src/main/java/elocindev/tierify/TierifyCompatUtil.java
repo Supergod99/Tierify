@@ -1,34 +1,27 @@
 package elocindev.tierify;
 
 import com.google.common.collect.Multimap;
-import draylar.tiered.api.AttributeTemplate;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 
 /**
- * Small helper for safely avoiding duplicate attribute injection during
- * ModifyItemAttributeModifiersCallback.
+ * Helper to avoid duplicate attribute injection in ModifyItemAttributeModifiersCallback,
+ * without depending on AttributeTemplate internals.
  */
 public final class TierifyCompatUtil {
     private TierifyCompatUtil() {}
 
     public static boolean hasSameModifierAlready(
             Multimap<EntityAttribute, EntityAttributeModifier> modifiers,
-            AttributeTemplate template
+            EntityAttributeModifier candidate
     ) {
-        if (modifiers == null || template == null) return false;
+        if (modifiers == null || candidate == null) return false;
 
-        EntityAttribute attr = template.getEntityAttribute();
-        if (attr == null) return false;
-
-        EntityAttributeModifier candidate = template.getEntityAttributeModifier();
-        if (candidate == null) return false;
-
-        for (EntityAttributeModifier existing : modifiers.get(attr)) {
+        for (EntityAttributeModifier existing : modifiers.values()) {
             // Best-case: stable UUID match
             if (existing.getId().equals(candidate.getId())) return true;
 
-            // Fallback: name + op + amount match (handles cases where UUID may be rewritten/salted)
+            // Fallback: name + op + amount match (handles cases where UUID differs/salted)
             if (existing.getOperation() == candidate.getOperation()
                     && Double.compare(existing.getValue(), candidate.getValue()) == 0
                     && existing.getName().equals(candidate.getName())) {
