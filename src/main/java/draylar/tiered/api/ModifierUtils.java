@@ -180,28 +180,32 @@ public class ModifierUtils {
                     break;
                 }
             }
-            // add nbtMap
+            // add nbtMap (namespaced, do NOT touch root keys)
             if (nbtMap != null) {
-                NbtCompound nbtCompound = stack.getNbt();
+                // Root exists because getOrCreateSubNbt below will create it as needed
+                NbtCompound extra = stack.getOrCreateSubNbt(Tierify.NBT_SUBTAG_EXTRA_KEY);
                 for (HashMap.Entry<String, Object> entry : nbtMap.entrySet()) {
                     String key = entry.getKey();
                     Object value = entry.getValue();
-
-                    if (value instanceof String) {
-                        nbtCompound.putString(key, (String) value);
-                    } else if (value instanceof Boolean) {
-                        nbtCompound.putBoolean(key, (boolean) value);
-                    } else if (value instanceof Double) {
-                        if ((double) Math.abs((double) value) % 1.0 < 0.0001D) {
-                            nbtCompound.putInt(key, (int) Math.round((double) value));
+                    if (key == null || value == null) continue;
+                    if (value instanceof String s) {
+                        extra.putString(key, s);
+                    } else if (value instanceof Boolean b) {
+                        extra.putBoolean(key, b);
+                    } else if (value instanceof Double d) {
+                        if (Math.abs(d) % 1.0 < 0.0001D) {
+                            extra.putInt(key, (int) Math.round(d));
                         } else {
-                            nbtCompound.putDouble(key, Math.round((double) value * 100.0) / 100.0);
+                            extra.putDouble(key, Math.round(d * 100.0) / 100.0);
                         }
+                    } else if (value instanceof Integer i) {
+                        extra.putInt(key, i);
+                    } else if (value instanceof Float f) {
+                        extra.putFloat(key, f);
+                    } else if (value instanceof Long l) {
+                        extra.putLong(key, l);
                     }
-
                 }
-
-                stack.setNbt(nbtCompound);
             }
         }
     }
@@ -277,7 +281,16 @@ public class ModifierUtils {
                 if (!nbtKeys.isEmpty()) {
                     for (int i = 0; i < nbtKeys.size(); i++) {
                         if (!nbtKeys.get(i).equals("Damage")) {
-                            itemStack.getNbt().remove(nbtKeys.get(i));
+                            // Remove only managed subtags
+                            itemStack.removeSubNbt(Tierify.NBT_SUBTAG_EXTRA_KEY);
+                            itemStack.removeSubNbt(Tierify.NBT_SUBTAG_KEY);
+                            // legacy cleanup for old tierify items only
+                            if (itemStack.hasNbt() && itemStack.getSubNbt(Tierify.NBT_SUBTAG_KEY) != null) {
+                                NbtCompound root = itemStack.getNbt();
+                                if (root != null && root.contains("durable")) {
+                                    root.remove("durable");
+                                }
+                            }
                         }
                     }
                 }
