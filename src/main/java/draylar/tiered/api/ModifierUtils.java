@@ -260,43 +260,20 @@ public class ModifierUtils {
     }
 
     public static void removeItemStackAttribute(ItemStack itemStack) {
-        if (itemStack.hasNbt() && itemStack.getSubNbt(Tierify.NBT_SUBTAG_KEY) != null) {
-
-            Identifier tier = new Identifier(itemStack.getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY).getString(Tierify.NBT_SUBTAG_DATA_KEY));
-            if (Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tier) != null) {
-                HashMap<String, Object> nbtMap = Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tier).getNbtValues();
-                List<String> nbtKeys = new ArrayList<String>();
-                if (nbtMap != null) {
-                    nbtKeys.addAll(nbtMap.keySet().stream().toList());
-                }
-
-                List<AttributeTemplate> attributeList = Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tier).getAttributes();
-                for (int i = 0; i < attributeList.size(); i++) {
-                    if (attributeList.get(i).getAttributeTypeID().equals("tiered:generic.durable")) {
-                        nbtKeys.add("durable");
-                        break;
-                    }
-                }
-
-                if (!nbtKeys.isEmpty()) {
-                    for (int i = 0; i < nbtKeys.size(); i++) {
-                        if (!nbtKeys.get(i).equals("Damage")) {
-                            boolean hadTierTag = itemStack.getSubNbt(Tierify.NBT_SUBTAG_KEY) != null;
-                            NbtCompound root = itemStack.getNbt();
-                            boolean hadLegacyDurable = hadTierTag && root != null && root.contains("durable");
-                            // Remove namespaced extra + tier data
-                            itemStack.removeSubNbt(Tierify.NBT_SUBTAG_EXTRA_KEY);
-                            itemStack.removeSubNbt(Tierify.NBT_SUBTAG_KEY);
-                            // Optional legacy cleanup (Tierify items only)
-                            if (hadLegacyDurable) {
-                                NbtCompound r = itemStack.getNbt();
-                                if (r != null) r.remove("durable");
-                            }
-                        }
-                    }
-                }
-            }
-            itemStack.removeSubNbt(Tierify.NBT_SUBTAG_KEY);
+        if (!itemStack.hasNbt()) return;
+        // Only operate on Tierify-tiered items
+        NbtCompound tierTag = itemStack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+        if (tierTag == null) return;
+        // Capture legacy durable presence BEFORE removing tier tag
+        NbtCompound root = itemStack.getNbt();
+        boolean hadLegacyDurable = root != null && root.contains("durable");
+        // Remove Tierify-managed subtags only (safe in modpacks)
+        itemStack.removeSubNbt(Tierify.NBT_SUBTAG_EXTRA_KEY);
+        itemStack.removeSubNbt(Tierify.NBT_SUBTAG_KEY);
+        // Optional legacy cleanup: only because we already proved this was a Tierify-tiered item
+        if (hadLegacyDurable) {
+            NbtCompound r = itemStack.getNbt();
+            if (r != null) r.remove("durable");
         }
     }
 
