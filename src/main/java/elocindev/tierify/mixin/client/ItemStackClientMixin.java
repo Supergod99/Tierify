@@ -645,7 +645,15 @@ public abstract class ItemStackClientMixin {
     
         double speed = (baseSpeed + addedValue) * (1.0 + multiplyBase) * (1.0 + multiplyTotal);
     
-        SpeedLabel label = computeSpeedLabel(speed);
+        // Compute label text + color WITHOUT introducing a new class type
+        final String labelText;
+        final Formatting labelColor;
+    
+        if (speed >= 3.0)      { labelText = "Very Fast"; labelColor = Formatting.DARK_GREEN; }
+        else if (speed >= 2.0) { labelText = "Fast";      labelColor = Formatting.GREEN; }
+        else if (speed >= 1.2) { labelText = "Medium";    labelColor = Formatting.WHITE; }
+        else if (speed > 0.6)  { labelText = "Slow";      labelColor = Formatting.RED; }
+        else                   { labelText = "Very Slow"; labelColor = Formatting.DARK_RED; }
     
         for (int i = 0; i < tooltip.size(); i++) {
             Text line = tooltip.get(i);
@@ -653,29 +661,12 @@ public abstract class ItemStackClientMixin {
     
             // Only touch the standalone Tiered speed label line
             if (isStandaloneSpeedLabel(text)) {
-                tooltip.set(i, replaceSpeedTextRecursively(line, label));
+                tooltip.set(i, replaceSpeedTextRecursively(line, labelText, labelColor));
                 break;
             }
         }
     }
-    
-    private static final class SpeedLabel {
-        final String text;
-        final Formatting color;
-        SpeedLabel(String text, Formatting color) {
-            this.text = text;
-            this.color = color;
-        }
-    }
-    
-    private static SpeedLabel computeSpeedLabel(double speed) {
-        if (speed >= 3.0) return new SpeedLabel("Very Fast", Formatting.DARK_GREEN);
-        if (speed >= 2.0) return new SpeedLabel("Fast", Formatting.GREEN);
-        if (speed >= 1.2) return new SpeedLabel("Medium", Formatting.WHITE);
-        if (speed > 0.6)  return new SpeedLabel("Slow", Formatting.RED);
-        return new SpeedLabel("Very Slow", Formatting.DARK_RED);
-    }
-    
+         
     private static boolean isStandaloneSpeedLabel(String text) {
         // Match exactly these labels, and nothing else
         return text.equals("Very Fast")
@@ -686,22 +677,22 @@ public abstract class ItemStackClientMixin {
     }
 
 
-    private Text replaceSpeedTextRecursively(Text original, SpeedLabel replacement) {
-        MutableText newNode = processSingleNode(original, replacement);
+    private Text replaceSpeedTextRecursively(Text original, String replacementText, Formatting replacementColor) {
+        MutableText newNode = processSingleNode(original, replacementText, replacementColor);
         for (Text sibling : original.getSiblings()) {
-            newNode.append(replaceSpeedTextRecursively(sibling, replacement));
+            newNode.append(replaceSpeedTextRecursively(sibling, replacementText, replacementColor));
         }
         return newNode;
     }
     
-    private MutableText processSingleNode(Text node, SpeedLabel replacement) {
+    private MutableText processSingleNode(Text node, String replacementText, Formatting replacementColor) {
         MutableText copy = MutableText.of(node.getContent()).setStyle(node.getStyle());
         String content = copy.getString().trim();
     
         if (isStandaloneSpeedLabel(content)) {
-            // Preserve original style traits, but force the correct color
-            return Text.literal(replacement.text).setStyle(node.getStyle().withColor(replacement.color));
+            return Text.literal(replacementText).setStyle(node.getStyle().withColor(replacementColor));
         }
         return copy;
     }
+
 }
