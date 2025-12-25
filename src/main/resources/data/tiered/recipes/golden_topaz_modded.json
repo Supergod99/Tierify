@@ -1,1 +1,23 @@
-
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "KDK",
+    " G "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "K": {
+      "item": "armageddon_mod:khyros_tear"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "item": "tiered:golden_topaz",
+    "count": 2
+  }
+}
