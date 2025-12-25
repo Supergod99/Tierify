@@ -73,24 +73,37 @@ public class ReforgeScreen extends HandledScreen<ReforgeScreenHandler> implement
             if (itemStack == null || itemStack.isEmpty()) {
                 baseItems = Collections.emptyList();
             } else {
-                if (itemStack != last) {
+                if (!ItemStack.areEqual(itemStack, last)) {
                     last = itemStack;
                     baseItems = new ArrayList<Item>();
                     List<Item> items = Tierify.REFORGE_DATA_LOADER.getReforgeBaseItems(itemStack.getItem());
                     if (!items.isEmpty()) {
                         baseItems.addAll(items);
                     } else if (itemStack.getItem() instanceof ToolItem toolItem) {
-                        toolItem.getMaterial().getRepairIngredient().getMatchingStacks();
-                        for (int i = 0; i < toolItem.getMaterial().getRepairIngredient().getMatchingStacks().length; i++) {
-                            baseItems.add(toolItem.getMaterial().getRepairIngredient().getMatchingStacks()[i].getItem());
+                        var ing = toolItem.getMaterial().getRepairIngredient();
+                        ItemStack[] matches = (ing == null) ? new ItemStack[0] : ing.getMatchingStacks();
+                        if (matches.length > 0) {
+                            for (ItemStack m : matches) baseItems.add(m.getItem());
+                        } else {
+                            // fallback (must match server behavior)
+                            for (RegistryEntry<Item> entry : Registries.ITEM.getOrCreateEntryList(TieredItemTags.REFORGE_BASE_ITEM)) {
+                                baseItems.add(entry.value());
+                            }
                         }
-                    } else if (itemStack.getItem() instanceof ArmorItem armorItem && armorItem.getMaterial().getRepairIngredient() != null) {
-                        for (int i = 0; i < armorItem.getMaterial().getRepairIngredient().getMatchingStacks().length; i++) {
-                            baseItems.add(armorItem.getMaterial().getRepairIngredient().getMatchingStacks()[i].getItem());
+                    } else if (itemStack.getItem() instanceof ArmorItem armorItem) {
+                        var ing = armorItem.getMaterial().getRepairIngredient();
+                        ItemStack[] matches = (ing == null) ? new ItemStack[0] : ing.getMatchingStacks();
+                        if (matches.length > 0) {
+                            for (ItemStack m : matches) baseItems.add(m.getItem());
+                        } else {
+                            // fallback (must match server behavior)
+                            for (RegistryEntry<Item> entry : Registries.ITEM.getOrCreateEntryList(TieredItemTags.REFORGE_BASE_ITEM)) {
+                                baseItems.add(entry.value());
+                            }
                         }
                     } else {
-                        for (RegistryEntry<Item> itemRegistryEntry : Registries.ITEM.getOrCreateEntryList(TieredItemTags.REFORGE_BASE_ITEM)) {
-                            baseItems.add(itemRegistryEntry.value());
+                        for (RegistryEntry<Item> entry : Registries.ITEM.getOrCreateEntryList(TieredItemTags.REFORGE_BASE_ITEM)) {
+                            baseItems.add(entry.value());
                         }
                     }
                 }
