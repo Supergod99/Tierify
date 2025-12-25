@@ -33,7 +33,7 @@ public class ReforgeScreen extends HandledScreen<ReforgeScreenHandler> implement
 
     public static final Identifier TEXTURE = new Identifier("tiered", "textures/gui/reforging_screen.png");
     public ReforgeScreen.ReforgeButton reforgeButton;
-    private ItemStack last;
+    private ItemStack last = ItemStack.EMPTY;
     private List<Item> baseItems;
 
     public ReforgeScreen(ReforgeScreenHandler handler, PlayerInventory playerInventory, Text title) {
@@ -70,11 +70,11 @@ public class ReforgeScreen extends HandledScreen<ReforgeScreenHandler> implement
 
         if (this.isPointWithinBounds(79, 56, 18, 18, (double) mouseX, (double) mouseY)) {
             ItemStack itemStack = this.getScreenHandler().getSlot(1).getStack();
-            if (itemStack == null || itemStack.isEmpty()) {
+            if (itemStack.isEmpty()) {
                 baseItems = Collections.emptyList();
             } else {
                 if (!ItemStack.areEqual(itemStack, last)) {
-                    last = itemStack;
+                    last = itemStack.copy();
                     baseItems = new ArrayList<Item>();
                     List<Item> items = Tierify.REFORGE_DATA_LOADER.getReforgeBaseItems(itemStack.getItem());
                     if (!items.isEmpty()) {
