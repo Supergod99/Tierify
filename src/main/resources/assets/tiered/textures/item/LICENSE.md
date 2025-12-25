@@ -4,3 +4,4 @@ The following assets are Copyright Supergod99 2025, All Rights Reserved.
 - limestone_chunk.png
 - galena_chunk.png
 - cleansing_stone.png
+- painite_chunk.png
