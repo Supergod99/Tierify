@@ -1,19 +1,19 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " G ",
-    "KDK",
-    " G "
+    " K ",
+    "TPT",
+    " K "
   ],
   "key": {
-    "G": {
-      "item": "minecraft:gold_ingot"
+    "T": {
+      "item": "terramity:topaz"
     },
     "K": {
       "item": "armageddon_mod:khyros_tear"
     },
-    "D": {
-      "item": "minecraft:diamond"
+    "P": {
+      "item": "tiered:pyrite_chunk"
     }
   },
   "result": {
