@@ -29,8 +29,15 @@ public class ReforgeAddition extends Item {
 
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+        
+        if (getTier() == 0) {
+            tooltip.add(Text.literal("Cleansing:").setStyle(Style.EMPTY.withColor(Formatting.GRAY)));
+            tooltip.add(Text.literal(" - ").setStyle(Style.EMPTY.withColor(Formatting.GRAY))
+                    .append(Text.literal(“Scours an item of all reforges.”).setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY))));
+            return;
+        }
+        
         ArrayList<String> qualities = new ArrayList<String>();
-
         switch(getTier()) {
             case 1:
                 qualities = Tierify.CONFIG.tier_1_qualities;
@@ -53,7 +60,6 @@ public class ReforgeAddition extends Item {
         }
 
         if (qualities.size() == 0) return;
-        
         
         tooltip.add(Text.literal("Reforging Qualities:").setStyle(Style.EMPTY.withColor(Formatting.GRAY)));
         for (String quality : qualities) {
