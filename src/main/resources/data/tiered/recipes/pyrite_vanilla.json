@@ -1,8 +1,19 @@
 {
-    "type": "minecraft:stonecutting",
-    "ingredient": {
-        "item": "minecraft:ancient_debris"
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "$#",
+        "#$"
+    ],
+    "key": {
+        "#": {
+            "item": "minecraft:diamond"
+        },
+        "$": {
+            "item": "minecraft:emerald"
+        }
     },
-    "result": "tiered:pyrite_chunk",
-    "count": 4
+    "result": {
+        "item": "tiered:pyrite_vanilla",
+        "count": 1
+    }
 }
