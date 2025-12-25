@@ -33,7 +33,7 @@ public class ReforgeAddition extends Item {
         if (getTier() == 0) {
             tooltip.add(Text.literal("Cleansing:").setStyle(Style.EMPTY.withColor(Formatting.GRAY)));
             tooltip.add(Text.literal(" - ").setStyle(Style.EMPTY.withColor(Formatting.GRAY))
-                    .append(Text.literal(“Scours an item of all reforges.”).setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY))));
+                    .append(Text.literal("Scours an item of all reforges.").setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY))));
             return;
         }
         
