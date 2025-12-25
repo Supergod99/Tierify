@@ -30,14 +30,17 @@ public class ItemMixin {
     @Inject(method = "getItemBarStep", at = @At("HEAD"), cancellable = true)
     private void getItemBarStepMixin(ItemStack stack, CallbackInfoReturnable<Integer> cir) {
         if (!tierify$hasDurable(stack)) return;
-        cir.setReturnValue(Math.round(13.0f - (float) stack.getDamage() * 13.0f / (float) stack.getMaxDamage()));
+        int max = stack.getMaxDamage();
+        if (max <= 0) return;
+        cir.setReturnValue(Math.round(13.0f - (float) stack.getDamage() * 13.0f / (float) max));
     }
 
     @Inject(method = "getItemBarColor", at = @At("HEAD"), cancellable = true)
     private void getItemBarColorMixin(ItemStack stack, CallbackInfoReturnable<Integer> cir) {
         if (!tierify$hasDurable(stack)) return;
-
-        float f = Math.max(0.0f, ((float) stack.getMaxDamage() - (float) stack.getDamage()) / (float) stack.getMaxDamage());
+        int max = stack.getMaxDamage();
+        if (max <= 0) return;
+        float f = Math.max(0.0f, ((float) max - (float) stack.getDamage()) / (float) max);
         cir.setReturnValue(MathHelper.hsvToRgb(f / 3.0f, 1.0f, 1.0f));
     }
 
