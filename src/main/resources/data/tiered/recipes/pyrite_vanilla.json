@@ -1,19 +1,23 @@
 {
-    "type": "minecraft:crafting_shaped",
-    "pattern": [
-        "$#",
-        "#$"
-    ],
-    "key": {
-        "#": {
-            "item": "minecraft:diamond"
-        },
-        "$": {
-            "item": "minecraft:emerald"
-        }
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " E ",
+    "DGD",
+    " E "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
     },
-    "result": {
-        "item": "tiered:pyrite_vanilla",
-        "count": 1
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "D": {
+      "item": "minecraft:diamond"
     }
+  },
+  "result": {
+    "item": "tiered:pyrite_chunk",
+    "count": 2
+  }
 }
