@@ -5,3 +5,5 @@ The following assets are Copyright Supergod99 2025, All Rights Reserved.
 - galena_chunk.png
 - cleansing_stone.png
 - painite_chunk.png
+- charorite.png
+- golden_topaz.png
