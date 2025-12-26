@@ -140,6 +140,7 @@ public class Tierify implements ModInitializer {
             content.addAfter(ItemRegistry.RAW_GALENA, ItemRegistry.CHAROITE);
             content.addAfter(ItemRegistry.CHAROITE, ItemRegistry.CROWN_TOPAZ);
             content.addAfter(ItemRegistry.CROWN_TOPAZ, ItemRegistry.PAINITE);
+            content.addAfter(ItemRegistry.PAINITE, ItemRegistry.CLEANSING_STONE);
         });
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, serverResourceManager, success) -> {
