@@ -621,7 +621,7 @@ public abstract class ItemStackClientMixin {
 
     // Replace longer labels first so "Fast" doesn't match inside "Very Fast"
     private static final String[] SPEED_LABELS = {
-            "Very Fast", "Very Slow", "Medium", "Fast", "Slow"
+            "Very Very Slow", "Very Fast", "Very Slow", "Medium", "Fast", "Slow"
     };
     
     private static String normalizeSpaces(String s) {
@@ -636,7 +636,7 @@ public abstract class ItemStackClientMixin {
         String s = normalizeSpaces(raw);
     
         for (String label : SPEED_LABELS) {
-            String[] parts = label.split(" ");
+            String[] parts = label.split("\\s+");
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < parts.length; i++) {
                 if (i > 0) sb.append("\\s+");
@@ -644,7 +644,7 @@ public abstract class ItemStackClientMixin {
             }
             
             var m = java.util.regex.Pattern
-                    .compile("(?<!\\p{L})" + sb + "(?!\\p{L})")
+                    .compile("(?<![\\p{L}\\p{N}])" + sb + "(?![\\p{L}\\p{N}])")
                     .matcher(s);
     
             if (m.find()) {
@@ -743,38 +743,11 @@ public abstract class ItemStackClientMixin {
         if (self.getItem() instanceof ArmorItem) {
             return;
         }
-        double baseSpeed = 4.0;
-        double addedValue = 0.0;
-        double multiplyBase = 0.0;
-        double multiplyTotal = 0.0;
-    
-        Multimap<EntityAttribute, EntityAttributeModifier> modifiers =
-                this.getAttributeModifiers(EquipmentSlot.MAINHAND);
-    
-        // If this item doesn't have attack speed modifiers, do nothing.
-        if (modifiers == null || !modifiers.containsKey(EntityAttributes.GENERIC_ATTACK_SPEED)) {
-            return;
-        }
-    
-        for (EntityAttributeModifier mod : modifiers.get(EntityAttributes.GENERIC_ATTACK_SPEED)) {
-            if (mod.getOperation() == EntityAttributeModifier.Operation.ADDITION) {
-                addedValue += mod.getValue();
-            } else if (mod.getOperation() == EntityAttributeModifier.Operation.MULTIPLY_BASE) {
-                multiplyBase += mod.getValue();
-            } else if (mod.getOperation() == EntityAttributeModifier.Operation.MULTIPLY_TOTAL) {
-                multiplyTotal += mod.getValue();
-            }
-        }
     
         Double displayed = findDisplayedAttackSpeed(tooltip);
-        double speed;
-        
-        if (displayed != null) {
-            speed = displayed;
-        } else {
-            // fallback to modifier-derived
-            speed = (baseSpeed + addedValue) * (1.0 + multiplyBase) * (1.0 + multiplyTotal);
-        }
+        if (displayed == null) return;
+        double speed = displayed;
+
     
         final String labelText;
         final Formatting labelColor;
@@ -838,15 +811,42 @@ public abstract class ItemStackClientMixin {
     private Text replaceSpeedLabelSubstringRecursive(Text node, String replacementText, Formatting replacementColor) {
         if (node == null) return Text.empty();
     
-        // Build a new node representing ONLY this node's content.
-        MutableText rebuilt = replaceSpeedLabelInSingleNode(node, replacementText, replacementColor);
+        // Process this node + its siblings as a SEQUENCE so we can handle split labels
+        List<Text> seq = new ArrayList<>();
+        seq.add(node);
+        seq.addAll(node.getSiblings());
     
-        // Append transformed siblings.
-        for (Text sibling : node.getSiblings()) {
-            rebuilt.append(replaceSpeedLabelSubstringRecursive(sibling, replacementText, replacementColor));
+        MutableText out = Text.empty();
+    
+        for (int i = 0; i < seq.size(); i++) {
+            Text cur = seq.get(i);
+            if (cur == null) continue;
+    
+            String curContent = normalizeSpaces(MutableText.of(cur.getContent()).getString());
+            // Handle split label across siblings: "Very" + ("Slow"|"Fast")
+            if ("Very".equals(curContent) && i + 1 < seq.size()) {
+                Text next = seq.get(i + 1);
+                String nextContent = normalizeSpaces(MutableText.of(next.getContent()).getString());
+    
+                if ("Slow".equals(nextContent) || "Fast".equals(nextContent)) {
+                    String[] repParts = normalizeSpaces(replacementText).split("\\s+");
+    
+                    if (repParts.length == 2 && "Very".equals(repParts[0])) {
+                        // Replacement is "Very X": 
+                        out.append(Text.literal("Very ").setStyle(cur.getStyle().withColor(replacementColor)));
+                        out.append(Text.literal(repParts[1]).setStyle(next.getStyle().withColor(replacementColor)));
+                    } else {
+                        // Replacement is single token 
+                        out.append(Text.literal(replacementText).setStyle(next.getStyle().withColor(replacementColor)));
+                    }
+                    i++; // consumed next
+                    continue;
+                }
+            }
+            // Default: transform only this node (and its translatable args), but DO NOT auto-append siblings here.
+            out.append(replaceSpeedLabelInSingleNode(cur, replacementText, replacementColor));
         }
-    
-        return rebuilt;
+        return out;
     }
     
     private MutableText replaceSpeedLabelInSingleNode(Text node, String replacementText, Formatting replacementColor) {
