@@ -6,4 +6,4 @@ The following assets are Copyright Supergod99 2025, All Rights Reserved.
 - cleansing_stone.png
 - painite_chunk.png
 - charorite.png
-- golden_topaz.png
+- crown_topaz.png
