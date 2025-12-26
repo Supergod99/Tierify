@@ -619,6 +619,45 @@ public abstract class ItemStackClientMixin {
         return newNode;
     }
 
+    // Replace longer labels first so "Fast" doesn't match inside "Very Fast"
+    private static final String[] SPEED_LABELS = {
+            "Very Fast", "Very Slow", "Medium", "Fast", "Slow"
+    };
+    
+    private static String normalizeSpaces(String s) {
+        if (s == null) return "";
+        return s.replace('\u00A0', ' ').trim();
+    }
+    
+    private static boolean containsSpeedLabelToken(String s) {
+        s = normalizeSpaces(s);
+        for (String label : SPEED_LABELS) {
+            if (containsWholeWordLabel(s, label)) return true;
+        }
+        return false;
+    }
+    
+    private static boolean containsWholeWordLabel(String haystack, String label) {
+        // Treat the space in "Very Fast/Slow" as flexible whitespace
+        String pattern = java.util.regex.Pattern.quote(label).replace("\\ ", "\\\\s+");
+        return java.util.regex.Pattern.compile("(?<!\\p{L})" + pattern + "(?!\\p{L})")
+                .matcher(haystack)
+                .find();
+    }
+    
+    private static String replaceAnySpeedLabel(String s, String replacement) {
+        s = normalizeSpaces(s);
+    
+        // Use regex boundaries to avoid replacing inside unrelated words.
+        s = s.replaceAll("(?<!\\p{L})Very\\s+Fast(?!\\p{L})", replacement);
+        s = s.replaceAll("(?<!\\p{L})Very\\s+Slow(?!\\p{L})", replacement);
+        s = s.replaceAll("(?<!\\p{L})Medium(?!\\p{L})", replacement);
+        s = s.replaceAll("(?<!\\p{L})Fast(?!\\p{L})", replacement);
+        s = s.replaceAll("(?<!\\p{L})Slow(?!\\p{L})", replacement);
+    
+        return s;
+    }
+
     private void fixAttackSpeedText(List<Text> tooltip) {
         double baseSpeed = 4.0;
         double addedValue = 0.0;
@@ -648,120 +687,120 @@ public abstract class ItemStackClientMixin {
         final String labelText;
         final Formatting labelColor;
     
-        if (speed >= 3.0)      { labelText = "Very Fast"; labelColor = Formatting.DARK_GREEN; }
+        if (speed >= 3.0)      { labelText = "VF_TEST"; labelColor = Formatting.DARK_GREEN; }
         else if (speed >= 2.0) { labelText = "Fast";      labelColor = Formatting.GREEN; }
         else if (speed >= 1.2) { labelText = "Medium";    labelColor = Formatting.WHITE; }
         else if (speed > 0.6)  { labelText = "Slow";      labelColor = Formatting.RED; }
         else                   { labelText = "Very Slow"; labelColor = Formatting.DARK_RED; }
     
-        // First: scan only the "top" area 
-        int scanLimit = Math.min(tooltip.size(), 10);
+        // Find the end of the "top summary" section (stop before vanilla attribute headers)
+        int headerIdx = tooltip.size();
+        String mainHandHeader = Text.translatable("item.modifiers.mainhand").getString();
+        String handHeader     = Text.translatable("item.modifiers.hand").getString();
+    
+        for (int i = 0; i < tooltip.size(); i++) {
+            Text line = tooltip.get(i);
+            if (line == null) continue;
+    
+            String s = normalizeSpaces(line.getString());
+            if (s.contains(mainHandHeader) || s.contains(handHeader)) {
+                headerIdx = i;
+                break;
+            }
+        }
+    
+        // Search only the top section first (this avoids accidental lore replacements).
+        int scanLimit = Math.min(headerIdx, Math.min(tooltip.size(), 12));
     
         int foundIdx = -1;
         for (int i = 0; i < scanLimit; i++) {
             Text line = tooltip.get(i);
             if (line == null) continue;
     
-            if (containsStandaloneSpeedLabelDeep(line)) {
+            // Substring token check on the *rendered* line string
+            if (containsSpeedLabelToken(line.getString())) {
                 foundIdx = i;
                 break;
             }
         }
     
-        // Fallback: if not found near the top (other mods may reorder), scan the whole tooltip.
+        // Fallback: if some mod reorders, scan the whole tooltip 
         if (foundIdx == -1) {
             for (int i = 0; i < tooltip.size(); i++) {
                 Text line = tooltip.get(i);
                 if (line == null) continue;
     
-                if (containsStandaloneSpeedLabelDeep(line)) {
+                if (containsSpeedLabelToken(line.getString())) {
                     foundIdx = i;
                     break;
                 }
             }
         }
     
-        if (foundIdx != -1) {
-            Text original = tooltip.get(foundIdx);
-            tooltip.set(foundIdx, replaceSpeedTextDeep(original, labelText, labelColor));
-        }
+        if (foundIdx == -1) return;
+    
+        Text original = tooltip.get(foundIdx);
+        tooltip.set(foundIdx, replaceSpeedLabelSubstringRecursive(original, labelText, labelColor));
     }
     
-    private static boolean isStandaloneSpeedLabel(String text) {
-        return text.equals("Very Fast")
-                || text.equals("Fast")
-                || text.equals("Medium")
-                || text.equals("Slow")
-                || text.equals("Very Slow");
-    }
-    
-    private boolean containsStandaloneSpeedLabelDeep(Text node) {
-        if (node == null) return false;
-    
-        // Check this node's content only (no siblings).
-        String contentOnly = MutableText.of(node.getContent()).getString().trim();
-        if (isStandaloneSpeedLabel(contentOnly)) return true;
-    
-        // If this is translatable text, also walk its args (label may be an arg, not a sibling).
-        if (node.getContent() instanceof TranslatableTextContent ttc) {
-            Object[] args = ttc.getArgs();
-            if (args != null) {
-                for (Object arg : args) {
-                    if (arg instanceof Text t && containsStandaloneSpeedLabelDeep(t)) return true;
-                    if (arg instanceof String s && isStandaloneSpeedLabel(s.trim())) return true;
-                }
-            }
-        }
-    
-        // Walk siblings normally.
-        for (Text sibling : node.getSiblings()) {
-            if (containsStandaloneSpeedLabelDeep(sibling)) return true;
-        }
-    
-        return false;
-    }
-    
-    private Text replaceSpeedTextDeep(Text node, String replacementText, Formatting replacementColor) {
+    private Text replaceSpeedLabelSubstringRecursive(Text node, String replacementText, Formatting replacementColor) {
         if (node == null) return Text.empty();
-        MutableText rebuilt = replaceOneNode(node, replacementText, replacementColor);
-        // Re-append siblings (transformed)
+    
+        // Build a new node representing ONLY this node's content.
+        MutableText rebuilt = replaceSpeedLabelInSingleNode(node, replacementText, replacementColor);
+    
+        // Append transformed siblings.
         for (Text sibling : node.getSiblings()) {
-            rebuilt.append(replaceSpeedTextDeep(sibling, replacementText, replacementColor));
+            rebuilt.append(replaceSpeedLabelSubstringRecursive(sibling, replacementText, replacementColor));
         }
     
         return rebuilt;
     }
     
-    private MutableText replaceOneNode(Text node, String replacementText, Formatting replacementColor) {
-        // If THIS node is exactly the label, replace it (preserve all style except color override).
-        String contentOnly = MutableText.of(node.getContent()).getString().trim();
-        if (isStandaloneSpeedLabel(contentOnly)) {
-            return Text.literal(replacementText).setStyle(node.getStyle().withColor(replacementColor));
+    private MutableText replaceSpeedLabelInSingleNode(Text node, String replacementText, Formatting replacementColor) {
+        String contentOnly = normalizeSpaces(MutableText.of(node.getContent()).getString());
+    
+        // 1) Literal / content-only replacement (substring-based)
+        if (containsSpeedLabelToken(contentOnly)) {
+            String replaced = replaceAnySpeedLabel(contentOnly, replacementText);
+            return Text.literal(replaced).setStyle(node.getStyle().withColor(replacementColor));
         }
     
-        // If translatable, rebuild it with transformed args (this is the important part).
-        if (node.getContent() instanceof TranslatableTextContent ttc) {
-            Object[] args = ttc.getArgs();
+        // 2) Translatable: replace within args (label may be an arg)
+        if (node.getContent() instanceof TranslatableTextContent tr) {
+            Object[] args = tr.getArgs();
             Object[] newArgs = args;
     
             if (args != null && args.length > 0) {
                 newArgs = new Object[args.length];
+                boolean changed = false;
+    
                 for (int i = 0; i < args.length; i++) {
                     Object a = args[i];
     
-                    if (a instanceof Text t) {
-                        newArgs[i] = replaceSpeedTextDeep(t, replacementText, replacementColor);
-                    } else if (a instanceof String s && isStandaloneSpeedLabel(s.trim())) {
-                        // Replace string arg with a styled Text so we can force the color.
-                        newArgs[i] = Text.literal(replacementText).formatted(replacementColor);
+                    if (a instanceof String s && containsSpeedLabelToken(s)) {
+                        newArgs[i] = replaceAnySpeedLabel(s, replacementText);
+                        changed = true;
+                    } else if (a instanceof Text t) {
+                        String ts = t.getString();
+                        if (containsSpeedLabelToken(ts)) {
+                            newArgs[i] = replaceSpeedLabelSubstringRecursive(t, replacementText, replacementColor);
+                            changed = true;
+                        } else {
+                            newArgs[i] = a;
+                        }
                     } else {
                         newArgs[i] = a;
                     }
                 }
+    
+                if (changed) {
+                    return Text.translatable(tr.getKey(), newArgs).setStyle(node.getStyle());
+                }
             }
-            return Text.translatable(ttc.getKey(), newArgs).setStyle(node.getStyle());
         }
-        // Otherwise, just copy content + style
+    
+        // No change: copy content + style
         return MutableText.of(node.getContent()).setStyle(node.getStyle());
     }
 }
