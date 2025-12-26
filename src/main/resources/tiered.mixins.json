@@ -23,7 +23,6 @@
     "EnchantmentHelperMixin",
     "compat.CuriosBrutalityUuidSaltMixin",
     "compat.LethalityScalingFixMixin",
-    "compat.ObscureApiAttackSpeedIconMixin"
   ],
   "client": [
     "client.ItemStackClientMixin",
@@ -34,7 +33,8 @@
     "compat.ModAnvilScreenMixin",
     "compat.TooltipOverhaulFrameMixin",
     "compat.TooltipOverhaulRenderMixin",
-    "compat.TooltipRendererAccessor"
+    "compat.TooltipRendererAccessor",
+    "compat.ObscureApiAttackSpeedIconMixin"
   ],
   "injectors": {
     "defaultRequire": 1
