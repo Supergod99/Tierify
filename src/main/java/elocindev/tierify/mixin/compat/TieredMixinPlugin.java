@@ -54,6 +54,9 @@ public class TieredMixinPlugin implements IMixinConfigPlugin {
         if (lower.contains("attributeslib") || lower.contains("apothic")) {
             return loader.isModLoaded("attributeslib") || loader.isModLoaded("apothic_attributes");
         }
+        if (lower.contains("obscure")) {
+            return loader.isModLoaded("obscure_api");
+        }
     
         return true;
     }
