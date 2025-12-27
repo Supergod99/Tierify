@@ -34,7 +34,8 @@
     "compat.TooltipOverhaulFrameMixin",
     "compat.TooltipOverhaulRenderMixin",
     "compat.TooltipRendererAccessor",
-    "compat.ObscureApiAttackSpeedIconMixin"
+    "compat.ObscureApiAttackSpeedIconMixin",
+    "compat.ObscureApiAttributeIconMathMixin"
   ],
   "injectors": {
     "defaultRequire": 1
