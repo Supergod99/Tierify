@@ -19,6 +19,14 @@ public class CommonConfig {
     public boolean lootContainerModifier = false;
     @Comment("Equipped items on entities get modifiers")
     public boolean entityItemModifier = true;
+    @Comment("Tier weights for mob-equipped items when entityItemModifier=true. Higher = more common. These are relative weights, not %.")
+    @Comment("Set all to 0 to disable weighting and fall back to the old fully-random behavior.")
+    public int entityTier1Weight = 50; // Common
+    public int entityTier2Weight = 25; // Uncomon
+    public int entityTier3Weight = 15; // Rare
+    public int entityTier4Weight = 6;  // Epic
+    public int entityTier5Weight = 3;  // Legendary
+    public int entityTier6Weight = 1;  // Mythic
     @Comment("Crafted items get modifiers")
     public boolean craftingModifier = false;
     @Comment("Merchant items get modifiers")
