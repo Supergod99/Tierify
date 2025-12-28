@@ -59,7 +59,7 @@
     },
     "attributes": [
         {
-            "type": "generic.durable",
+            "type": "tiered:generic.durable",
             "modifier": {
                 "name": "tiered:legendary_armor_20",
                 "operation": "MULTIPLY_BASE",
@@ -87,4 +87,5 @@
             ]
         }
     ]
+
 }
