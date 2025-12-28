@@ -12,7 +12,7 @@ public class CommonConfig {
     public static CommonConfig INSTANCE;
 
     public static String getFile() {
-        return NecConfigAPI.getFile("tierify-common.json5");
+        return NecConfigAPI.getFile("echelon-common.json5");
     }
 
     @Comment("Items in for example mineshaft chests get modifiers")
