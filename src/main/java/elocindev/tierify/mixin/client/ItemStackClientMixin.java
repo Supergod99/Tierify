@@ -130,9 +130,11 @@ public abstract class ItemStackClientMixin {
 
     @Inject(method = "getName", at = @At("RETURN"), cancellable = true)
     private void getNameMixin(CallbackInfoReturnable<Text> info) {
-        // Respect custom renamed items
-        if (this.getSubNbt("display") != null) return;
-
+        // Respect custom renamed items:
+        // dyed leather uses "display" for color, so only treat it as renamed if "display.Name" exists.
+        NbtCompound display = this.getSubNbt("display");
+        if (display != null && display.contains("Name", 8 /* STRING */)) return;
+    
         if (this.hasNbt() && this.getSubNbt(Tierify.NBT_SUBTAG_KEY) != null) {
             Identifier tier = new Identifier(getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY).getString(Tierify.NBT_SUBTAG_DATA_KEY));
             PotentialAttribute potentialAttribute = Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tier);
@@ -145,7 +147,8 @@ public abstract class ItemStackClientMixin {
                 return;
             }
         }
-        // animate the reforge material item name 
+    
+        // animate the reforge material item name
         ItemStack self = (ItemStack) (Object) this;
         Identifier id = Registries.ITEM.getId(self.getItem());
     
