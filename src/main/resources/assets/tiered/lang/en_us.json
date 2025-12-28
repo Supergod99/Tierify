@@ -35,11 +35,13 @@
   "tiered:common_armor_17.label": "Mystic",
   "tiered:common_armor_18.label": "Agile",
   "tiered:common_armor_19.label": "Earthen",
+  "tiered:common_armor_20.label": "Reliable",
 
   "tiered:common_shield_1.label": "Stalwart",
   "tiered:common_shield_2.label": "Fit",
   "tiered:common_shield_3.label": "Fleetstep",
   "tiered:common_shield_4.label": "Agile",
+  "tiered:common_shield_5.label": "Reliable",
 
   "tiered:uncomon_melee_1.label": "Predatory",
   "tiered:uncomon_melee_2.label": "Warfang",
@@ -69,11 +71,13 @@
   "tiered:uncomon_armor_17.label": "Spell-woven",
   "tiered:uncomon_armor_18.label": "Feather Step",
   "tiered:uncomon_armor_19.label": "Grounded",
+  "tiered:uncomon_armor_20.label": "Reinforced",
   
   "tiered:uncomon_shield_1.label": "Guarded",
   "tiered:uncomon_shield_2.label": "Hearty",
   "tiered:uncomon_shield_3.label": "Rolling Wind",
   "tiered:uncomon_shield_4.label": "Feather Step",
+  "tiered:uncomon_shield_5.label": "Reinforced",
   
   "tiered:rare_melee_1.label": "Fury-Forged",
   "tiered:rare_melee_2.label": "Shadow-Sunder",
@@ -103,11 +107,13 @@
   "tiered:rare_armor_17.label": "Star-Touched",
   "tiered:rare_armor_18.label": "Tempest Step",
   "tiered:rare_armor_19.label": "Stoneheart",
+  "tiered:rare_armor_20.label": "Iron Wrought",
   
   "tiered:rare_shield_1.label": "Bastion-Born",
   "tiered:rare_shield_2.label": "Blood-Forged",
   "tiered:rare_shield_3.label": "Slipstride",
   "tiered:rare_shield_4.label": "Tempest Step",
+  "tiered:rare_shield_5.label": "Iron Wrought",
   
   "tiered:epic_melee_1.label": "Storm Cleaver",
   "tiered:epic_melee_2.label": "Dread Cleaver",
@@ -137,11 +143,13 @@
   "tiered:epic_armor_17.label": "Celestial Thread",
   "tiered:epic_armor_18.label": "Horizon Walker",
   "tiered:epic_armor_19.label": "Pillar of Stone",
+  "tiered:epic_armor_20.label": "Infernal Tempered",
 
   "tiered:epic_shield_1.label": "Tectonic",
   "tiered:epic_shield_2.label": "Heart of the Titan",
   "tiered:epic_shield_3.label": "Riftstep",
   "tiered:epic_shield_4.label": "Horizon Walker",
+  "tiered:epic_shield_5.label": "Infernal Tempered",
   
   "tiered:legendary_melee_1.label": "Wrath of Aresr",
   "tiered:legendary_melee_2.label": "Sunfallr",
@@ -171,11 +179,13 @@
   "tiered:legendary_armor_17.label": "Essence of the Stars",
   "tiered:legendary_armor_18.label": "Trailblaze of Storms",
   "tiered:legendary_armor_19.label": "Heart of the World",
+  "tiered:legendary_armor_20.label": "Warlord's Covenant",
 
   "tiered:legendary_shield_1.label": "Wall of Eternity",
   "tiered:legendary_shield_2.label": "Ancient Pulse",
   "tiered:legendary_shield_3.label": "Eclipse Runner",
   "tiered:legendary_shield_4.label": "Trailblaze of Storms",
+  "tiered:legendary_shield_5.label": "Warlord's Convenant",
 
   "tiered:mythic_melee_1.label": "Wrath of Creation",
   "tiered:mythic_melee_2.label": "Judgement of Extinction",
@@ -205,11 +215,13 @@
   "tiered:mythic_armor_17.label": "Arcane Genesis",
   "tiered:mythic_armor_18.label": "Transcendant Velocity",
   "tiered:mythic_armor_19.label": "Terra Incarnate",
+  "tiered:mythic_armor_20.label": "Edict of Eternity",
 
   "tiered:mythic_shield_1.label": "World's Last Bastion",
   "tiered:mythic_shield_2.label": "Blood of Creation",
   "tiered:mythic_shield_3.label": "Shadow of the Final Step",
   "tiered:mythic_shield_4.label": "Transcendant Velocity",
+  "tiered:mythic_shield_5.label": "Edict of Eternity",
 
   "tiered:common_ranged_1.label": "Fletched",
   "tiered:common_ranged_2.label": "Lightshot",
