@@ -60,6 +60,7 @@ public class TierifyBorderLayer implements ITooltipLayer {
         }
     
         if (match == null) return;
+        final boolean isPerfectFinal = isPerfect;
 
         
         // Final reference for lambda use
@@ -136,7 +137,7 @@ public class TierifyBorderLayer implements ITooltipLayer {
 
             renderSetBonusActiveLabel(ctx, font, x, y, width, customFrame);
             // --- D. Draw "Perfect" Text (Centered) ---
-            if (isPerfect) {
+            if (isPerfectFinal) {
                 renderPerfectLabel(ctx, font, x, y, width);
             }
         });
