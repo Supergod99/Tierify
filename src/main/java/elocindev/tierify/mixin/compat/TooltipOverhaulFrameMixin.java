@@ -7,6 +7,7 @@ import elocindev.tierify.TierifyClient;
 import elocindev.tierify.item.ReforgeAddition;
 import draylar.tiered.api.BorderTemplate;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
 import net.minecraft.nbt.NbtCompound;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -24,18 +25,18 @@ public class TooltipOverhaulFrameMixin {
 
         if (!Tierify.CLIENT_CONFIG.tieredTooltip) return;
 
-        NbtCompound nbt = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
-        if (nbt == null) return;
-
         String lookupKey;
-        boolean isPerfect = nbt.getBoolean("Perfect");
-        
-        if (isPerfect) {
-            lookupKey = "tiered:perfect";
+        boolean isPerfect = false;
+        NbtCompound nbt = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+        if (nbt != null && nbt.contains(Tierify.NBT_SUBTAG_DATA_KEY)) {
+            isPerfect = nbt.getBoolean("Perfect");
+            lookupKey = isPerfect ? "tiered:perfect" : nbt.getString(Tierify.NBT_SUBTAG_DATA_KEY);
+        } else if (stack.getItem() instanceof ReforgeAddition) {
+            lookupKey = Registries.ITEM.getId(stack.getItem()).toString();
         } else {
-            lookupKey = nbt.getString(Tierify.NBT_SUBTAG_DATA_KEY);
+            return;
         }
-
+    
         BorderTemplate match = null;
         if (TierifyClient.BORDER_TEMPLATES != null) {
             for (BorderTemplate template : TierifyClient.BORDER_TEMPLATES) {
@@ -45,7 +46,7 @@ public class TooltipOverhaulFrameMixin {
                 }
             }
         }
-
+    
         if (match == null) return;
 
         String startHex = tierify$intToHex(match.getStartGradient());
