@@ -148,7 +148,7 @@ public abstract class ItemStackClientMixin {
                 if (extra != null && extra.contains("StoredCustomName", 8 /* STRING */)) {
                     String json = extra.getString("StoredCustomName");
                     try {
-                        Text parsed = Text.Serialization.fromJson(json);
+                        Text parsed = Text.Serializer.fromJson(json);
                         if (parsed != null) baseName = parsed;
                     } catch (Exception ignored) {
                         // If parsing fails, fall back to default return value
