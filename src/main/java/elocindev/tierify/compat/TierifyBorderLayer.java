@@ -7,6 +7,7 @@ import dev.xylonity.tooltipoverhaul.client.layer.LayerDepth;
 import dev.xylonity.tooltipoverhaul.client.style.TooltipStyle;
 import elocindev.tierify.Tierify;
 import elocindev.tierify.TierifyClient;
+import elocindev.tierify.item.ReforgeAddition;
 import elocindev.tierify.screen.client.PerfectLabelAnimator;
 import elocindev.tierify.screen.client.PerfectBorderRenderer;
 import elocindev.tierify.util.SetBonusUtils;
@@ -20,6 +21,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.text.MutableText;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import java.awt.Point;
 
@@ -30,20 +32,23 @@ public class TierifyBorderLayer implements ITooltipLayer {
     @Override
     public void render(TooltipContext ctx, Vec2f pos, Point size, TooltipStyle style, Text rarity, TextRenderer font, CustomFrameData customFrame) {
         if (!Tierify.CLIENT_CONFIG.tieredTooltip) return;
-        if (!ctx.stack().hasNbt()) return;
-
-        NbtCompound tierTag = ctx.stack().getSubNbt(Tierify.NBT_SUBTAG_KEY);
-        if (tierTag == null || !tierTag.contains(Tierify.NBT_SUBTAG_DATA_KEY)) {
+        ItemStack stack = ctx.stack();
+        // tiered items use tier id (or tiered:perfect)
+        // Reforge materials use the item registry id 
+        String lookupKey;
+        boolean isPerfect = false;
+    
+        NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+        if (tierTag != null && tierTag.contains(Tierify.NBT_SUBTAG_DATA_KEY)) {
+            String tierId = tierTag.getString(Tierify.NBT_SUBTAG_DATA_KEY);
+            isPerfect = tierTag.getBoolean("Perfect");
+            lookupKey = isPerfect ? "tiered:perfect" : tierId;
+        } else if (stack.getItem() instanceof ReforgeAddition) {
+            lookupKey = Registries.ITEM.getId(stack.getItem()).toString();
+        } else {
             return;
         }
-
-        // UPDATED LOOKUP LOGIC to match Raw IDs
-        String tierId = tierTag.getString(Tierify.NBT_SUBTAG_DATA_KEY);
-        boolean isPerfect = tierTag.getBoolean("Perfect");
-        
-        // We now match against "tiered:perfect" or "tiered:common_armor_1" directly
-        String lookupKey = isPerfect ? "tiered:perfect" : tierId;
-
+    
         BorderTemplate match = null;
         if (TierifyClient.BORDER_TEMPLATES != null) {
             for (BorderTemplate template : TierifyClient.BORDER_TEMPLATES) {
@@ -53,8 +58,9 @@ public class TierifyBorderLayer implements ITooltipLayer {
                 }
             }
         }
-
+    
         if (match == null) return;
+
         
         // Final reference for lambda use
         final BorderTemplate finalMatch = match;
