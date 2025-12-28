@@ -218,6 +218,32 @@ public class ModifierUtils {
         return Tierify.CONFIG.tier_6_qualities;
     }
 
+    private static final String STORED_CUSTOM_NAME_KEY = "StoredCustomName";
+
+    /**
+     * If the stack has a vanilla custom name (display.Name), stash it into Tierify extra NBT
+     * and remove display.Name so Tierify can prepend its modifier prefix again.
+     * This lets players rename items to remove the prefix, but reforging re-applies it.
+     */
+    
+    private static void stashCustomNameForReforge(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return;
+    
+        NbtCompound display = stack.getSubNbt("display");
+        if (display == null) return;
+        // display.Name is a JSON string in NBT 
+        if (!display.contains("Name", 8)) return;
+    
+        String nameJson = display.getString("Name");
+        if (nameJson == null || nameJson.isEmpty()) return;
+        // Store under namespaced extra tag
+        NbtCompound extra = stack.getOrCreateSubNbt(Tierify.NBT_SUBTAG_EXTRA_KEY);
+        extra.putString(STORED_CUSTOM_NAME_KEY, nameJson);
+        // Remove vanilla custom name so our prefix logic can apply again
+        display.remove("Name");
+        // Do NOT remove the whole display tag (dyed items use it).
+    }
+
     public static void setItemStackAttribute(Identifier potentialAttributeID, ItemStack stack) {
         if (potentialAttributeID != null) {
 
@@ -293,15 +319,14 @@ public class ModifierUtils {
                 Identifier possibleAttribute = getRandomAttributeForQuality(qualities, stack.getItem(), reforge);
                 if (possibleAttribute != null) {
     
-                    // 1% chance for a “perfect” roll (no downside)
+                    // if the item was renamed, stash that name so we can still prefix after reforge
+                    stashCustomNameForReforge(stack);
+    
                     boolean isPerfect = new java.util.Random().nextDouble() < Tierify.CONFIG.perfectRollChance;
     
                     NbtCompound tierTag = stack.getOrCreateSubNbt(Tierify.NBT_SUBTAG_KEY);
-                    if (isPerfect) {
-                        tierTag.putBoolean("Perfect", true);
-                    } else {
-                        tierTag.remove("Perfect");
-                    }
+                    if (isPerfect) tierTag.putBoolean("Perfect", true);
+                    else tierTag.remove("Perfect");
     
                     setItemStackAttribute(possibleAttribute, stack);
                     return;
@@ -309,7 +334,6 @@ public class ModifierUtils {
             }
         }
     
-        // Fallback for non-reforge behavior
         setItemStackAttribute(playerEntity, stack, reforge);
     }
 
