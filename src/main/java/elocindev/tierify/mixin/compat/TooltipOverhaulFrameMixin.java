@@ -4,6 +4,7 @@ import dev.xylonity.tooltipoverhaul.client.frame.CustomFrameData;
 import dev.xylonity.tooltipoverhaul.client.frame.CustomFrameManager;
 import elocindev.tierify.Tierify;
 import elocindev.tierify.TierifyClient;
+import elocindev.tierify.item.ReforgeAddition;
 import draylar.tiered.api.BorderTemplate;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
