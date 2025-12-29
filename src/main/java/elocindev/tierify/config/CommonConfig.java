@@ -60,6 +60,19 @@ public class CommonConfig {
     public int endTier4Weight = 0;   // Epic
     public int endTier5Weight = 1;   // Legendary
     public int endTier6Weight = 1;   // Mythic
+
+    @Comment("Optional overrides for modded dimensions when useDimensionTierWeights=true.")
+    @Comment("Format: 'modid:dimension=500,125,20,6,3,1' (6 ints = Common..Mythic).")
+    @Comment("You can also use '*=overworld|nether|end|global' as a wildcard default for any modded dimension.")
+    @Comment("And you can use 'modid:*=...' to target all dimensions from a given namespace.")
+    public ArrayList<String> moddedDimensionTierWeightOverrides = new ArrayList<>();
+    
+    "moddedDimensionTierWeightOverrides": [
+      "*=overworld",
+      "ad_astra:*=0,0,1,1,0,0"
+      "deeperanddarker"
+      "undergarden"
+    ]
     
     @Comment("Crafted items get modifiers")
     public boolean craftingModifier = false;
