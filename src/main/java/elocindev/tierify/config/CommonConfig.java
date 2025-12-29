@@ -30,6 +30,37 @@ public class CommonConfig {
     public int entityTier4Weight = 6;  // Epic
     public int entityTier5Weight = 3;  // Legendary
     public int entityTier6Weight = 1;  // Mythic
+    
+    @Comment("If true, use dimension-specific tier weights for mob-equipped items and loot container rolls.")
+    public boolean useDimensionTierWeights = false;
+    
+    @Comment("When useDimensionTierWeights=true and the selected dimension profile has ALL weights set to 0, no modifier is applied (instead of falling back to random).")
+    public boolean dimensionTierWeightsZeroMeansNoModifier = true;
+    
+    @Comment("Overworld tier weights (1=Common ... 6=Mythic). Set a tier weight to 0 to disable that tier in the Overworld.")
+    public int overworldTier1Weight = 1; // Common
+    public int overworldTier2Weight = 1; // Uncomon
+    public int overworldTier3Weight = 0;   // Rare
+    public int overworldTier4Weight = 0;   // Epic
+    public int overworldTier5Weight = 0;   // Legendary
+    public int overworldTier6Weight = 0;   // Mythic
+    
+    @Comment("Nether tier weights (1=Common ... 6=Mythic).")
+    public int netherTier1Weight = 0; // Common
+    public int netherTier2Weight = 0; // Uncomon
+    public int netherTier3Weight = 1;  // Rare
+    public int netherTier4Weight = 1;   // Epic
+    public int netherTier5Weight = 0;   // Legendary
+    public int netherTier6Weight = 0;   // Mythic
+    
+    @Comment("End tier weights (1=Common ... 6=Mythic).")
+    public int endTier1Weight = 0; // Common
+    public int endTier2Weight = 0; // Uncomon
+    public int endTier3Weight = 0;  // Rare
+    public int endTier4Weight = 0;   // Epic
+    public int endTier5Weight = 1;   // Legendary
+    public int endTier6Weight = 1;   // Mythic
+    
     @Comment("Crafted items get modifiers")
     public boolean craftingModifier = false;
     @Comment("Merchant items get modifiers")
