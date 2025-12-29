@@ -8,6 +8,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.world.World;
 import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
@@ -159,38 +161,82 @@ public class ModifierUtils {
     }
 
     public static void setItemStackAttributeEntityWeighted(@Nullable PlayerEntity playerEntity, ItemStack stack) {
+        setItemStackAttributeEntityWeighted(playerEntity, stack, null);
+    }
+    
+    public static void setItemStackAttributeEntityWeighted(@Nullable PlayerEntity playerEntity, ItemStack stack, @Nullable RegistryKey<World> dimensionKey) {
         if (stack == null || stack.isEmpty()) return;
-
+    
         // Don't overwrite an already-tiered item
         NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
         if (tierTag != null && tierTag.contains(Tierify.NBT_SUBTAG_DATA_KEY)) return;
-
-        // If all weights are 0, keep old behavior
-        int w1 = Math.max(0, Tierify.CONFIG.entityTier1Weight);
-        int w2 = Math.max(0, Tierify.CONFIG.entityTier2Weight);
-        int w3 = Math.max(0, Tierify.CONFIG.entityTier3Weight);
-        int w4 = Math.max(0, Tierify.CONFIG.entityTier4Weight);
-        int w5 = Math.max(0, Tierify.CONFIG.entityTier5Weight);
-        int w6 = Math.max(0, Tierify.CONFIG.entityTier6Weight);
+    
+        int w1, w2, w3, w4, w5, w6;
+    
+        if (Tierify.CONFIG.useDimensionTierWeights && dimensionKey != null) {
+            if (dimensionKey.equals(World.OVERWORLD)) {
+                w1 = Math.max(0, Tierify.CONFIG.overworldTier1Weight);
+                w2 = Math.max(0, Tierify.CONFIG.overworldTier2Weight);
+                w3 = Math.max(0, Tierify.CONFIG.overworldTier3Weight);
+                w4 = Math.max(0, Tierify.CONFIG.overworldTier4Weight);
+                w5 = Math.max(0, Tierify.CONFIG.overworldTier5Weight);
+                w6 = Math.max(0, Tierify.CONFIG.overworldTier6Weight);
+            } else if (dimensionKey.equals(World.NETHER)) {
+                w1 = Math.max(0, Tierify.CONFIG.netherTier1Weight);
+                w2 = Math.max(0, Tierify.CONFIG.netherTier2Weight);
+                w3 = Math.max(0, Tierify.CONFIG.netherTier3Weight);
+                w4 = Math.max(0, Tierify.CONFIG.netherTier4Weight);
+                w5 = Math.max(0, Tierify.CONFIG.netherTier5Weight);
+                w6 = Math.max(0, Tierify.CONFIG.netherTier6Weight);
+            } else if (dimensionKey.equals(World.END)) {
+                w1 = Math.max(0, Tierify.CONFIG.endTier1Weight);
+                w2 = Math.max(0, Tierify.CONFIG.endTier2Weight);
+                w3 = Math.max(0, Tierify.CONFIG.endTier3Weight);
+                w4 = Math.max(0, Tierify.CONFIG.endTier4Weight);
+                w5 = Math.max(0, Tierify.CONFIG.endTier5Weight);
+                w6 = Math.max(0, Tierify.CONFIG.endTier6Weight);
+            } else {
+                // Modded dimensions: fall back to the global weights unless you later decide otherwise
+                w1 = Math.max(0, Tierify.CONFIG.entityTier1Weight);
+                w2 = Math.max(0, Tierify.CONFIG.entityTier2Weight);
+                w3 = Math.max(0, Tierify.CONFIG.entityTier3Weight);
+                w4 = Math.max(0, Tierify.CONFIG.entityTier4Weight);
+                w5 = Math.max(0, Tierify.CONFIG.entityTier5Weight);
+                w6 = Math.max(0, Tierify.CONFIG.entityTier6Weight);
+            }
+        } else {
+            // existing global behavior
+            w1 = Math.max(0, Tierify.CONFIG.entityTier1Weight);
+            w2 = Math.max(0, Tierify.CONFIG.entityTier2Weight);
+            w3 = Math.max(0, Tierify.CONFIG.entityTier3Weight);
+            w4 = Math.max(0, Tierify.CONFIG.entityTier4Weight);
+            w5 = Math.max(0, Tierify.CONFIG.entityTier5Weight);
+            w6 = Math.max(0, Tierify.CONFIG.entityTier6Weight);
+        }
+    
         int total = w1 + w2 + w3 + w4 + w5 + w6;
-
+    
+        // Important: in dimension mode, "all zero" can mean "disable drops entirely in this dimension"
+        if (Tierify.CONFIG.useDimensionTierWeights && Tierify.CONFIG.dimensionTierWeightsZeroMeansNoModifier && total <= 0) {
+            return;
+        }
+    
         Identifier chosen = null;
-
+    
         if (total > 0) {
-            // Try a few times in case a tier has no valid attributes for this particular item
             for (int attempt = 0; attempt < 10 && chosen == null; attempt++) {
                 List<String> qualities = pickEntityTierQualities(w1, w2, w3, w4, w5, w6, total);
                 if (qualities == null || qualities.isEmpty()) break;
-
+    
                 chosen = getRandomAttributeForQuality(qualities, stack.getItem(), false);
             }
         }
-
-        // Fallback to old behavior if weighting fails (or weights disabled)
+    
+        // Preserve your existing fallback semantics outside the "all-zero means none" rule above
         if (chosen == null) {
             chosen = getRandomAttributeIDFor(playerEntity, stack.getItem(), false);
         }
-
+    
         if (chosen != null) {
             setItemStackAttribute(chosen, stack);
         }
