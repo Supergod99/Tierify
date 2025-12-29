@@ -69,9 +69,12 @@ public class CommonConfig {
     
     "moddedDimensionTierWeightOverrides": [
       "*=overworld",
-      "ad_astra:*=0,0,1,1,0,0"
-      "deeperanddarker"
-      "undergarden"
+      "ad_astra:*=overworld",
+      "alex_caves_dimensions:*=global",
+      "undergarden:*=overworld",
+      "sgjourney:*=global",
+      "deeperanddarker:*=end",
+      "foolish:*=global"
     ]
     
     @Comment("Crafted items get modifiers")
