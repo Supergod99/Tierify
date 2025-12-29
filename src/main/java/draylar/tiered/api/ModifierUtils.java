@@ -196,13 +196,23 @@ public class ModifierUtils {
                 w5 = Math.max(0, Tierify.CONFIG.endTier5Weight);
                 w6 = Math.max(0, Tierify.CONFIG.endTier6Weight);
             } else {
-                // Modded dimensions: fall back to the global weights unless you later decide otherwise
-                w1 = Math.max(0, Tierify.CONFIG.entityTier1Weight);
-                w2 = Math.max(0, Tierify.CONFIG.entityTier2Weight);
-                w3 = Math.max(0, Tierify.CONFIG.entityTier3Weight);
-                w4 = Math.max(0, Tierify.CONFIG.entityTier4Weight);
-                w5 = Math.max(0, Tierify.CONFIG.entityTier5Weight);
-                w6 = Math.max(0, Tierify.CONFIG.entityTier6Weight);
+                int[] override = getModdedDimensionOverrideWeights(dimensionKey);
+                if (override != null) {
+                    w1 = override[0];
+                    w2 = override[1];
+                    w3 = override[2];
+                    w4 = override[3];
+                    w5 = override[4];
+                    w6 = override[5];
+                } else {
+                    // Modded dimensions: fall back to the global weights
+                    w1 = Math.max(0, Tierify.CONFIG.entityTier1Weight);
+                    w2 = Math.max(0, Tierify.CONFIG.entityTier2Weight);
+                    w3 = Math.max(0, Tierify.CONFIG.entityTier3Weight);
+                    w4 = Math.max(0, Tierify.CONFIG.entityTier4Weight);
+                    w5 = Math.max(0, Tierify.CONFIG.entityTier5Weight);
+                    w6 = Math.max(0, Tierify.CONFIG.entityTier6Weight);
+                }
             }
         } else {
             // existing global behavior
@@ -242,6 +252,120 @@ public class ModifierUtils {
         }
     }
 
+    @Nullable
+    private static int[] getModdedDimensionOverrideWeights(RegistryKey<World> dimensionKey) {
+        if (dimensionKey == null) return null;
+    
+        List<String> entries = Tierify.CONFIG.moddedDimensionTierWeightOverrides;
+        if (entries == null || entries.isEmpty()) return null;
+    
+        String dimId = dimensionKey.getValue().toString(); // "modid:dimension"
+        String namespace = dimensionKey.getValue().getNamespace();
+    
+        int[] wildcard = null;
+        int[] namespaceWildcard = null;
+    
+        for (String raw : entries) {
+            if (raw == null) continue;
+            String s = raw.trim();
+            if (s.isEmpty()) continue;
+            if (s.startsWith("#") || s.startsWith("//")) continue;
+    
+            int eq = s.indexOf('=');
+            if (eq <= 0) continue;
+    
+            String left = s.substring(0, eq).trim();
+            String right = s.substring(eq + 1).trim();
+            if (left.isEmpty() || right.isEmpty()) continue;
+    
+            // Exact match
+            if (left.equals(dimId)) {
+                return parseWeightProfile(right);
+            }
+    
+            // Namespace wildcard: "modid:*"
+            if (left.endsWith(":*")) {
+                String ns = left.substring(0, left.length() - 2);
+                if (ns.equals(namespace)) {
+                    namespaceWildcard = parseWeightProfile(right);
+                }
+                continue;
+            }
+    
+            // Global wildcard: "*"
+            if (left.equals("*")) {
+                wildcard = parseWeightProfile(right);
+            }
+        }
+    
+        return (namespaceWildcard != null) ? namespaceWildcard : wildcard;
+    }
+    
+    @Nullable
+    private static int[] parseWeightProfile(String profile) {
+        if (profile == null) return null;
+        String p = profile.trim();
+        if (p.isEmpty()) return null;
+    
+        // Named profile shortcuts
+        String lower = p.toLowerCase(java.util.Locale.ROOT);
+        if (lower.equals("overworld")) {
+            return new int[] {
+                Math.max(0, Tierify.CONFIG.overworldTier1Weight),
+                Math.max(0, Tierify.CONFIG.overworldTier2Weight),
+                Math.max(0, Tierify.CONFIG.overworldTier3Weight),
+                Math.max(0, Tierify.CONFIG.overworldTier4Weight),
+                Math.max(0, Tierify.CONFIG.overworldTier5Weight),
+                Math.max(0, Tierify.CONFIG.overworldTier6Weight)
+            };
+        }
+        if (lower.equals("nether")) {
+            return new int[] {
+                Math.max(0, Tierify.CONFIG.netherTier1Weight),
+                Math.max(0, Tierify.CONFIG.netherTier2Weight),
+                Math.max(0, Tierify.CONFIG.netherTier3Weight),
+                Math.max(0, Tierify.CONFIG.netherTier4Weight),
+                Math.max(0, Tierify.CONFIG.netherTier5Weight),
+                Math.max(0, Tierify.CONFIG.netherTier6Weight)
+            };
+        }
+        if (lower.equals("end")) {
+            return new int[] {
+                Math.max(0, Tierify.CONFIG.endTier1Weight),
+                Math.max(0, Tierify.CONFIG.endTier2Weight),
+                Math.max(0, Tierify.CONFIG.endTier3Weight),
+                Math.max(0, Tierify.CONFIG.endTier4Weight),
+                Math.max(0, Tierify.CONFIG.endTier5Weight),
+                Math.max(0, Tierify.CONFIG.endTier6Weight)
+            };
+        }
+        if (lower.equals("global")) {
+            return new int[] {
+                Math.max(0, Tierify.CONFIG.entityTier1Weight),
+                Math.max(0, Tierify.CONFIG.entityTier2Weight),
+                Math.max(0, Tierify.CONFIG.entityTier3Weight),
+                Math.max(0, Tierify.CONFIG.entityTier4Weight),
+                Math.max(0, Tierify.CONFIG.entityTier5Weight),
+                Math.max(0, Tierify.CONFIG.entityTier6Weight)
+            };
+        }
+    
+        // Numeric profile: "500,125,20,6,3,1" (commas or whitespace)
+        String[] parts = p.split("[,\\s]+");
+        if (parts.length != 6) return null;
+    
+        int[] w = new int[6];
+        try {
+            for (int i = 0; i < 6; i++) {
+                w[i] = Math.max(0, Integer.parseInt(parts[i].trim()));
+            }
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    
+        return w;
+    }
+    
     @Nullable
     private static List<String> pickEntityTierQualities(int w1, int w2, int w3, int w4, int w5, int w6, int total) {
         int roll = new Random().nextInt(total);
