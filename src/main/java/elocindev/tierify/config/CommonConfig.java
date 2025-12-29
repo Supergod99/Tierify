@@ -21,7 +21,7 @@ public class CommonConfig {
     @Comment("0.0 = never, 0.5 = 50%, 1.0 = always.")
     public float lootContainerModifierChance = 0.1F;
     @Comment("Equipped items on entities get modifiers")
-    public boolean entityItemModifier = true;
+    public boolean entityItemModifier = false;
     @Comment("Tier weights for mob-equipped items/chests when entityItemModifier=true OR lootContainerModifier=true. Higher = more common. These are relative weights, not %.")
     @Comment("Set all to 0 to disable weighting and fall back to the old fully-random behavior.")
     public int entityTier1Weight = 130; // Common
