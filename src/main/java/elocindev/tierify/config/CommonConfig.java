@@ -23,7 +23,7 @@ public class CommonConfig {
     public float lootContainerModifierChance = 0.1F;
     
     @Comment("Equipped items on entities get modifiers")
-    public boolean entityItemModifier = true;
+    public boolean entityItemModifier = false;
     
     @Comment("If true, entity loot-table drops can receive modifiers based on a whitelist profile file.")
     @Comment("This affects loot generated from an entity's loot table (e.g., bosses), not only worn equipment.")
