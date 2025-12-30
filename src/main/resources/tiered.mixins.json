@@ -22,7 +22,8 @@
     "ArmorItemMixin",
     "EnchantmentHelperMixin",
     "compat.CuriosBrutalityUuidSaltMixin",
-    "compat.LethalityScalingFixMixin"
+    "compat.LethalityScalingFixMixin",
+    "EntityLootDropMixin"
   ],
   "client": [
     "client.ItemStackClientMixin",
