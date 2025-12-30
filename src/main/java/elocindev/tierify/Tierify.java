@@ -112,6 +112,7 @@ public class Tierify implements ModInitializer {
 
         CONFIG = CommonConfig.INSTANCE;
         CLIENT_CONFIG = AutoConfig.getConfigHolder(ClientConfig.class).getConfig();
+        elocindev.tierify.config.EntityLootDropProfiles.reload();
 
         TieredItemTags.init();
         ItemRegistry.init();
