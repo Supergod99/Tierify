@@ -21,6 +21,32 @@ public abstract class EntityEquipmentDropMixin {
         method = "dropEquipment",
         at = @At(
             value = "INVOKE",
+            target = "Lnet/minecraft/entity/Entity;dropStack(Lnet/minecraft/item/ItemStack;)Lnet/minecraft/entity/ItemEntity;"
+        ),
+        index = 0,
+        require = 0
+    )
+    private ItemStack echelon$maybeReforgeEquipmentDrop_entityOwner_noYOffset(ItemStack stack) {
+        return echelon$maybeReforgeEquipmentDrop(stack);
+    }
+    
+    @ModifyArg(
+        method = "dropEquipment",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/entity/Entity;dropStack(Lnet/minecraft/item/ItemStack;F)Lnet/minecraft/entity/ItemEntity;"
+        ),
+        index = 0,
+        require = 0
+    )
+    private ItemStack echelon$maybeReforgeEquipmentDrop_entityOwner_withYOffset(ItemStack stack) {
+        return echelon$maybeReforgeEquipmentDrop(stack);
+    }
+
+    @ModifyArg(
+        method = "dropEquipment",
+        at = @At(
+            value = "INVOKE",
             target = "Lnet/minecraft/entity/LivingEntity;dropStack(Lnet/minecraft/item/ItemStack;)Lnet/minecraft/entity/ItemEntity;"
         ),
         index = 0,
