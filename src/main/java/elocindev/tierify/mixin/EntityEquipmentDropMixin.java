@@ -26,6 +26,21 @@ public abstract class EntityEquipmentDropMixin {
         index = 0,
         require = 0
     )
+
+    @ModifyArg(
+        method = "dropEquipment",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/entity/LivingEntity;dropStack(Lnet/minecraft/item/ItemStack;F)Lnet/minecraft/entity/ItemEntity;"
+        ),
+        index = 0,
+        require = 0
+    )
+    
+    private ItemStack echelon$maybeReforgeEquipmentDrop_withYOffset(ItemStack stack) {
+        return echelon$maybeReforgeEquipmentDrop(stack);
+    }
+    
     private ItemStack echelon$maybeReforgeEquipmentDrop(ItemStack stack) {
         LivingEntity self = (LivingEntity) (Object) this;
 
