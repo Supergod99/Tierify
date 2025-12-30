@@ -12,6 +12,7 @@
     "TridentEntityMixin",
     "SpectralArrowEntityMixin",
     "LootTableMixin",
+    "EntityEquipmentDropMixin",
     "EntityLootDropMixin",
     "AnvilScreenHandlerMixin",
     "MerchantScreenHandlerMixin",
