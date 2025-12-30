@@ -12,6 +12,7 @@
     "TridentEntityMixin",
     "SpectralArrowEntityMixin",
     "LootTableMixin",
+    "EntityLootDropMixin",
     "AnvilScreenHandlerMixin",
     "MerchantScreenHandlerMixin",
     "BowItemMixin",
@@ -22,8 +23,7 @@
     "ArmorItemMixin",
     "EnchantmentHelperMixin",
     "compat.CuriosBrutalityUuidSaltMixin",
-    "compat.LethalityScalingFixMixin",
-    "EntityLootDropMixin"
+    "compat.LethalityScalingFixMixin"
   ],
   "client": [
     "client.ItemStackClientMixin",
