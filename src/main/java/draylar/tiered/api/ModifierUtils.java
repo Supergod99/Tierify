@@ -252,6 +252,47 @@ public class ModifierUtils {
         }
     }
 
+    public static void setItemStackAttributeEntityWeightedWithCustomWeights(
+            @Nullable PlayerEntity playerEntity,
+            ItemStack stack,
+            int[] weights
+    ) {
+        if (stack == null || stack.isEmpty()) return;
+    
+        // Don't overwrite an already-tiered item
+        NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+        if (tierTag != null && tierTag.contains(Tierify.NBT_SUBTAG_DATA_KEY)) return; // :contentReference[oaicite:5]{index=5}
+    
+        if (weights == null || weights.length != 6) return;
+    
+        int w1 = Math.max(0, weights[0]);
+        int w2 = Math.max(0, weights[1]);
+        int w3 = Math.max(0, weights[2]);
+        int w4 = Math.max(0, weights[3]);
+        int w5 = Math.max(0, weights[4]);
+        int w6 = Math.max(0, weights[5]);
+    
+        int total = w1 + w2 + w3 + w4 + w5 + w6;
+    
+        // For entity-drop profiles, "all zero" should mean "do nothing"
+        if (total <= 0) return;
+    
+        Identifier chosen = null;
+    
+        // Try a few times in case a tier has no valid attributes for this particular item
+        for (int attempt = 0; attempt < 10 && chosen == null; attempt++) {
+            List<String> qualities = pickEntityTierQualities(w1, w2, w3, w4, w5, w6, total);
+            if (qualities == null || qualities.isEmpty()) break;
+    
+            chosen = getRandomAttributeForQuality(qualities, stack.getItem(), false);
+        }
+    
+        // No “fallback to random” here: entity profiles are explicit/whitelisted
+        if (chosen != null) {
+            setItemStackAttribute(chosen, stack);
+        }
+    }
+
     @Nullable
     private static int[] getModdedDimensionOverrideWeights(RegistryKey<World> dimensionKey) {
         if (dimensionKey == null) return null;
@@ -302,7 +343,7 @@ public class ModifierUtils {
     }
     
     @Nullable
-    private static int[] parseWeightProfile(String profile) {
+    public static int[] parseWeightProfile(String profile) {
         if (profile == null) return null;
         String p = profile.trim();
         if (p.isEmpty()) return null;
