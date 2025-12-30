@@ -17,11 +17,23 @@ public class CommonConfig {
 
     @Comment("Items in for example mineshaft chests get modifiers")
     public boolean lootContainerModifier = true;
+    
     @Comment("Chance for loot-container items to receive a modifier when lootContainerModifier is true.")
     @Comment("0.0 = never, 0.5 = 50%, 1.0 = always.")
     public float lootContainerModifierChance = 0.1F;
+    
     @Comment("Equipped items on entities get modifiers")
     public boolean entityItemModifier = false;
+    
+    @Comment("If true, entity loot-table drops can receive modifiers based on a whitelist profile file.")
+    @Comment("This affects loot generated from an entity's loot table (e.g., bosses), not only worn equipment.")
+    public boolean entityLootDropModifier = true;
+    
+    @Comment("Whitelist profile file (in the config folder) for entity loot-table drop reforging.")
+    @Comment("Format per line: 'modid:entity=0.50|0,0,5,10,5,2' or 'modid:entity=0.50|overworld' (presets: overworld|nether|end|global).")
+    @Comment("You can also use '*=...' as a global default and 'modid:*=...' as a namespace wildcard.")
+    public String entityLootDropProfilesFile = "echelon-entity-drop-profiles.txt";
+    
     @Comment("Tier weights for mob-equipped items/chests when entityItemModifier=true OR lootContainerModifier=true. Higher = more common. These are relative weights, not %.")
     @Comment("Set all to 0 to disable weighting and fall back to the old fully-random behavior.")
     public int entityTier1Weight = 2000; // Common
