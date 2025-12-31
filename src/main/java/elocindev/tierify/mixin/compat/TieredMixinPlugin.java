@@ -33,6 +33,10 @@ public class TieredMixinPlugin implements IMixinConfigPlugin {
             return loader.isModLoaded("tooltipoverhaul")
                     && loader.getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT;
         }
+        // Armageddon mod
+        if (mixinClassName.endsWith("ArmageddonTreasureBagProceduresMixin")) {
+            return net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("armageddon_mod");
+        }
         // Curios + Brutality compat
         if (mixinClassName.endsWith("CuriosBrutalityUuidSaltMixin")) {
             return loader.isModLoaded("curios") && loader.isModLoaded("brutality");
