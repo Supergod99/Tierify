@@ -23,6 +23,7 @@
     "ArmorStandEntityMixin",
     "ArmorItemMixin",
     "EnchantmentHelperMixin",
+    "compat.ArmageddonTreasureBagProceduresMixin",
     "compat.CuriosBrutalityUuidSaltMixin",
     "compat.LethalityScalingFixMixin"
   ],
