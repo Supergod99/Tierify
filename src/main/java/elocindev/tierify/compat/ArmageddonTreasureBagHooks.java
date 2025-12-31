@@ -4,7 +4,6 @@ import draylar.tiered.api.ModifierUtils;
 import elocindev.tierify.Tierify;
 import elocindev.tierify.config.TreasureBagProfiles;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -14,6 +13,10 @@ import net.minecraft.util.Identifier;
 public final class ArmageddonTreasureBagHooks {
     private ArmageddonTreasureBagHooks() {}
 
+    /**
+     * Called per spawned ItemStack produced by a treasure bag.
+     * Uses "bag item id in player's hands" to resolve profile and apply chance+weights.
+     */
     public static ItemStack maybeReforgeFromHeldBag(ItemStack spawned, Entity entity) {
         if (spawned == null || spawned.isEmpty()) return spawned;
         if (!Tierify.CONFIG.treasureBagDropModifier) return spawned;
@@ -30,15 +33,15 @@ public final class ArmageddonTreasureBagHooks {
         TreasureBagProfiles.Entry profile = TreasureBagProfiles.get(bagId);
         if (profile == null) return spawned;
 
-        // Per-spawned-item chance roll (as requested)
+        // Per-spawned-item chance roll
         if (Math.random() > profile.chance()) return spawned;
 
+        // IMPORTANT: this API expects PlayerEntity (see ModifierUtils signature)
         ModifierUtils.setItemStackAttributeEntityWeightedWithCustomWeights(player, spawned, profile.weights());
         return spawned;
     }
 
     private static Identifier resolveBagIdFromHands(PlayerEntity player) {
-        // Check mainhand/offhand; return the first hand whose item is configured as a treasure bag
         ItemStack main = player.getMainHandStack();
         if (!main.isEmpty()) {
             Identifier id = Registries.ITEM.getId(main.getItem());
