@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.random.Random;
 
 public final class ArmageddonTreasureBagHooks {
     private ArmageddonTreasureBagHooks() {}
@@ -26,6 +27,7 @@ public final class ArmageddonTreasureBagHooks {
         if (tierTag != null && tierTag.contains(Tierify.NBT_SUBTAG_DATA_KEY)) return spawned;
 
         if (!(entity instanceof PlayerEntity player)) return spawned;
+        if (player.getWorld().isClient()) return spawned; // safety
 
         Identifier bagId = resolveBagIdFromHands(player);
         if (bagId == null) return spawned;
@@ -33,8 +35,8 @@ public final class ArmageddonTreasureBagHooks {
         TreasureBagProfiles.Entry profile = TreasureBagProfiles.get(bagId);
         if (profile == null) return spawned;
 
-        // Per-spawned-item chance roll
-        if (Math.random() > profile.chance()) return spawned;
+        // Per-spawned-item chance roll (local RNG)
+        if (Random.create().nextFloat() > profile.chance()) return spawned;
 
         // IMPORTANT: this API expects PlayerEntity (see ModifierUtils signature)
         ModifierUtils.setItemStackAttributeEntityWeightedWithCustomWeights(player, spawned, profile.weights());
