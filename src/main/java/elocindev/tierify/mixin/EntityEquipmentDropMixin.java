@@ -31,15 +31,6 @@ public abstract class EntityEquipmentDropMixin {
                 entityId, lootingMultiplier, allowDrops, Tierify.CONFIG.entityEquipmentDropModifier);
     }
 
-    // Some mappings/environments use a 2-arg overload; keep a second probe.
-    @Inject(method = "dropEquipment", at = @At("HEAD"), require = 0)
-    private void echelon$debugDropEquipmentHead2(DamageSource source, int lootingMultiplier, CallbackInfo ci) {
-        MobEntity self = (MobEntity) (Object) this;
-        Identifier entityId = Registries.ENTITY_TYPE.getId(self.getType());
-        Tierify.LOGGER.info("[EquipDrop] ENTER dropEquipment/2(entity={}, looting={}, enabled={})",
-                entityId, lootingMultiplier, Tierify.CONFIG.entityEquipmentDropModifier);
-    }
-
     // Option B: four hook targets inside dropEquipment
     @ModifyArg(
             method = "dropEquipment",
