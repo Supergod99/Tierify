@@ -29,7 +29,7 @@ public abstract class EntityEquipmentDropMixin {
     private ItemStack echelon$maybeReforgeEquipmentDrop_entityOwner_noYOffset(ItemStack stack) {
         return echelon$maybeReforgeEquipmentDrop(stack);
     }
-    
+
     @ModifyArg(
         method = "dropEquipment",
         at = @At(
@@ -69,7 +69,20 @@ public abstract class EntityEquipmentDropMixin {
         return echelon$maybeReforgeEquipmentDrop(stack);
     }
 
-    
+    // Catch equipment drops that bypass dropEquipment but still go through dropStack.
+    @ModifyArg(
+        method = "dropStack(Lnet/minecraft/item/ItemStack;)Lnet/minecraft/entity/ItemEntity;",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/entity/Entity;dropStack(Lnet/minecraft/item/ItemStack;)Lnet/minecraft/entity/ItemEntity;"
+        ),
+        index = 0,
+        require = 0
+    )
+    private ItemStack echelon$maybeReforgeAnyMobDrop_dropStack(ItemStack stack) {
+        return echelon$maybeReforgeEquipmentDrop(stack);
+    }
+
     private ItemStack echelon$maybeReforgeEquipmentDrop(ItemStack stack) {
         LivingEntity self = (LivingEntity) (Object) this;
 
@@ -81,7 +94,7 @@ public abstract class EntityEquipmentDropMixin {
 
         if (!Tierify.CONFIG.entityEquipmentDropModifier) return stack;
 
-        // Dont overwrite an already-tiered item (covers entityItemModifier path too)
+        // Don't overwrite an already-tiered item (covers entityItemModifier path too)
         NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
         if (tierTag != null && tierTag.contains(Tierify.NBT_SUBTAG_DATA_KEY)) {
             return stack;
@@ -91,13 +104,8 @@ public abstract class EntityEquipmentDropMixin {
         EntityLootDropProfiles.Entry profile = EntityLootDropProfiles.get(entityId);
         if (profile == null) return stack;
 
-        // Deterministic RNG per (entity, item) without consuming vanilla RNG streams
-        long seed =
-            self.getUuid().getLeastSignificantBits()
-            ^ (self.getUuid().getMostSignificantBits() * 31L)
-            ^ ((long) Registries.ITEM.getRawId(stack.getItem()) << 32)
-            ^ 0xECA11D0E5EEDC0DEL;
-        Random rng = Random.create(seed);
+        // Use a local RNG without consuming vanilla RNG streams (non-sticky per-mob).
+        Random rng = Random.create();
 
         if (rng.nextFloat() > profile.chance()) return stack;
 
