@@ -19,6 +19,11 @@ import org.spongepowered.asm.mixin.injection.Coerce;
         "net.mcreator.armageddonmod.procedures.SanghorLordOfBloodTreasureBagRightclickedProcedure",
         "net.mcreator.armageddonmod.procedures.NyxarisTheVeilOfOblivionTreasureBagRightclickedProcedure",
         "net.mcreator.armageddonmod.procedures.ArionTreasurebagRightclickedProcedure",
+        "net.mcreator.armageddonmod.procedures.EldorathTreasureBagRightclickedProcedure",
+        "net.mcreator.armageddonmod.procedures.ElvenitePaladinTreasureBagRightclickedProcedure",
+        "net.mcreator.armageddonmod.procedures.GoblinLordTreasureBagRightclickedProcedure",
+        "net.mcreator.armageddonmod.procedures.VaedricTreasureBagRightclickedProcedure",
+        "net.mcreator.armageddonmod.procedures.ZoranthTreasureBagRightclickedProcedure",
 
         // Right-click on block
         "net.mcreator.armageddonmod.procedures.IronColossusTreasureBagRightclickedOnBlockProcedure",
@@ -26,9 +31,15 @@ import org.spongepowered.asm.mixin.injection.Coerce;
         "net.mcreator.armageddonmod.procedures.NyxarisTheVeilOfOblivionTreasureBagRightclickedOnBlockProcedure",
         "net.mcreator.armageddonmod.procedures.ArionTreasurebagRightclickedOnBlockProcedure",
 
-        // Some bags use a different execute signature
+        // Other on-block treasure bags present in Armageddon context
+        "net.mcreator.armageddonmod.procedures.EnderDragonTreasurebagRightclickedOnBlockProcedure",
+        "net.mcreator.armageddonmod.procedures.TheBringerOfDoomTreasureBagRightclickedOnBlockProcedure",
+        "net.mcreator.armageddonmod.procedures.TheCalamitiesTreasureBagRightclickedOnBlockProcedure",
+        "net.mcreator.armageddonmod.procedures.ZoranthNewbornOfTheZenithTreasureBagRightclickedOnBlockProcedure",
+
+        // Some bags use a different execute signature (still fine with require=0)
         "net.mcreator.armageddonmod.procedures.ElderGuardianTreasurebagRightclickedOnBlockProcedure"
-})
+}, remap = false)
 public class ArmageddonTreasureBagProceduresMixin {
 
     private static final ThreadLocal<Object> ECHELON_BAG_USER = new ThreadLocal<>();
