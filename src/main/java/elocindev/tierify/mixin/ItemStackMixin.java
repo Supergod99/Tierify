@@ -38,20 +38,30 @@ public abstract class ItemStackMixin {
     private static void applyDurable(NbtCompound tag, CallbackInfoReturnable<Integer> cir) {
         int base = cir.getReturnValue();
         if (base <= 0) return; // never make non-damageable items damageable
+    
         // Flat durability add (int), allow both + and -
         if (tag.contains("durable", 3 /* INT */)) {
             int delta = tag.getInt("durable");
+            if (tag.contains("durable_set_bonus", 3 /* INT */)) {
+                delta += tag.getInt("durable_set_bonus");
+            }
             if (delta != 0) {
                 cir.setReturnValue(Math.max(1, base + delta));
             }
             return;
         }
+    
         // Multiplier (float/double), allow both + and -
         if (tag.contains("durable")) {
-            float mult = tag.getFloat("durable"); // works for float/double numeric tags
-            if (!Float.isFinite(mult) || mult == 0.0F) return;
+            float mult = tag.getFloat("durable");
+            float sb   = tag.contains("durable_set_bonus") ? tag.getFloat("durable_set_bonus") : 0.0F;
+    
+            float effective = mult + sb;
+    
+            if (!Float.isFinite(effective) || effective == 0.0F) return;
+    
             // Keep the old truncation behavior you previously had (important for parity)
-            int delta = (int) (mult * base);
+            int delta = (int) (effective * base);
             if (delta != 0) {
                 cir.setReturnValue(Math.max(1, base + delta));
             }
