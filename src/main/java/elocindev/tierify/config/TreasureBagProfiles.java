@@ -105,8 +105,6 @@ public final class TreasureBagProfiles {
                 "# Wildcards:\n" +
                 "#   *=chance|weights\n" +
                 "#   modid:*=chance|weights\n\n" +
-                "armageddon_mod:iron_colossus_treasure_bag=0.35|end\n" +
-                "armageddon_mod:arion_treasurebag=0.50|0,0,8,10,6,2\n" +
                 "armageddon_mod:iron_colossus_treasure_bag=1.0|5,1,0,0,0,0\n" +
                 "armageddon_mod:arion_treasurebag=1.0|5,1,0,0,0,0\n" +
                 "armageddon_mod:eldorath_treasure_bag=1.0|5,1,0,0,0,0\n" +
