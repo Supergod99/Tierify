@@ -48,25 +48,55 @@ public abstract class ItemStackClientMixin {
     @Shadow @Final public static DecimalFormat MODIFIER_FORMAT;
 
     private double getSetBonusFactor() {
-        if (!Tierify.CONFIG.enableArmorSetBonuses) return 1.0D;
-        PlayerEntity player = MinecraftClient.getInstance().player;
-        if (player == null) return 1.0D;
+        if (!Tierify.CONFIG.enableArmorSetBonuses) return 0.0D;
+    
+        var client = MinecraftClient.getInstance();
+        var player = client.player;
+        if (player == null) return 0.0D;
     
         ItemStack self = (ItemStack) (Object) this;
     
         if (!SetBonusUtils.hasSetBonus(player, self)) {
-            return 1.0D;
+            return 0.0D;
         }
     
-        boolean perfect = SetBonusUtils.hasPerfectSetBonus(player, self);
-        double pct = perfect
+        double pct = SetBonusUtils.hasPerfectSetBonus(player, self)
                 ? Tierify.CONFIG.armorSetPerfectBonusPercent
                 : Tierify.CONFIG.armorSetBonusMultiplier;
     
-        if (pct < 0.0D) pct = 0.0D;
-    
-        return 1.0D + pct;
+        if (pct <= 0.0D) return 0.0D;
+        return pct; // IMPORTANT: this is "bonus percent" (e.g., 0.20), not 1.20
     }
+
+    private static java.util.Set<java.util.UUID> computeTierifyModifierIds(ItemStack stack) {
+        java.util.Set<java.util.UUID> out = new java.util.HashSet<>();
+    
+        // Create a copy with Tierify/Tiered NBT removed, then diff attribute modifiers.
+        ItemStack stripped = stack.copy();
+        stripped.removeSubNbt(Tierify.NBT_SUBTAG_KEY);
+    
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            var full = stack.getAttributeModifiers(slot);
+            if (full == null || full.isEmpty()) continue;
+    
+            var base = stripped.getAttributeModifiers(slot);
+            java.util.Set<java.util.UUID> baseIds = new java.util.HashSet<>();
+            if (base != null && !base.isEmpty()) {
+                for (EntityAttributeModifier m : base.values()) {
+                    baseIds.add(m.getId());
+                }
+            }
+    
+            for (EntityAttributeModifier m : full.values()) {
+                if (!baseIds.contains(m.getId())) {
+                    out.add(m.getId());
+                }
+            }
+        }
+    
+        return out;
+    }
+
 
     private EquipmentSlot inferDefaultSlotFromItem(ItemStack stack) {
         Item item = stack.getItem();
@@ -212,7 +242,11 @@ public abstract class ItemStackClientMixin {
 
     private void applyAttributeLogic(List<Text> tooltip) {
         double setBonusFactor = getSetBonusFactor();
-        boolean hasSetBonus = setBonusFactor > 1.000001D;
+        boolean hasSetBonus = setBonusFactor > 0.000001D;
+        // Identify which attribute modifiers originate from our Tierify/Tiered NBT.
+        // This prevents set bonus math and gold styling from touching vanilla or other-mod attribute modifiers.
+        final java.util.Set<java.util.UUID> tierifyModifierIds = computeTierifyModifierIds((ItemStack) (Object) this);
+
     
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             Multimap<EntityAttribute, EntityAttributeModifier> modifiers = this.getAttributeModifiers(slot);
@@ -233,7 +267,7 @@ public abstract class ItemStackClientMixin {
     
                 for (EntityAttributeModifier mod : mods) {
                     double value = mod.getValue();
-                    boolean isTiered = mod.getName().contains("tiered:");
+                    boolean isTiered = tierifyModifierIds.contains(mod.getId());
                     if (isTiered) hasTiered = true;
     
                     totalBase += value;
