@@ -31,7 +31,7 @@ public class CommonConfig {
     
     @Comment("If true, entity loot-table drops can receive modifiers based on a whitelist profile file.")
     @Comment("This affects loot generated from an entity's loot table (e.g., bosses), not only worn equipment.")
-    public boolean entityLootDropModifier = true;
+    public boolean entityLootDropModifier = false;
     
     @Comment("Whitelist profile file (in the config folder) for entity loot-table drop reforging.")
     @Comment("Format per line: 'modid:entity=0.50|0,0,5,10,5,2' or 'modid:entity=0.50|overworld' (presets: overworld|nether|end|global).")
