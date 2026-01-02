@@ -116,25 +116,23 @@ public class ObscureApiAttributeIconMathMixin {
 
     @Unique
     private static VanillaSums tierify$sumModifiers(Collection<?> modifiers) {
-        double add = 0.0;
-        double multBase = 0.0;
-        double multTotal = 1.0;
-
+        VanillaSums sums = new VanillaSums();
+    
         for (Object o : modifiers) {
             if (o == null) continue;
-
+    
             double amount = tierify$readModifierAmount(o);
             int op = tierify$readModifierOperationOrdinal(o);
-
+    
             switch (op) {
-                case 0 -> add += amount;                 // ADDITION
-                case 1 -> multBase += amount;            // MULTIPLY_BASE
-                case 2 -> multTotal *= (1.0 + amount);   // MULTIPLY_TOTAL
+                case 0 -> sums.add += amount;                 // ADDITION
+                case 1 -> sums.multBase += amount;            // MULTIPLY_BASE
+                case 2 -> sums.multTotal *= (1.0 + amount);   // MULTIPLY_TOTAL
                 default -> { /* ignore unknown */ }
             }
         }
-
-        return new VanillaSums(add, multBase, multTotal);
+    
+        return sums;
     }
 
     @Unique
@@ -266,11 +264,15 @@ public class ObscureApiAttributeIconMathMixin {
     }
 
     @Unique
-    private record VanillaSums(double add, double multBase, double multTotal) {
-        VanillaSums(double add, double multBase, double multTotal) {
-            this.add = add;
-            this.multBase = multBase;
-            this.multTotal = multTotal;
+    private static final class VanillaSums {
+        double add;
+        double multBase;
+        double multTotal;
+    
+        VanillaSums() {
+            this.add = 0.0;
+            this.multBase = 0.0;
+            this.multTotal = 1.0; // multiplicative identity
         }
     }
 
