@@ -10,6 +10,10 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.registry.Registries;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.nbt.NbtCompound;
@@ -25,10 +29,14 @@ import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Environment(EnvType.CLIENT)
 @Mixin(targets = "com.obscuria.obscureapi.client.TooltipBuilder$AttributeIcons", remap = false)
 public class ObscureApiAttributeIconMathMixin {
+
+    @Unique private static final UUID TIERIFY$SET_BONUS_ID =
+        UUID.fromString("98765432-1234-1234-1234-987654321012"); // matches SetBonusLogic :contentReference[oaicite:2]{index=2}
 
     @Unique private static final ThreadLocal<ItemStack> TIERIFY$CURRENT_STACK = new ThreadLocal<>();
 
@@ -206,7 +214,6 @@ public class ObscureApiAttributeIconMathMixin {
      */
     @Unique
     private static double[] tierify$computeSetBonusDelta(String icon, boolean isPercent) {
-        // Fast rejects
         if (!Tierify.CONFIG.enableArmorSetBonuses) return null;
     
         ItemStack hovered = TIERIFY$CURRENT_STACK.get();
@@ -217,65 +224,73 @@ public class ObscureApiAttributeIconMathMixin {
         PlayerEntity player = mc.player;
         if (player == null) return null;
     
-        // Determine hovered tier id from NBT (works even if Obscure passed a copy)
-        String targetTier = tierify$getTierId(hovered);
-        if (targetTier.isEmpty()) return null;
+        // Tier id from NBT: "Tiered" -> "Tier" :contentReference[oaicite:3]{index=3}
+        String hoveredTier = tierify$getTierId(hovered);
+        if (hoveredTier.isEmpty()) return null;
     
-        // Only apply when THIS tooltip corresponds to the currently equipped piece in the same slot (by tier id)
+        // Require that the equipped item in THIS slot is the same tier.
+        // (Prevents showing set-bonus deltas for unrelated armor pieces.)
         ItemStack equippedSameSlot = player.getEquippedStack(armor.getSlotType());
         if (equippedSameSlot == null || equippedSameSlot.isEmpty()) return null;
-        if (!targetTier.equals(tierify$getTierId(equippedSameSlot))) return null;
+        String equippedTier = tierify$getTierId(equippedSameSlot);
+        if (!hoveredTier.equals(equippedTier)) return null;
     
-        // Must have a full matching set equipped (again: by tier id, not object identity)
-        boolean fullSet = tierify$hasFullTierSetEquipped(player, targetTier);
-        if (!fullSet) return null;
-    
-        boolean perfectSet = tierify$hasPerfectFullTierSetEquipped(player, targetTier);
+        // Must be a full set of this tier (by tier id, not object identity)
+        if (!tierify$hasFullTierSetEquipped(player, hoveredTier)) return null;
     
         tierify$ensureIconsResolved();
     
+        // Determine which attribute this icon represents (robust match: strip formatting)
         String attributeId;
-        if (TIERIFY$ICON_ARMOR != null && TIERIFY$ICON_ARMOR.equals(icon)) {
+        if (tierify$iconMatch(icon, TIERIFY$ICON_ARMOR)) {
             attributeId = "minecraft:generic.armor";
-        } else if (TIERIFY$ICON_TOUGHNESS != null && TIERIFY$ICON_TOUGHNESS.equals(icon)) {
+        } else if (tierify$iconMatch(icon, TIERIFY$ICON_TOUGHNESS)) {
             attributeId = "minecraft:generic.armor_toughness";
-        } else if (TIERIFY$ICON_KNOCKBACK != null && TIERIFY$ICON_KNOCKBACK.equals(icon)) {
+        } else if (tierify$iconMatch(icon, TIERIFY$ICON_KNOCKBACK)) {
             attributeId = "minecraft:generic.knockback_resistance";
         } else {
-            return null; // not one of the summary-line attributes we correct
+            return null;
         }
     
-        double pct = perfectSet
-                ? Tierify.CONFIG.armorSetPerfectBonusPercent
-                : Tierify.CONFIG.armorSetBonusMultiplier;
+        EntityAttribute attr = Registries.ATTRIBUTE.get(new Identifier(attributeId));
+        if (attr == null) return null;
     
-        if (pct <= 0.0) return null;
+        EntityAttributeInstance inst = player.getAttributeInstance(attr);
+        if (inst == null) return null;
     
-        Identifier tierId = ModifierUtils.getAttributeID(hovered);
-        if (tierId == null) return null;
+        // This is the *actual* set bonus modifier applied by SetBonusLogic (server),
+        // synced to the client when active. :contentReference[oaicite:4]{index=4}
+        EntityAttributeModifier bonus = inst.getModifier(TIERIFY$SET_BONUS_ID);
+        if (bonus == null) return null;
     
-        PotentialAttribute pa = Tierify.ATTRIBUTE_DATA_LOADER.getItemAttributes().get(tierId);
-        if (pa == null) return null;
+        double totalAmount = bonus.getValue();
+        if (totalAmount <= 0.0) return null;
+    
+        // SetBonusLogic multiplies by 4.0 when applying to the player. :contentReference[oaicite:5]{index=5}
+        // We want the per-piece contribution for a single armor tooltip icon.
+        EntityAttributeModifier.Operation op = bonus.getOperation();
     
         double add = 0.0;
         double multBase = 0.0;
         double multTotalFactor = 1.0;
     
-        for (AttributeTemplate t : pa.getAttributes()) {
-            if (!attributeId.equals(t.getAttributeTypeID())) continue;
+        switch (op) {
+            case ADDITION -> {
+                double perPiece = totalAmount / 4.0;
+                add += perPiece;
+            }
+            case MULTIPLY_BASE -> {
+                double perPiece = totalAmount / 4.0;
+                multBase += perPiece;
+            }
+            case MULTIPLY_TOTAL -> {
+                // Preserve exact total effect: (perPieceFactor)^4 == (1 + totalAmount)
+                // perPieceFactor = (1 + totalAmount)^(1/4)
+                double totalFactor = 1.0 + totalAmount;
+                if (totalFactor <= 0.0) return null;
     
-            EntityAttributeModifier m = t.getEntityAttributeModifier();
-            double baseValue = m.getValue();
-    
-            // Only boost positive stats
-            if (!(baseValue > 0.0)) continue;
-    
-            double extra = baseValue * pct;
-    
-            switch (m.getOperation()) {
-                case ADDITION -> add += extra;
-                case MULTIPLY_BASE -> multBase += extra;
-                case MULTIPLY_TOTAL -> multTotalFactor *= (1.0 + extra);
+                double perPieceFactor = Math.pow(totalFactor, 0.25);
+                multTotalFactor *= perPieceFactor;
             }
         }
     
@@ -285,7 +300,34 @@ public class ObscureApiAttributeIconMathMixin {
             return null;
         }
     
-        return new double[] { add, multBase, multTotalFactor };
+        return new double[]{add, multBase, multTotalFactor};
+    }
+    
+    // Add these helpers (or equivalent) to make icon matching resilient:
+    @Unique
+    private static boolean tierify$iconMatch(String a, String b) {
+        if (a == null || b == null) return false;
+        if (a.equals(b)) return true;
+    
+        String sa = tierify$stripFormatting(a);
+        String sb = tierify$stripFormatting(b);
+    
+        return sa.equals(sb) || sa.contains(sb) || sb.contains(sa);
+    }
+    
+    @Unique
+    private static String tierify$stripFormatting(String s) {
+        if (s == null || s.isEmpty()) return "";
+        StringBuilder out = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '§' && i + 1 < s.length()) {
+                i++; // skip format code
+                continue;
+            }
+            out.append(c);
+        }
+        return out.toString();
     }
     
     @Unique
