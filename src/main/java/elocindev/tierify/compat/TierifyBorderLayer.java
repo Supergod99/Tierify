@@ -1,9 +1,9 @@
 package elocindev.tierify.compat;
 
-import dev.xylonity.tooltipoverhaul.client.layer.ITooltipLayer;
+import dev.xylonity.tooltipoverhaul.client.frame.CustomFrameData;
 import dev.xylonity.tooltipoverhaul.client.layer.LayerDepth;
+import dev.xylonity.tooltipoverhaul.client.layer.ITooltipLayer;
 import dev.xylonity.tooltipoverhaul.client.render.TooltipContext;
-import dev.xylonity.tooltipoverhaul.client.util.PositionUtils;
 import draylar.tiered.api.BorderTemplate;
 import elocindev.tierify.Tierify;
 import elocindev.tierify.TierifyClient;
@@ -28,7 +28,8 @@ public class TierifyBorderLayer implements ITooltipLayer {
 
     @Override
     public LayerDepth getLayerDepth() {
-        // TooltipOverhaul 1.4 uses explicit depths; our border should behave like an overlay layer.
+        // Closest equivalent to your previous "BACKGROUND_OVERLAY" intent.
+        // This is where TooltipOverhaul draws overlays like the default frame overlay.
         return LayerDepth.OVERLAY;
     }
 
@@ -37,10 +38,11 @@ public class TierifyBorderLayer implements ITooltipLayer {
         if (!Tierify.CLIENT_CONFIG.tieredTooltip) return;
 
         ItemStack stack = ctx.getStack();
-        if (stack == null || stack.isEmpty()) return;
+        CustomFrameData frame = ctx.getFrameData(); // may be null
+        TextRenderer font = ctx.getFont();
+        DrawContext drawContext = ctx.getGraphics();
 
-        // Tiered items use tier id (or tiered:perfect)
-        // Reforge materials use the item registry id
+        // Determine lookup key (tiered id / tiered:perfect / reforge material id)
         String lookupKey;
         boolean isPerfect = false;
 
@@ -55,6 +57,7 @@ public class TierifyBorderLayer implements ITooltipLayer {
             return;
         }
 
+        // Find matching border template
         BorderTemplate match = null;
         if (TierifyClient.BORDER_TEMPLATES != null) {
             for (BorderTemplate template : TierifyClient.BORDER_TEMPLATES) {
@@ -66,10 +69,7 @@ public class TierifyBorderLayer implements ITooltipLayer {
         }
         if (match == null) return;
 
-        final boolean isPerfectFinal = isPerfect;
-        final BorderTemplate finalMatch = match;
-
-        // Geometry from TooltipOverhaul 1.4 context
+        // Tooltip geometry (TooltipOverhaul computes size/pos in TooltipContext)
         Vec2f size = ctx.getTooltipSize();
         final int x = (int) pos.x;
         final int y = (int) pos.y;
@@ -82,16 +82,15 @@ public class TierifyBorderLayer implements ITooltipLayer {
         int rawIndex = match.getIndex();
         final int secondHalf = rawIndex > 7 ? 1 : 0;
         final int index = rawIndex > 7 ? rawIndex - 8 : rawIndex;
-
         final Identifier texture = match.getIdentifier();
 
+        // Draw inside a pushed context so z ordering stays correct
         ctx.push(() -> {
-            // Draw at OVERLAY depth (TooltipOverhaul 1.4)
-            ctx.translate(0.0f, 0.0f, (float) LayerDepth.OVERLAY.getZ());
+            // We are already translated to OVERLAY depth by ITooltipLayer.renderInternal(...)
+            // (TooltipOverhaul calls renderInternal which does the translate to depth)
+            // Draw Sequence: gradient lines -> corner textures -> perfect overlay -> labels
 
-            DrawContext drawContext = ctx.getGraphics();
-
-            // --- A. Draw Gradient Lines ---
+            // A) Gradient outline (same geometry you used before)
             int i = x - 3;
             int j = y - 3;
             int k = width + 6;
@@ -106,78 +105,84 @@ public class TierifyBorderLayer implements ITooltipLayer {
             // Horizontal Bottom
             drawContext.fillGradient(i, j + l - 1, i + k, j + l, 0, endColor, endColor);
 
-            // --- B. Draw Texture Corners ---
-            ctx.translate(0.0f, 0.0f, 1.0f);
-
-            int texW = 128;
-            int texH = 128;
-
-            // Top Left
-            drawContext.drawTexture(texture, x - 6, y - 6, 0 + secondHalf * 64, 0 + index * 16, 8, 8, texW, texH);
-            // Top Right
-            drawContext.drawTexture(texture, x + width - 2, y - 6, 56 + secondHalf * 64, 0 + index * 16, 8, 8, texW, texH);
-            // Bottom Left
-            drawContext.drawTexture(texture, x - 6, y + height - 2, 0 + secondHalf * 64, 8 + index * 16, 8, 8, texW, texH);
-            // Bottom Right
-            drawContext.drawTexture(texture, x + width - 2, y + height - 2, 56 + secondHalf * 64, 8 + index * 16, 8, 8, texW, texH);
-
-            // Header Plate
-            if (width >= 48) {
-                drawContext.drawTexture(texture, x + (width / 2) - 24, y - 9, 8 + secondHalf * 64, 0 + index * 16, 48, 8, texW, texH);
-            }
-            // Footer Plate
-            if (width >= 48) {
-                drawContext.drawTexture(texture, x + (width / 2) - 24, y + height + 1, 8 + secondHalf * 64, 8 + index * 16, 48, 8, texW, texH);
-            }
-
-            // --- C. Animated Perfect Overlay (Glow) ---
+            // B) Texture corners / plates
             ctx.push(() -> {
                 ctx.translate(0.0f, 0.0f, 1.0f);
-                PerfectBorderRenderer.renderPerfectBorderOverlay(drawContext, finalMatch, x, y, width, height);
+
+                int texW = 128;
+                int texH = 128;
+
+                // Top Left
+                drawContext.drawTexture(texture, x - 6, y - 6,
+                        0 + secondHalf * 64, 0 + index * 16, 8, 8, texW, texH);
+                // Top Right
+                drawContext.drawTexture(texture, x + width - 2, y - 6,
+                        56 + secondHalf * 64, 0 + index * 16, 8, 8, texW, texH);
+                // Bottom Left
+                drawContext.drawTexture(texture, x - 6, y + height - 2,
+                        0 + secondHalf * 64, 8 + index * 16, 8, 8, texW, texH);
+                // Bottom Right
+                drawContext.drawTexture(texture, x + width - 2, y + height - 2,
+                        56 + secondHalf * 64, 8 + index * 16, 8, 8, texW, texH);
+
+                // Header Plate / Footer Plate
+                if (width >= 48) {
+                    drawContext.drawTexture(texture, x + (width / 2) - 24, y - 9,
+                            8 + secondHalf * 64, 0 + index * 16, 48, 8, texW, texH);
+                    drawContext.drawTexture(texture, x + (width / 2) - 24, y + height + 1,
+                            8 + secondHalf * 64, 8 + index * 16, 48, 8, texW, texH);
+                }
             });
 
-            // Set bonus label (above title area)
-            renderSetBonusActiveLabel(ctx, x, y, width);
+            // C) Animated Perfect Overlay
+            ctx.push(() -> {
+                ctx.translate(0.0f, 0.0f, 2.0f);
+                PerfectBorderRenderer.renderPerfectBorderOverlay(drawContext, match, x, y, width, height);
+            });
 
-            // --- D. Draw "Perfect" Text ---
-            if (isPerfectFinal) {
-                renderPerfectLabel(ctx, x, y, width);
+            // D) Set bonus label
+            renderSetBonusActiveLabel(ctx, font, x, y, width, frame);
+
+            // E) Perfect label
+            if (isPerfect) {
+                renderPerfectLabel(ctx, font, x, y, width);
             }
         });
     }
 
-    private void renderSetBonusActiveLabel(TooltipContext ctx, int bgX, int bgY, int bgWidth) {
-        MinecraftClient client = MinecraftClient.getInstance();
+    private void renderSetBonusActiveLabel(TooltipContext ctx, TextRenderer font, int bgX, int bgY, int bgWidth, CustomFrameData frame) {
+        var client = MinecraftClient.getInstance();
         if (client.player == null) return;
 
-        ItemStack stack = ctx.getStack();
-        if (stack == null || stack.isEmpty()) return;
-
-        MutableText label = SetBonusUtils.getSetBonusActiveLabel(client.player, stack);
+        MutableText label = SetBonusUtils.getSetBonusActiveLabel(client.player, ctx.getStack());
         if (label == null) return;
 
-        TextRenderer font = ctx.getTextRenderer();
-
         float scale = 0.65f;
+
         int textWidth = font.getWidth(label);
         float scaledWidth = textWidth * scale;
 
+        ItemStack stack = ctx.getStack();
         Text title = stack.getName();
         int titleWidth = font.getWidth(title);
 
-        // Use TooltipOverhaul’s computed padding + icon presence
-        float paddingX = (float) ctx.getPaddingX();
-        float paddingY = (float) ctx.getPaddingY();
+        // Use TooltipOverhaul’s computed padding so this stays aligned with 1.4’s layout fixes
+        final float padding = ctx.getPaddingX();
 
-        // Icon gutter is effectively 16px icon + 4px pad in TooltipOverhaul’s default layout.
-        float iconGutter = ctx.hasIcon() ? 20.0f : 0.0f;
+        // TooltipOverhaul already knows if an icon is present (and accounts for disableIcon config/frame)
+        final float iconGutter = ctx.hasIcon() ? 20.0f : 0.0f;
 
-        float contentLeft = bgX + paddingX + iconGutter;
-        float contentRight = bgX + bgWidth - paddingX;
+        float contentLeft = bgX + padding + iconGutter;
+        float contentRight = bgX + bgWidth - padding;
         float contentWidth = Math.max(0.0f, contentRight - contentLeft);
 
-        // Match TooltipOverhaul alignment decisions
-        String alignment = PositionUtils.getTitleTextAlignment(ctx);
+        String alignment = "left";
+        if (frame != null) {
+            try {
+                alignment = frame.titleAlignment().orElse("left");
+            } catch (Throwable ignored) { }
+        }
+
         float titleStartX;
         if ("middle".equalsIgnoreCase(alignment) || "center".equalsIgnoreCase(alignment)) {
             titleStartX = contentLeft + (contentWidth - titleWidth) / 2.0f;
@@ -190,20 +195,20 @@ public class TierifyBorderLayer implements ITooltipLayer {
         float titleCenterX = titleStartX + (titleWidth / 2.0f);
         float xPos = titleCenterX - (scaledWidth / 2.0f);
 
-        // Clamp within the title content region
+        // Clamp: never enter icon gutter; never exceed tooltip bounds
         float minX = contentLeft;
-        float maxX = bgX + bgWidth - scaledWidth - paddingX;
+        float maxX = bgX + bgWidth - scaledWidth - padding;
         xPos = Math.max(minX, Math.min(maxX, xPos));
 
-        float baseHeight = 9.0f;
+        float baseHeight = 9f;
         float scaledHeight = baseHeight * scale;
 
-        // Place within the top padding band
-        float gapTop = bgY - 3.0f;
-        float gapBottom = bgY + paddingY;
+        float topPadding = ctx.getPaddingY();
+        float gapTop = bgY - 3f;
+        float gapBottom = bgY + topPadding;
 
-        float yPos = gapTop + ((gapBottom - gapTop) - scaledHeight) / 2.0f;
-        float yOffset = (baseHeight - scaledHeight) / 2.0f;
+        float yPos = gapTop + ((gapBottom - gapTop) - scaledHeight) / 2f;
+        float yOffset = (baseHeight - scaledHeight) / 2f;
         yPos += yOffset;
         yPos += SET_BONUS_LABEL_NUDGE_Y;
 
@@ -211,26 +216,24 @@ public class TierifyBorderLayer implements ITooltipLayer {
         final float yPosFinal = yPos;
 
         ctx.push(() -> {
-            ctx.translate(xPosFinal, yPosFinal, (float) LayerDepth.OVERLAY.getZ() + 10.0f);
+            ctx.translate(xPosFinal, yPosFinal, 10.0f);
             ctx.scale(scale, scale, 1.0f);
             ctx.getGraphics().drawText(font, label, 0, 0, 0xFFFFFF, true);
         });
     }
 
-    private void renderPerfectLabel(TooltipContext ctx, int bgX, int bgY, int bgWidth) {
-        TextRenderer font = ctx.getTextRenderer();
-
+    private void renderPerfectLabel(TooltipContext ctx, TextRenderer font, int bgX, int bgY, int bgWidth) {
         MutableText label = PerfectLabelAnimator.getPerfectLabel();
         float scale = 0.65f;
         int textWidth = font.getWidth(label);
 
         float centeredX = bgX + (bgWidth / 2.0f) - ((textWidth * scale) / 2.0f);
 
-        // Preserve your established placement (between title and divider region)
+        // Keep your established placement
         float fixedY = bgY + 22.0f;
 
         ctx.push(() -> {
-            ctx.translate(centeredX, fixedY, (float) LayerDepth.OVERLAY.getZ() + 10.0f);
+            ctx.translate(centeredX, fixedY, 10.0f);
             ctx.scale(scale, scale, 1.0f);
             ctx.getGraphics().drawText(font, label, 0, 0, 0xFFFFFF, true);
         });
