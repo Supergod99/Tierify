@@ -69,6 +69,8 @@ public class TierifyBorderLayer implements ITooltipLayer {
         }
         if (match == null) return;
 
+        final BorderTemplate finalMatch = match;
+        final boolean isPerfectFinal = isPerfect;
         // Tooltip geometry (TooltipOverhaul computes size/pos in TooltipContext)
         Vec2f size = ctx.getTooltipSize();
         final int x = (int) pos.x;
