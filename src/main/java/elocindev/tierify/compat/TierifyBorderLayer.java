@@ -139,14 +139,14 @@ public class TierifyBorderLayer implements ITooltipLayer {
             // C) Animated Perfect Overlay
             ctx.push(() -> {
                 ctx.translate(0.0f, 0.0f, 2.0f);
-                PerfectBorderRenderer.renderPerfectBorderOverlay(drawContext, match, x, y, width, height);
+                PerfectBorderRenderer.renderPerfectBorderOverlay(drawContext, finalMatch, x, y, width, height);
             });
 
             // D) Set bonus label
             renderSetBonusActiveLabel(ctx, font, x, y, width, frame);
 
             // E) Perfect label
-            if (isPerfect) {
+            if (isPerfectFinal) {
                 renderPerfectLabel(ctx, font, x, y, width);
             }
         });
