@@ -33,37 +33,38 @@ import elocindev.tierify.screen.client.widget.AnvilTab;
 import elocindev.tierify.screen.client.widget.ReforgeTab;
 import elocindev.tierify.screen.client.PerfectLabelAnimator;
 import elocindev.tierify.screen.client.TierGradientAnimator;
-import elocindev.tierify.mixin.compat.TooltipRendererAccessor;
-import elocindev.tierify.compat.TierifyBorderLayer;
 
 @Environment(EnvType.CLIENT)
 public class TierifyClient implements ClientModInitializer {
-    
+
     // map for storing attributes before logging into a server
     public static final Map<Identifier, PotentialAttribute> CACHED_ATTRIBUTES = new HashMap<>();
 
-    public static final List<BorderTemplate> BORDER_TEMPLATES = new ArrayList<BorderTemplate>();
-
+    public static final List<BorderTemplate> BORDER_TEMPLATES = new ArrayList<>();
 
     // Used to pass the ItemStack from DrawContext/HandledScreen to the low-level renderTooltip method
     public static ItemStack CURRENT_TOOLTIP_STACK = ItemStack.EMPTY;
 
     private static final Identifier ANVIL_TAB_ICON = new Identifier("tiered:textures/gui/anvil_tab_icon.png");
     private static final Identifier REFORGE_TAB_ICON = new Identifier("tiered:textures/gui/reforge_tab_icon.png");
-    
+
     @Override
     public void onInitializeClient() {
-        
+
         // register perfect animation label
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             PerfectLabelAnimator.clientTick();
             TierGradientAnimator.clientTick();
         });
-        
+
+        // TooltipOverhaul 1.4.x:
+        // No explicit runtime layer injection is needed anymore.
+        // Tierify integrates via mixins (StyleFactory#create appends TierifyBorderLayer,
+        // and CustomFrameManager#of supplies CustomFrameData for Tierify items).
         if (FabricLoader.getInstance().isModLoaded("tooltipoverhaul")) {
-             elocindev.tierify.compat.TooltipOverhaulCompat.init();
+            System.out.println("[Tierify] TooltipOverhaul detected. Using 1.4+ mixin integration.");
         } else {
-             System.out.println("[Tierify] Tooltip Overhaul not found, skipping border layer injection.");
+            System.out.println("[Tierify] TooltipOverhaul not found, skipping TooltipOverhaul integration.");
         }
 
         registerAttributeSyncHandler();
@@ -93,12 +94,12 @@ public class TierifyClient implements ClientModInitializer {
 
     public static void registerReforgeItemSyncHandler() {
         ClientPlayNetworking.registerGlobalReceiver(Tierify.REFORGE_ITEM_SYNC_PACKET, (client, play, packet, packetSender) -> {
-            List<Identifier> identifiers = new ArrayList<Identifier>();
-            List<List<Integer>> list = new ArrayList<List<Integer>>();
+            List<Identifier> identifiers = new ArrayList<>();
+            List<List<Integer>> list = new ArrayList<>();
             while (packet.isReadable()) {
                 int count = packet.readInt();
                 identifiers.add(packet.readIdentifier());
-                List<Integer> idList = new ArrayList<Integer>();
+                List<Integer> idList = new ArrayList<>();
                 for (int i = 0; i < count; i++) {
                     idList.add(packet.readInt());
                 }
@@ -107,7 +108,7 @@ public class TierifyClient implements ClientModInitializer {
             client.execute(() -> {
                 Tierify.REFORGE_DATA_LOADER.clearReforgeBaseItems();
                 for (int i = 0; i < identifiers.size(); i++) {
-                    List<Item> items = new ArrayList<Item>();
+                    List<Item> items = new ArrayList<>();
                     for (int u = 0; u < list.get(i).size(); u++) {
                         items.add(Registries.ITEM.get(list.get(i).get(u)));
                     }
