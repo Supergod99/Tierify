@@ -1,28 +1,31 @@
 package elocindev.tierify.mixin.compat;
 
-import dev.xylonity.tooltipoverhaul.client.frame.CustomFrameData;
 import dev.xylonity.tooltipoverhaul.client.layer.ITooltipLayer;
-import dev.xylonity.tooltipoverhaul.client.style.StyleFactory;
 import dev.xylonity.tooltipoverhaul.client.render.TooltipContext;
+import dev.xylonity.tooltipoverhaul.client.style.StyleFactory;
+import elocindev.tierify.Tierify;
 import elocindev.tierify.compat.TierifyBorderLayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(value = StyleFactory.class, remap = false)
 public class TooltipOverhaulStyleFactoryMixin {
 
-    @Inject(method = "create", at = @At("RETURN"))
-    private void tierify$addTierifyBorderLayer(TooltipContext context, CustomFrameData data,
-                                              CallbackInfoReturnable<List<ITooltipLayer>> cir) {
-        List<ITooltipLayer> layers = cir.getReturnValue();
-        if (layers == null) return;
+    @Inject(method = "create", at = @At("RETURN"), cancellable = true)
+    private void tierify$addTierifyBorderLayer(TooltipContext context, Object data, CallbackInfoReturnable<List<ITooltipLayer>> cir) {
+        if (!Tierify.CLIENT_CONFIG.tieredTooltip) return;
 
-        // Our layer self-guards (returns immediately if stack is not Tierify/Material/etc),
-        // so it is safe to always append it here.
+        List<ITooltipLayer> original = cir.getReturnValue();
+        if (original == null) return;
+
+        // Copy to avoid mutating TooltipOverhaul's list assumptions.
+        List<ITooltipLayer> layers = new ArrayList<>(original);
         layers.add(new TierifyBorderLayer());
+        cir.setReturnValue(layers);
     }
 }
