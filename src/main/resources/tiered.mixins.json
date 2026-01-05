@@ -36,7 +36,7 @@
     "compat.ModAnvilScreenMixin",
     "compat.TooltipOverhaulFrameMixin",
     "compat.TooltipOverhaulRenderMixin",
-    "compat.TooltipRendererAccessor",
+    "compat.TooltipOverhaulStyleFactoryMixin",
     "compat.ObscureApiAttackSpeedIconMixin",
     "compat.ObscureApiAttributeIconMathMixin",
     "compat.ObscureApiIconsMixin"
