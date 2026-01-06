@@ -5,14 +5,20 @@ import dev.xylonity.tooltipoverhaul.client.layer.ITooltipLayer;
 import dev.xylonity.tooltipoverhaul.client.layer.impl.InnerOverlayLayer;
 import dev.xylonity.tooltipoverhaul.client.render.TooltipContext;
 import dev.xylonity.tooltipoverhaul.client.style.StyleFactory;
+import dev.xylonity.tooltipoverhaul.client.style.effect.StarsEffect;
+
 import draylar.tiered.api.BorderTemplate;
+
 import elocindev.tierify.Tierify;
 import elocindev.tierify.TierifyClient;
 import elocindev.tierify.compat.TierifyBorderLayer;
+import elocindev.tierify.compat.tto.PerfectGoldStarsEffect;
 import elocindev.tierify.item.ReforgeAddition;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -45,10 +51,26 @@ public class TooltipOverhaulStyleFactoryMixin {
         // Removing it restores the pre-update look where Tierify fully owns the border.
         layers.removeIf(layer -> layer instanceof InnerOverlayLayer);
 
+        // Perfect: use Tierify's gold, smaller, more frequent stars ONLY when Tierify is using its DEFAULT effects.
+        // If the user enables override or template-index test mode, keep TooltipOverhaul's built-in stars untouched.
+        if (tierify$isPerfect(context.getStack())
+                && (Tierify.CLIENT_CONFIG.ttoSpecialEffectOverride == null || Tierify.CLIENT_CONFIG.ttoSpecialEffectOverride.isBlank())
+                && !Tierify.CLIENT_CONFIG.ttoSpecialEffectByTemplateIndex) {
+            // Remove TooltipOverhaul's default StarsEffect layer and replace with our gold variant.
+            layers.removeIf(layer -> layer instanceof StarsEffect);
+            layers.add(new PerfectGoldStarsEffect());
+        }
+
         // Add our custom Tierify border renderer.
         layers.add(new TierifyBorderLayer());
 
         cir.setReturnValue(layers);
+    }
+
+    private static boolean tierify$isPerfect(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        NbtCompound tierTag = stack.getSubNbt(Tierify.NBT_SUBTAG_KEY);
+        return tierTag != null && tierTag.getBoolean("Perfect");
     }
 
     private static boolean tierify$matchesTierifyBorder(ItemStack stack) {
