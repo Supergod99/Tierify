@@ -21,6 +21,13 @@ import java.util.Optional;
 @Mixin(value = CustomFrameManager.class, remap = false)
 public class TooltipOverhaulFrameMixin {
 
+    
+    @Unique
+    private static final String[] TIERIFY_TTO_TEST_EFFECTS = new String[] {
+            "magic_orbs", "echo", "speed_lines", "galaxy", "nebula", "spiral", "white_dust",
+            "stars", "metal_shining", "ripples", "sonar", "rim_light", "cinder"
+    };
+
     @Inject(method = "of", at = @At("HEAD"), cancellable = true)
     private static void tierify$injectTieredFrame(ItemStack stack, CallbackInfoReturnable<Optional<CustomFrameData>> cir) {
         if (!Tierify.CLIENT_CONFIG.tieredTooltip) return;
@@ -53,6 +60,22 @@ public class TooltipOverhaulFrameMixin {
         String endHex   = tierify$intToHex(match.getEndGradient());
         String midHex   = tierify$interpolateHex(match.getStartGradient(), match.getEndGradient());
 
+        
+        // Decide TooltipOverhaul specialEffect:
+        // 1) Explicit override (single or multiple effects, comma/semicolon separated)
+        // 2) Test mode: vary by border template index
+        // 3) Default behavior: Perfect uses "stars", others none
+        Optional<String> specialEffect = Optional.empty();
+        String override = Tierify.CLIENT_CONFIG.ttoSpecialEffectOverride;
+        if (override != null && !override.isBlank()) {
+            specialEffect = Optional.of(override);
+        } else if (Tierify.CLIENT_CONFIG.ttoSpecialEffectByTemplateIndex) {
+            int idx = Math.floorMod(match.getIndex(), TIERIFY_TTO_TEST_EFFECTS.length);
+            specialEffect = Optional.of(TIERIFY_TTO_TEST_EFFECTS[idx]);
+        } else if (isPerfect) {
+            specialEffect = Optional.of("stars");
+        }
+        
         // TooltipOverhaul 1.4.0: InnerBorderType/DividerLineType enums are gone.
         // borderType/dividerLineType are Optional<String> now.
         CustomFrameData frameData = new CustomFrameData(
@@ -94,7 +117,7 @@ public class TooltipOverhaulFrameMixin {
                 Optional.of("gradient"),           // dividerLineType
                 Optional.of(startHex),             // dividerLineColor
                 Optional.empty(),                  // particles
-                isPerfect ? Optional.of("stars") : Optional.empty(), // specialEffect (if you want it)
+                specialEffect,                     // specialEffect
 
                 List.of(),                         // vignettes
                 Optional.empty(),                  // iconBackgroundType
