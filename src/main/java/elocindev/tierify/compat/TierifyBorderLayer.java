@@ -34,6 +34,17 @@ public class TierifyBorderLayer implements ITooltipLayer {
     }
 
     @Override
+    public void renderInternal(TooltipContext context) {
+        // Match TooltipOverhaul 1.4's layer behavior: translate to the layer Z and restore pose afterwards.
+        // This prevents subtle ordering issues between primitives (fillGradient) and textured border parts.
+        context.push(() -> {
+            context.translate(0.0F, 0.0F, this.getLayerDepth().getZ());
+            context.setLayerDepth(this.getLayerDepth());
+            this.render(context, context.getTooltipPosition());
+        });
+    }
+
+    @Override
     public void render(TooltipContext ctx, Vec2f pos) {
         if (!Tierify.CLIENT_CONFIG.tieredTooltip) return;
 
@@ -88,8 +99,6 @@ public class TierifyBorderLayer implements ITooltipLayer {
 
         // Draw inside a pushed context so z ordering stays correct
         ctx.push(() -> {
-            // We are already translated to OVERLAY depth by ITooltipLayer.renderInternal(...)
-            // (TooltipOverhaul calls renderInternal which does the translate to depth)
             // Draw Sequence: gradient lines -> corner textures -> perfect overlay -> labels
 
             // A) Gradient outline (same geometry you used before)
@@ -106,6 +115,11 @@ public class TierifyBorderLayer implements ITooltipLayer {
             drawContext.fillGradient(i, j, i + k, j + 1, 0, startColor, startColor);
             // Horizontal Bottom
             drawContext.fillGradient(i, j + l - 1, i + k, j + l, 0, endColor, endColor);
+
+            // TooltipOverhaul 1.4 batches GUI primitives and GUI textured quads into different render layers.
+            // If we don't flush here, the batch order can cause the outline to appear over our corner/plate
+            // textures, visually "cutting" into them.
+            ctx.flush();
 
             // B) Texture corners / plates
             ctx.push(() -> {
