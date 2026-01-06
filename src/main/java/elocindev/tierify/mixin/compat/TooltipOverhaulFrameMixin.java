@@ -54,7 +54,7 @@ public class TooltipOverhaulFrameMixin {
         String midHex   = tierify$interpolateHex(match.getStartGradient(), match.getEndGradient());
 
         // TooltipOverhaul 1.4.0: InnerBorderType/DividerLineType enums are gone.
-        // borderType/dividerLineType are Optional<String> now. :contentReference[oaicite:5]{index=5}
+        // borderType/dividerLineType are Optional<String> now.
         CustomFrameData frameData = new CustomFrameData(
                 List.of(),                         // items
                 List.of(),                         // tags
@@ -72,8 +72,11 @@ public class TooltipOverhaulFrameMixin {
 
                 Optional.empty(),                  // tooltipPositionX
                 Optional.empty(),                  // tooltipPositionY
-                Optional.empty(),                  // mainPanelPaddingX
-                Optional.empty(),                  // mainPanelPaddingY
+                // TooltipOverhaul 1.4 lowered default panel padding, which makes Tierify's framed tooltips feel
+                // noticeably more "squished" than before the update. We pin a slightly larger padding here to
+                // restore the pre-1.4 spacing without requiring users to edit TooltipOverhaul's global config.
+                Optional.of(4),                    // mainPanelPaddingX
+                Optional.of(4),                    // mainPanelPaddingY
                 Optional.empty(),                  // dividerLineTopPadding
                 Optional.empty(),                  // dividerLineBottomPadding
 
@@ -87,7 +90,8 @@ public class TooltipOverhaulFrameMixin {
                 Optional.empty(),                  // secondPanelSizeY
                 Optional.empty(),                  // secondPanelRendererSpeed
 
-                Optional.of("static"),             // dividerLineType (closest to old “NORMAL”)
+                // Pre-update look: solid in the center with a fade on the sides.
+                Optional.of("gradient"),           // dividerLineType
                 Optional.of(startHex),             // dividerLineColor
                 Optional.empty(),                  // particles
                 isPerfect ? Optional.of("stars") : Optional.empty(), // specialEffect (if you want it)
@@ -110,7 +114,7 @@ public class TooltipOverhaulFrameMixin {
 
     @Unique
     private static String tierify$intToHex(int argb) {
-        // TooltipOverhaul 1.4 uses hex strings like "#FFFFFF". :contentReference[oaicite:6]{index=6}
+        // TooltipOverhaul 1.4 uses hex strings like "#FFFFFF".
         return String.format("#%06X", (argb & 0xFFFFFF));
     }
 
