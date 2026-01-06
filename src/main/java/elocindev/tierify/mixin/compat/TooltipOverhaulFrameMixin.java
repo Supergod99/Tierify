@@ -60,6 +60,11 @@ public class TooltipOverhaulFrameMixin {
         String endHex   = tierify$intToHex(match.getEndGradient());
         String midHex   = tierify$interpolateHex(match.getStartGradient(), match.getEndGradient());
 
+        final int templateIndex = match.getIndex();
+        final boolean isLegendary = templateIndex == 4;
+        final boolean isMythic = templateIndex == 5;
+        final boolean isPerfectBorder = templateIndex == 6 || isPerfect;
+        final boolean isHighTier = isLegendary || isMythic || isPerfectBorder;
         
         // Decide TooltipOverhaul specialEffect:
         // 1) Explicit override (single or multiple effects, comma/semicolon separated)
@@ -72,10 +77,26 @@ public class TooltipOverhaulFrameMixin {
         } else if (Tierify.CLIENT_CONFIG.ttoSpecialEffectByTemplateIndex) {
             int idx = Math.floorMod(match.getIndex(), TIERIFY_TTO_TEST_EFFECTS.length);
             specialEffect = Optional.of(TIERIFY_TTO_TEST_EFFECTS[idx]);
-        } else if (isPerfect) {
-            specialEffect = Optional.of("stars");
-        }
-        
+        } else if (isLegendary) {
+            specialEffect = Optional.of("white_dust");
+        } else if (isMythic) {
+            specialEffect = Optional.of("white_dust, spiral");
+        } else if (isPerfectBorder) {
+            // Chained by default for Perfect (stars + subtle dust), but the "stars" layer will be swapped
+            // to Tierify’s gold/compact stars ONLY when no override/test mode is active.
+            specialEffect = Optional.of("stars, white_dust");
+            
+        // High-tier presentation upgrades (Legendary/Mythic/Perfect):
+        // - vignette glow (tier-colored)
+        // - icon background glow
+        // - tooltip shadow enabled
+        List<String> vignettes = isHighTier
+                ? List.of(tierify$vignette("circular", "middle", startHex, 0.62f, 0, 0))
+                : List.of();
+
+        Optional<String> iconBackgroundType = isHighTier ? Optional.of("glow") : Optional.empty();
+        Optional<Boolean> showShadow = isHighTier ? Optional.of(true) : Optional.empty();
+            
         // TooltipOverhaul 1.4.0: InnerBorderType/DividerLineType enums are gone.
         // borderType/dividerLineType are Optional<String> now.
         CustomFrameData frameData = new CustomFrameData(
@@ -119,13 +140,13 @@ public class TooltipOverhaulFrameMixin {
                 Optional.empty(),                  // particles
                 specialEffect,                     // specialEffect
 
-                List.of(),                         // vignettes
-                Optional.empty(),                  // iconBackgroundType
+                vignettes,                         // vignettes
+                iconBackgroundType,                // iconBackgroundType
                 Optional.empty(),                  // usePlayerSkinInPreview
                 Optional.empty(),                  // previewPanelModel
                 Optional.empty(),                  // showSecondPanel
                 Optional.empty(),                  // showRating
-                Optional.empty(),                  // showShadow
+                showShadow,                        // showShadow
                 Optional.of(false),                // disableIcon
                 Optional.empty(),                  // disableScrolling
                 Optional.empty(),                  // disableTooltip
@@ -135,6 +156,14 @@ public class TooltipOverhaulFrameMixin {
         cir.setReturnValue(Optional.of(frameData));
     }
 
+    @Unique
+    private static String tierify$vignette(String type, String position, String colorHex, float radius, int extraX, int extraY) {
+        // TooltipOverhaul 1.4 vignette format:
+        // "(type, position, color, radius, extraPositionX, extraPositionY)"
+        return "(" + type + ", " + position + ", " + colorHex + ", " + radius + ", " + extraX + ", " + extraY + ")";
+    }
+
+        
     @Unique
     private static String tierify$intToHex(int argb) {
         // TooltipOverhaul 1.4 uses hex strings like "#FFFFFF".
