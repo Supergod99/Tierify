@@ -85,7 +85,7 @@ public class TooltipOverhaulFrameMixin {
             // Chained by default for Perfect (stars + subtle dust), but the "stars" layer will be swapped
             // to Tierify’s gold/compact stars ONLY when no override/test mode is active.
             specialEffect = Optional.of("stars, white_dust");
-            
+        }
         // High-tier presentation upgrades (Legendary/Mythic/Perfect):
         // - vignette glow (tier-colored)
         // - icon background glow
