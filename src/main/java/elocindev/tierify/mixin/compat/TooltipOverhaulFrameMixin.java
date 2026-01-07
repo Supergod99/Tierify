@@ -30,6 +30,7 @@ public class TooltipOverhaulFrameMixin {
 
     @Inject(method = "of", at = @At("HEAD"), cancellable = true)
     private static void tierify$injectTieredFrame(ItemStack stack, CallbackInfoReturnable<Optional<CustomFrameData>> cir) {
+        if (stack == null || stack.isEmpty()) return;
         if (!Tierify.CLIENT_CONFIG.tieredTooltip) return;
 
         String lookupKey;
