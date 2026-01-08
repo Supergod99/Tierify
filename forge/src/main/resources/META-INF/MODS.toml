@@ -1,0 +1,37 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="tiered"
+version="${file.jarVersion}"
+displayName="Echelon"
+authors="d0ugdimmadome"
+description='''
+Echelon (Tiered/Tierify fork) - Forge port
+'''
+
+[[mixins]]
+config="tiered.forge.mixins.json"
+
+[[dependencies.tiered]]
+modId="forge"
+mandatory=true
+versionRange="[47,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.tiered]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1]"
+ordering="NONE"
+side="BOTH"
+
+# AttributesLib (Apothic Attributes) is typically seen under modid "attributeslib" in Forge logs.
+[[dependencies.tiered]]
+modId="attributeslib"
+mandatory=true
+versionRange="[0,)"
+ordering="NONE"
+side="BOTH"

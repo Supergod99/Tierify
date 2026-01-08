@@ -1,0 +1,44 @@
+{
+    "id": "tiered:uncommon_melee_2",
+    "verifiers": [
+    ],
+    "weight": 0,
+    "style": {
+        "color": "dark_green"
+    },
+    "attributes": [
+        {
+            "type": "generic.attack_damage",
+            "modifier": {
+                "name": "tiered:uncommon_melee_2",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.5
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "tiered:generic.crit_chance",
+            "modifier": {
+                "name": "tiered:uncommon_melee_2",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.5
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "tiered:generic.durable",
+            "modifier": {
+                "name": "tiered:uncommon_melee_2",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.5
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        }
+    ]
+}

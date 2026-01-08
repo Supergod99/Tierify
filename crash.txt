@@ -1,0 +1,253 @@
+2026-01-04 18:03:46,683 main WARN Advanced terminal features are not available in this environment
+[18:03:47] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeclientuserdev, --version, MOD_DEV, --assetIndex, 5, --assetsDir, C:\Users\Ryan\.gradle\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.4.10, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mixin.config, tiered.mixins.json, --mixin.config, tiered.forge.mixins.json]
+[18:03:47] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.17 by Eclipse Adoptium; OS Windows 10 arch amd64 version 10.0
+[18:03:47] [main/INFO] [ne.mi.fm.lo.ImmediateWindowHandler/]: Loading ImmediateWindowProvider fmlearlywindow
+[18:03:48] [main/INFO] [EARLYDISPLAY/]: Trying GL version 4.6
+[18:03:48] [main/INFO] [EARLYDISPLAY/]: Requested GL version 4.6 got version 4.6
+[18:03:48] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/C:/Users/Ryan/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23128!/ Service=ModLauncher Env=CLIENT
+/****************************************************************************************************************************************************************************************************************/
+/*                                                                               SpongePowered MIXIN (Verbose debugging enabled)
+                                                                */
+/****************************************************************************************************************************************************************************************************************/
+/*                                         Code source : union:/C:/Users/Ryan/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23128!/ */
+/*                                    Internal Version : 0.8.5
+                                                                */
+/*                                        Java Version : 17.0 (supports compatibility 6-17)
+                                                                */
+/*                         Default Compatibility Level : JAVA_16
+                                                                */
+/*                                Detected ASM Version : ASM 9.8 (ASM10_EXPERIMENTAL)
+                                                                */
+/*                          Detected ASM Supports Java : Up to Java 25 (class file version 69.0)
+                                                                */
+/****************************************************************************************************************************************************************************************************************/
+/*                                        Service Name : ModLauncher
+                                                                */
+/*                                 Mixin Service Class : org.spongepowered.asm.service.modlauncher.MixinServiceModLauncher
+                                                                */
+/*                       Global Property Service Class : org.spongepowered.asm.service.modlauncher.Blackboard
+                                                                */
+/*                                 Logger Adapter Type : Log4j2 (via ModLauncher)
+                                                                */
+/****************************************************************************************************************************************************************************************************************/
+/*                                         mixin.debug : <false>
+                                                                */
+/*                                  mixin.debug.export : - <true>
+                                                                */
+/*                           mixin.debug.export.filter : - - <null>
+                                                                */
+/*                        mixin.debug.export.decompile : - - <true>
+                                                                */
+/*                  mixin.debug.export.decompile.async : - - - <true>
+                                                                */
+/* mixin.debug.export.decompile.mergeGenericSignatures : - - - <true>
+                                                                */
+/*                                  mixin.debug.verify : - <false>
+                                                                */
+/*                                 mixin.debug.verbose : - <true>
+                                                                */
+/*                         mixin.debug.countInjections : - <false>
+                                                                */
+/*                                  mixin.debug.strict : - <false>
+                                                                */
+/*                           mixin.debug.strict.unique : - - <false>
+                                                                */
+/*                          mixin.debug.strict.targets : - - <false>
+                                                                */
+/*                                mixin.debug.profiler : - <false>
+                                                                */
+/*                           mixin.dumpTargetOnFailure : <false>
+                                                                */
+/*                                        mixin.checks : <false>
+                                                                */
+/*                             mixin.checks.interfaces : - <false>
+                                                                */
+/*                      mixin.checks.interfaces.strict : - - <false>
+                                                                */
+/*                             mixin.ignoreConstraints : <false>
+                                                                */
+/*                                       mixin.hotSwap : <false>
+                                                                */
+/*                                           mixin.env : <false>
+                                                                */
+/*                                       mixin.env.obf : - <false>
+                                                                */
+/*                             mixin.env.disableRefMap : - <false>
+                                                                */
+/*                               mixin.env.remapRefMap : - <true>
+                                                                */
+/*                       mixin.env.refMapRemappingFile : - <D:\Documents\GitHub\Echelon\forge\build/createSrgToMcp/output.srg>
+                                                                */
+/*                        mixin.env.refMapRemappingEnv : - <searge>
+                                                                */
+/*                      mixin.env.allowPermissiveMatch : - <false>
+                                                                */
+/*                            mixin.env.ignoreRequired : - <false>
+                                                                */
+/*                               mixin.env.compatLevel : - <false>
+                                                                */
+/*                          mixin.env.shiftByViolation : - <warn>
+                                                                */
+/*                      mixin.initialiserInjectionMode : <default>
+                                                                */
+/****************************************************************************************************************************************************************************************************************/
+/*                                       Detected Side : CLIENT
+                                                                */
+/****************************************************************************************************************************************************************************************************************/
+[18:03:48] [pool-2-thread-1/INFO] [EARLYDISPLAY/]: GL info: NVIDIA GeForce GTX 1060/PCIe/SSE2 GL version 4.6.0 NVIDIA 581.80, NVIDIA Corporatio 
+[18:03:49] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file C:\Users\Ryan\.gradle\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.4.10\ccc533c7dd67e0983217197d7549c8b49e7ab453\javafmllanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[18:03:49] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file C:\Users\Ryan\.gradle\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.4.10\e9a2879fe3612ea34b9728ec2633304a1e67d480\lowcodelanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[18:03:49] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file C:\Users\Ryan\.gradle\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.4.10\ec5cefbbc65c67302b8fac317010faab85fa14b9\mclanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[18:03:49] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file C:\Users\Ryan\.gradle\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.4.10\94dae566be650566ea9115a1414ab76bfcf5a804\fmlcore-1.20.1-47.4.10.jar is missing mods.toml file
+[18:03:49] [main/INFO] [ne.mi.fm.lo.mo.JarInJarDependencyLocator/]: Found 1 dependencies adding them to mods collection
+[18:03:51] [main/WARN] [mixin/]: Compatibility level JAVA_17 specified by tiered.mixins.json is higher than the maximum level supported by this 
+version of mixin (JAVA_13).
+[18:03:51] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[18:03:51] [main/ERROR] [mixin/]: Mixin config tiered.mixins.json does not specify "minVersion" property
+[18:03:51] [main/ERROR] [mixin/]: Mixin config tiered.forge.mixins.json does not specify "minVersion" property
+[18:03:51] [main/INFO] [cp.mo.mo.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeclientuserdev' with arguments [--version, MOD_DEV, --gameDir, ., --assetsDir, C:\Users\Ryan\.gradle\caches\forge_gradle\assets, --assetIndex, 5]
+[18:03:51] [main/INFO] [mixin/]: Attempting to load Fernflower decompiler (Threaded mode)
+[18:03:51] [main/INFO] [mixin/]: Fernflower could not be loaded, exported classes will not be decompiled. NoClassDefFoundError: org/jetbrains/java/decompiler/main/extern/IResultSaver
+[18:03:51] [main/INFO] [mixin/]: Preparing mixins for MixinEnvironment[DEFAULT]
+[18:03:51] [main/INFO] [mixin/]: Selecting config tiered.mixins.json
+[18:03:51] [main/INFO] [mixin/]: Selecting config tiered.forge.mixins.json
+[18:03:51] [main/INFO] [mixin/]: Selecting config attributeslib.mixins.json
+[18:03:51] [main/INFO] [mixin/]: Remapping refMap attributeslib.refmap.json using D:\Documents\GitHub\Echelon\forge\build/createSrgToMcp/output.srg
+[18:03:51] [main/INFO] [mixin/]: Selecting config attributefix.mixins.json
+[18:03:51] [main/INFO] [mixin/]: Remapping refMap attributefix.refmap.json using D:\Documents\GitHub\Echelon\forge\build/createSrgToMcp/output.srg
+[18:03:51] [main/INFO] [mixin/]: Selecting config curios.mixins.json
+[18:03:51] [main/INFO] [mixin/]: Remapping refMap curios.refmap.json using D:\Documents\GitHub\Echelon\forge\build/createSrgToMcp/output.srg    
+[18:03:51] [main/INFO] [mixin/]: Selecting config geckolib.mixins.json
+[18:03:51] [main/INFO] [mixin/]: Remapping refMap geckolib.refmap.json using D:\Documents\GitHub\Echelon\forge\build/createSrgToMcp/output.srg  
+[18:03:51] [main/INFO] [mixin/]: Selecting config placebo.mixins.json
+[18:03:51] [main/INFO] [mixin/]: Remapping refMap placebo.refmap.json using D:\Documents\GitHub\Echelon\forge\build/createSrgToMcp/output.srg   
+[18:03:51] [main/INFO] [mixin/]: Preparing tiered.mixins.json (11)
+[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/item/ItemStack (java.lang.ClassNotFoundException: net.minecraft.item.ItemStack)
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.item.ItemStack was not found tiered.mixins.json:ItemStackMixin
+[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/item/ArmorItem (java.lang.ClassNotFoundException: net.minecraft.item.ArmorItem)
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.item.ArmorItem was not found tiered.mixins.json:ArmorItemMixin
+[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/screen/AnvilScreenHandler (java.lang.ClassNotFoundException: net.minecraft.screen.AnvilScreenHandler)
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.screen.AnvilScreenHandler was not found tiered.mixins.json:AnvilScreenHandlerMixin 
+[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/entity/projectile/ArrowEntity (java.lang.ClassNotFoundException: net.minecraft.entity.projectile.ArrowEntity)
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.entity.projectile.ArrowEntity was not found tiered.mixins.json:ArrowEntityMixin    
+[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/item/BowItem (java.lang.ClassNotFoundException: net.minecraft.item.BowItem) 
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.item.BowItem was not found tiered.mixins.json:BowItemMixin
+[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/item/CrossbowItem (java.lang.ClassNotFoundException: net.minecraft.item.CrossbowItem)
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.item.CrossbowItem was not found tiered.mixins.json:CrossbowItemMixin
+[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/entity/projectile/TridentEntity (java.lang.ClassNotFoundException: net.minecraft.entity.projectile.TridentEntity)
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.entity.projectile.TridentEntity was not found tiered.mixins.json:TridentEntityMixin[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/entity/projectile/SpectralArrowEntity (java.lang.ClassNotFoundException: net.minecraft.entity.projectile.SpectralArrowEntity)
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.entity.projectile.SpectralArrowEntity was not found tiered.mixins.json:SpectralArrowEntityMixin
+[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/enchantment/EnchantmentHelper (java.lang.ClassNotFoundException: net.minecraft.enchantment.EnchantmentHelper)
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.enchantment.EnchantmentHelper was not found tiered.mixins.json:EnchantmentHelperMixin
+[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/entity/player/PlayerEntity (java.lang.ClassNotFoundException: net.minecraft.entity.player.PlayerEntity)
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.entity.player.PlayerEntity was not found tiered.mixins.json:PlayerEntityMixin      
+[18:03:51] [main/WARN] [mixin/]: Error loading class: net/minecraft/client/gui/screen/ingame/HandledScreen (java.lang.ClassNotFoundException: net.minecraft.client.gui.screen.ingame.HandledScreen)
+[18:03:51] [main/WARN] [mixin/]: @Mixin target net.minecraft.client.gui.screen.ingame.HandledScreen was not found tiered.mixins.json:client.HandledScreenAccessor
+[18:03:51] [main/INFO] [mixin/]: Preparing tiered.forge.mixins.json (6)
+[18:03:52] [main/INFO] [ne.mi.co.Co.placebo/COREMODLOG]: Patching IForgeItemStack#getEnchantmentLevel
+[18:03:52] [main/INFO] [ne.mi.co.Co.placebo/COREMODLOG]: Patching IForgeItemStack#getEnchantmentLevel
+[18:03:52] [main/INFO] [mixin/]: Preparing attributeslib.mixins.json (17)
+[18:03:52] [main/INFO] [mixin/]: Preparing attributefix.mixins.json (1)
+[18:03:52] [main/INFO] [mixin/]: Preparing curios.mixins.json (13)     
+[18:03:52] [main/INFO] [mixin/]: Preparing geckolib.mixins.json (1)    
+[18:03:52] [main/INFO] [mixin/]: Preparing placebo.mixins.json (6)
+[18:03:52] [main/INFO] [mixin/]: Prepared 44 mixins in 0.668 sec (15.2ms avg) (0ms load, 0ms transform, 0ms plugin)
+[18:03:52] [main/INFO] [mixin/]: Mixing client.GuiGraphicsTooltipBorderMixin from tiered.forge.mixins.json into net.minecraft.client.gui.GuiGraphics
+[18:03:54] [pool-4-thread-1/INFO] [mixin/]: Mixing EntityMixin from attributeslib.mixins.json into net.minecraft.world.entity.Entity
+[18:03:54] [pool-4-thread-1/INFO] [mixin/]: Mixing AccessorEntity from curios.mixins.json into net.minecraft.world.entity.Entity
+[18:03:54] [pool-4-thread-1/INFO] [mixin/]: Mixing IForgeEntityMixin from attributeslib.mixins.json into net.minecraftforge.common.extensions.IForgeEntity
+[18:03:54] [pool-4-thread-1/INFO] [mixin/]: Mixing LivingEntityMixin from attributeslib.mixins.json into net.minecraft.world.entity.LivingEntity[18:03:54] [pool-4-thread-1/WARN] [mixin/]: @Shadow target attributeslib.mixins.json:LivingEntityMixin::attributes is final but shadow is not decorated with @Final
+[18:03:54] [pool-4-thread-1/INFO] [mixin/]: Mixing MixinLivingEntity from curios.mixins.json into net.minecraft.world.entity.LivingEntity       
+[18:03:54] [pool-4-thread-1/INFO] [mixin/]: Mixing PlayerMixin from attributeslib.mixins.json into net.minecraft.world.entity.player.Player     
+[18:03:54] [pool-4-thread-1/WARN] [mixin/]: @Shadow target attributeslib.mixins.json:PlayerMixin::abilities is final but shadow is not decorated with @Final
+[18:03:54] [pool-4-thread-1/INFO] [mixin/]: Mixing client.ItemBarMixin from tiered.forge.mixins.json into net.minecraft.world.item.Item
+[18:03:54] [pool-4-thread-1/INFO] [mixin/]: Mixing IForgeItemMixin from attributeslib.mixins.json into net.minecraftforge.common.extensions.IForgeItem
+[18:03:54] [pool-4-thread-1/INFO] [mixin/]: Mixing AttributeMixin from attributeslib.mixins.json into net.minecraft.world.entity.ai.attributes.Attribute
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Mixing AnvilBlockMixin from placebo.mixins.json into net.minecraft.world.level.block.AnvilBlock     
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Mixing MixinPowderSnowBlock from curios.mixins.json into net.minecraft.world.level.block.PowderSnowBlock
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Mixing AccessorRangedAttribute from attributefix.mixins.json into net.minecraft.world.entity.ai.attributes.RangedAttribute
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Mixing AbstractContainerMenuInvoker from placebo.mixins.json into net.minecraft.world.inventory.AbstractContainerMenu
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Mixing client.ItemStackClientMixin from tiered.forge.mixins.json into net.minecraft.world.item.ItemStack
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Renaming synthetic method lambda$isDisplayedNumericZero$2(I)Z to md6de294$lambda$isDisplayedNumericZero$2$0 in tiered.forge.mixins.json:client.ItemStackClientMixin
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Renaming synthetic method lambda$stripDisplayedZeros$1(Lnet/minecraft/network/chat/Component;)Z to md6de294$lambda$stripDisplayedZeros$1$1 in tiered.forge.mixins.json:client.ItemStackClientMixin
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Renaming synthetic method lambda$static$0()Ljava/lang/Boolean; to md6de294$lambda$static$0$2 in tiered.forge.mixins.json:client.ItemStackClientMixin
+[18:03:55] [pool-4-thread-1/INFO] [ne.mi.co.Co.placebo/COREMODLOG]: Patching IForgeItemStack#getEnchantmentLevel
+[18:03:55] [pool-4-thread-1/INFO] [ne.mi.co.Co.placebo/COREMODLOG]: Patching IForgeItemStack#getEnchantmentLevel
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Mixing ItemStackMixin from attributeslib.mixins.json into net.minecraft.world.item.ItemStack        
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Mixing ItemStackMixin from placebo.mixins.json into net.minecraft.world.item.ItemStack
+[18:03:55] [pool-4-thread-1/INFO] [mixin/]: Renaming synthetic method lambda$getOrCreate$0(Ljava/util/function/Function;Ljava/util/function/ToIntFunction;Lnet/minecraft/resources/ResourceLocation;)Ldev/shadowsoffire/placebo/util/CachedObject; to md6de294$lambda$getOrCreate$0$3 in placebo.mixins.json:ItemStackMixin
+[18:03:56] [pool-4-thread-1/INFO] [ne.mi.co.Co.placebo/COREMODLOG]: Patching IForgeItemStack#getEnchantmentLevel
+[18:03:56] [pool-4-thread-1/INFO] [ne.mi.co.Co.placebo/COREMODLOG]: Patching IForgeItemStack#getEnchantmentLevel
+[18:03:56] [pool-4-thread-1/INFO] [mixin/]: Mixing ItemCombinerMenuAccessor from tiered.forge.mixins.json into net.minecraft.world.inventory.ItemCombinerMenu
+[18:03:56] [pool-4-thread-1/INFO] [mixin/]: Mixing MixinShearsItem from curios.mixins.json into net.minecraft.world.item.ShearsItem
+[18:03:57] [pool-4-thread-1/INFO] [mixin/]: Mixing NearestAttackableTargetGoalMixin from attributeslib.mixins.json into net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal
+[18:03:57] [Datafixer Bootstrap/INFO] [mojang/DataFixerBuilder]: 188 Datafixer optimizations took 254 milliseconds
+[18:03:57] [pool-4-thread-1/INFO] [mixin/]: Mixing ThrownTridentMixin from attributeslib.mixins.json into net.minecraft.world.entity.projectile.ThrownTrident
+[18:03:58] [pool-4-thread-1/INFO] [mixin/]: Mixing MerchantMenuMixin from tiered.forge.mixins.json into net.minecraft.world.inventory.MerchantMenu
+Exception in thread "main" java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.LaunchServiceHandlerDecorator.launch(LaunchServiceHandlerDecorator.java:32)
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.LaunchServiceHandler.launch(LaunchServiceHandler.java:53)
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.LaunchServiceHandler.launch(LaunchServiceHandler.java:71)
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.Launcher.run(Launcher.java:108)
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.Launcher.main(Launcher.java:78)
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.BootstrapLaunchConsumer.accept(BootstrapLaunchConsumer.java:26)        
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.BootstrapLaunchConsumer.accept(BootstrapLaunchConsumer.java:23)        
+        at cpw.mods.bootstraplauncher@1.1.2/cpw.mods.bootstraplauncher.BootstrapLauncher.main(BootstrapLauncher.java:141)
+Caused by: java.lang.reflect.InvocationTargetException
+        at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+        at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+        at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+        at MC-BOOTSTRAP/fmlloader@1.20.1-47.4.10/net.minecraftforge.fml.loading.targets.CommonLaunchHandler.runTarget(CommonLaunchHandler.java:111)
+        at MC-BOOTSTRAP/fmlloader@1.20.1-47.4.10/net.minecraftforge.fml.loading.targets.CommonLaunchHandler.clientService(CommonLaunchHandler.java:99)
+        at MC-BOOTSTRAP/fmlloader@1.20.1-47.4.10/net.minecraftforge.fml.loading.targets.ForgeClientUserdevLaunchHandler.devService(ForgeClientUserdevLaunchHandler.java:19)
+        at MC-BOOTSTRAP/fmlloader@1.20.1-47.4.10/net.minecraftforge.fml.loading.targets.CommonDevLaunchHandler.lambda$makeService$7(CommonDevLaunchHandler.java:135)
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.LaunchServiceHandlerDecorator.launch(LaunchServiceHandlerDecorator.java:30)
+        ... 7 more
+Caused by: java.lang.RuntimeException: org.spongepowered.asm.mixin.transformer.throwables.MixinTransformerError: An unexpected critical error was encountered
+        at MC-BOOTSTRAP/fmlloader@1.20.1-47.4.10/net.minecraftforge.fml.loading.BackgroundWaiter.runAndTick(BackgroundWaiter.java:32)
+        at TRANSFORMER/minecraft@1.20.1/net.minecraft.client.main.Main.main(Main.java:151)
+        ... 16 more
+Caused by: org.spongepowered.asm.mixin.transformer.throwables.MixinTransformerError: An unexpected critical error was encountered
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:392)     
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinTransformer.transformClass(MixinTransformer.java:250)
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.service.modlauncher.MixinTransformationHandler.processClass(MixinTransformationHandler.java:131)
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.launch.MixinLaunchPluginLegacy.processClass(MixinLaunchPluginLegacy.java:131)
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.serviceapi.ILaunchPluginService.processClassWithFlags(ILaunchPluginService.java:156)
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.LaunchPluginHandler.offerClassNodeToPlugins(LaunchPluginHandler.java:88)
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.ClassTransformer.transform(ClassTransformer.java:120)
+        at MC-BOOTSTRAP/cpw.mods.modlauncher@10.0.9/cpw.mods.modlauncher.TransformingClassLoader.maybeTransformClassBytes(TransformingClassLoader.java:50)
+        at cpw.mods.securejarhandler/cpw.mods.cl.ModuleClassLoader.readerToClass(ModuleClassLoader.java:113)
+        at cpw.mods.securejarhandler/cpw.mods.cl.ModuleClassLoader.lambda$findClass$15(ModuleClassLoader.java:219)
+        at cpw.mods.securejarhandler/cpw.mods.cl.ModuleClassLoader.loadFromModule(ModuleClassLoader.java:229)
+        at cpw.mods.securejarhandler/cpw.mods.cl.ModuleClassLoader.findClass(ModuleClassLoader.java:219)
+        at cpw.mods.securejarhandler/cpw.mods.cl.ModuleClassLoader.loadClass(ModuleClassLoader.java:135)
+        at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)
+        at TRANSFORMER/minecraft@1.20.1/net.minecraft.world.entity.EntityType.<clinit>(EntityType.java:276)
+        at TRANSFORMER/minecraft@1.20.1/net.minecraft.world.item.Items.<clinit>(Items.java:754)
+        at TRANSFORMER/minecraft@1.20.1/net.minecraft.world.level.block.ComposterBlock.bootStrap(ComposterBlock.java:66)
+        at TRANSFORMER/minecraft@1.20.1/net.minecraft.server.Bootstrap.bootStrap(Bootstrap.java:47)
+        at TRANSFORMER/minecraft@1.20.1/net.minecraft.client.main.Main.lambda$main$0(Main.java:151)
+        at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+        at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+        at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+        at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+        at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: org.spongepowered.asm.mixin.injection.throwables.InjectionError: Critical injection failure: Variable modifier method tierify$applyMerchantModifier(Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/ItemStack; in tiered.forge.mixins.json:MerchantMenuMixin failed injection check, (0/1) succeeded. Scanned 1 target(s). No refMap loaded.
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.injection.struct.InjectionInfo.postInject(InjectionInfo.java:468)   
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinTargetContext.applyInjections(MixinTargetContext.java:1362)
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.applyInjections(MixinApplicatorStandard.java:1051)
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.applyMixin(MixinApplicatorStandard.java:400)
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinApplicatorStandard.apply(MixinApplicatorStandard.java:325)
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.TargetClassContext.apply(TargetClassContext.java:383)   
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.TargetClassContext.applyMixins(TargetClassContext.java:365)
+        at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins(MixinProcessor.java:363)     
+        ... 23 more
+
+> Task :forge:runClient FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':forge:runClient'.
+> Process 'command 'C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot\bin\java.exe'' finished with non-zero exit value 1

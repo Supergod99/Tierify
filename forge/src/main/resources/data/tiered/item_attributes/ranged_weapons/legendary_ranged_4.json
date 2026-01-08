@@ -1,0 +1,42 @@
+{
+    "id": "tiered:legendary_ranged_4",
+    "verifiers": [
+        {
+            "tag": "c:bows"
+        },
+        {
+            "tag": "c:crossbows"
+        },
+        {
+            "tag": "too_many_bows:bows"
+        }
+    ],
+    "weight": 1,
+    "style": {
+        "color": "gold"
+    },
+    "attributes": [
+        {
+            "type": "brutality:lethality",
+            "modifier": {
+                "name": "tiered:legendary_ranged_4",
+                "operation": "ADDITION",
+                "amount": 6.0
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "attributeslib:arrow_damage",
+            "modifier": {
+                "name": "tiered:legendary_ranged_4",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.25
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        }
+    ]
+}

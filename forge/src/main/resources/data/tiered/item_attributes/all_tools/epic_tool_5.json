@@ -1,0 +1,56 @@
+{
+    "id": "tiered:epic_tool_5",
+    "verifiers": [
+        {
+            "tag": "minecraft:pickaxes"
+        },
+		{
+            "tag": "c:shovels"
+        },
+		{
+            "tag": "c:hoes"
+        },
+		{
+            "tag": "forge:tools/paxels"
+        }
+    ],
+    "weight": 1,
+    "style": {
+        "color": "dark_purple"
+    },
+    "attributes": [
+        {
+            "type": "tiered:generic.fortune",
+            "modifier": {
+                "name": "tiered:epic_tool_5",
+                "operation": "ADDITION",
+                "amount": 2.0
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "tiered:generic.durable",
+            "modifier": {
+                "name": "tiered:epic_tool_5",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.2
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "tiered:generic.dig_speed",
+            "modifier": {
+                "name": "tiered:epic_tool_5",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.2
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        }
+    ]
+}

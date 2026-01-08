@@ -1,0 +1,45 @@
+{
+    "id": "tiered:uncomon_tool_3",
+    "verifiers": [
+        {
+            "tag": "minecraft:pickaxes"
+        },
+        {
+            "tag": "c:shovels"
+        },
+        {
+            "tag": "c:hoes"
+        },
+        {
+            "tag": "forge:tools/paxels"
+        }
+    ],
+    "weight": 1,
+    "style": {
+        "color": "dark_green"
+    },
+    "attributes": [
+        {
+            "type": "reach-entity-attributes:reach",
+            "modifier": {
+                "name": "tiered:uncomon_tool_3",
+                "operation": "ADDITION",
+                "amount": 1.0
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "tiered:generic.durable",
+            "modifier": {
+                "name": "tiered:uncomon_tool_3",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.1
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        }
+    ]
+}

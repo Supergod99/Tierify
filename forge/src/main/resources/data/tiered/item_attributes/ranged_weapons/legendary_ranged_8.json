@@ -1,0 +1,64 @@
+{
+    "id": "tiered:legendary_ranged_8",
+    "verifiers": [
+        {
+            "tag": "c:bows"
+        },
+        {
+            "tag": "c:crossbows"
+        },
+        {
+            "tag": "too_many_bows:bows"
+        }
+    ],
+    "weight": 1,
+    "style": {
+        "color": "gold"
+    },
+    "attributes": [
+        {
+            "type": "attributeslib:crit_damage",
+            "modifier": {
+                "name": "tiered:legendary_ranged_8",
+                "operation": "MULTIPLY_BASE",
+                "amount": 0.3
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "attributeslib:draw_speed",
+            "modifier": {
+                "name": "tiered:legendary_ranged_8",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.125
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "attributeslib:crit_chance",
+            "modifier": {
+                "name": "tiered:legendary_ranged_8",
+                "operation": "MULTIPLY_BASE",
+                "amount": 0.15
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "generic.armor",
+            "modifier": {
+                "name": "tiered:legendary_ranged_8",
+                "operation": "ADDITION",
+                "amount": -2.5
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        }
+    ]
+}

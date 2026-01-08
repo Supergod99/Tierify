@@ -1,0 +1,115 @@
+{
+    "id": "tiered:mythic_melee_8",
+    "verifiers": [
+      {
+        "tag": "minecraft:swords"
+      },
+      {
+        "tag": "minecraft:axes"
+      },
+	  {
+        "tag": "forge:axes"
+      },
+	  {
+        "tag": "forge:swords"
+      },
+	  {
+        "tag": "forge:weapons/tools/melee"
+      },
+	  {
+        "tag": "forge:tools/swords"
+      },
+	  {
+        "tag": "c:tools/melee_weapons"
+      },
+	  {
+        "tag": "forge:weapon/tools/melee"
+      },
+	  {
+        "tag": "minecraft:weapons"
+      },
+	  {
+        "tag": "forge:tools/knives"
+      },
+	  {
+        "tag": "forge:tools/hammers"
+      },
+	  {
+        "tag": "forge:tools/daggers"
+      },
+	  {
+        "tag": "forge:tools/paxels"
+      },
+	  {
+        "tag": "forge:tools/weapons"
+      },
+	  {
+        "tag": "forge:tools/scythe"
+      },
+	  {
+        "tag": "forge:tools/whips"
+      },
+	  {
+        "tag": "c:weapons"
+      },
+	  {
+        "tag": "brutality:gastronomist_items"
+      },
+	  {
+        "tag": "forbidden_arcanus:blacksmith_gavel"
+      },
+	  {
+        "tag": "malum:scythe"
+      }
+    ],
+    "weight": 1,
+    "style": {
+        "color": "red"
+    },
+    "attributes": [
+        {
+            "type": "attributeslib:crit_damage",
+            "modifier": {
+                "name": "tiered:mythic_melee_8",
+                "operation": "ADDITION",
+                "amount": 0.3
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "attributeslib:crit_chance",
+            "modifier": {
+                "name": "tiered:mythic_melee_8",
+                "operation": "ADDITION",
+                "amount": 0.12
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "generic.armor",
+            "modifier": {
+                "name": "tiered:mythic_melee_8",
+                "operation": "ADDITION",
+                "amount": -3.0
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "generic.attack_speed",
+            "modifier": {
+                "name": "tiered:mythic_melee_8",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.3
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        }
+    ]
+}

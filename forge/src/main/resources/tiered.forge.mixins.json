@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "package": "elocindev.tierify.forge.mixin",
+  "plugin": "elocindev.tierify.forge.mixin.TieredForgeMixinPlugin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "ArmorStandEntityMixin",
+    "ArmorItemMixin",
+    "EnchantmentHelperMixin",
+    "ItemFrameEntityMixin",
+    "ItemCombinerMenuAccessor",
+    "ItemStackMixin",
+    "MerchantMenuMixin"
+  ],
+  "client": [
+    "client.ItemStackClientMixin",
+    "client.GuiGraphicsTooltipBorderMixin",
+    "client.AbstractContainerScreenAccessor",
+    "client.ItemBarMixin",
+    "compat.TooltipOverhaulFrameMixin",
+    "compat.SkillInfoScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

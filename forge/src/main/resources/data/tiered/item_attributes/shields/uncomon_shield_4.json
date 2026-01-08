@@ -1,0 +1,50 @@
+{
+    "id": "tiered:uncomon_shield_4",
+    "verifiers": [
+        {
+            "tag": "forge:tools/shields"
+        },
+        {
+            "tag": "forge:tools/shield"
+        },
+        {
+            "tag": "c:tools/shields"
+        },
+        {
+            "tag": "c:tools/shield"
+        },
+        {
+            "tag": "c:shields"
+        }
+    ],
+    "weight": 1,
+    "style": {
+        "color": "dark_green"
+    },
+    "attributes": [
+        {
+            "type": "generic.movement_speed",
+            "modifier": {
+                "name": "tiered:uncomon_shield_4",
+                "operation": "ADDITION",
+                "amount": 0.0045
+            },
+            "optional_equipment_slots": [
+                "MAINHAND",
+                "OFFHAND"
+            ]
+        },
+        {
+            "type": "generic.armor",
+            "modifier": {
+                "name": "tiered:uncomon_shield_4",
+                "operation": "ADDITION",
+                "amount": -1.0
+            },
+            "optional_equipment_slots": [
+                "MAINHAND",
+                "OFFHAND"
+            ]
+        }
+    ]
+}

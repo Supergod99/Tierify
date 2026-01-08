@@ -1,0 +1,42 @@
+{
+    "id": "tiered:mythic_ranged_3",
+    "verifiers": [
+        {
+            "tag": "c:bows"
+        },
+        {
+            "tag": "c:crossbows"
+        },
+        {
+            "tag": "too_many_bows:bows"
+        }
+    ],
+    "weight": 1,
+    "style": {
+        "color": "red"
+    },
+    "attributes": [
+        {
+            "type": "brutality:armor_penetration",
+            "modifier": {
+                "name": "tiered:mythic_ranged_3",
+                "operation": "MULTIPLY_BASE",
+                "amount": 0.4
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "attributeslib:crit_damage",
+            "modifier": {
+                "name": "tiered:mythic_ranged_3",
+                "operation": "MULTIPLY_BASE",
+                "amount": -0.3
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        }
+    ]
+}

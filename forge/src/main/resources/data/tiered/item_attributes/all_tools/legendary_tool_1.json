@@ -1,0 +1,45 @@
+{
+    "id": "tiered:legendary_tool_1",
+    "verifiers": [
+        {
+            "tag": "minecraft:pickaxes"
+        },
+        {
+            "tag": "c:shovels"
+        },
+        {
+            "tag": "c:hoes"
+        },
+        {
+            "tag": "forge:tools/paxels"
+        }
+    ],
+    "weight": 1,
+    "style": {
+        "color": "gold"
+    },
+    "attributes": [
+        {
+            "type": "tiered:generic.dig_speed",
+            "modifier": {
+                "name": "tiered:legendary_tool_1",
+                "operation": "MULTIPLY_BASE",
+                "amount": 0.25
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        },
+        {
+            "type": "reach-entity-attributes:reach",
+            "modifier": {
+                "name": "tiered:legendary_tool_1",
+                "operation": "ADDITION",
+                "amount": -2.5
+            },
+            "optional_equipment_slots": [
+                "MAINHAND"
+            ]
+        }
+    ]
+}
