@@ -1,0 +1,30 @@
+
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " H ",
+    "UBD",
+    " E "
+  ],
+  "key": {
+    "D": {
+      "item": "armageddon_mod:dying_star"
+    },
+    "B": {
+      "item": "minecraft:blaze_powder"
+    },
+    "E": {
+      "item": "armageddon_mod:eclipsium_alloy"
+    },
+    "H": {
+      "item": "armageddon_mod:hemalith_catalyst"
+    },
+    "U": {
+      "item": "armageddon_mod:umbral_sun"
+    }
+  },
+  "result": {
+    "item": "tiered:painite",
+    "count": 2
+  }
+}

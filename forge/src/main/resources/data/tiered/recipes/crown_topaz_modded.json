@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " K ",
+    "TPT",
+    " K "
+  ],
+  "key": {
+    "T": {
+      "item": "terramity:topaz"
+    },
+    "K": {
+      "item": "armageddon_mod:khyros_tear"
+    },
+    "P": {
+      "item": "tiered:pyrite_chunk"
+    }
+  },
+  "result": {
+    "item": "tiered:crown_topaz",
+    "count": 2
+  }
+}

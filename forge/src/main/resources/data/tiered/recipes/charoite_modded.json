@@ -1,0 +1,24 @@
+
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " E ",
+    " A ",
+    " W "
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "E": {
+      "item": "endrem:wither_eye"
+    },
+    "W": {
+      "item": "biomancy:withered_mob_marrow"
+    }
+  },
+  "result": {
+    "item": "tiered:charoite",
+    "count": 2
+  }
+}
