@@ -1,0 +1,50 @@
+{
+    "id": "tiered:mythic_shield_5",
+    "verifiers": [
+        {
+            "tag": "forge:tools/shields"
+        },
+        {
+            "tag": "forge:tools/shield"
+        },
+        {
+            "tag": "c:tools/shields"
+        },
+        {
+            "tag": "c:tools/shield"
+        },
+        {
+            "tag": "c:shields"
+        }
+    ],
+    "weight": 1,
+    "style": {
+        "color": "red"
+    },
+    "attributes": [
+        {
+            "type": "tiered:generic.durable",
+            "modifier": {
+                "name": "tiered:mythic_shield_5",
+                "operation": "MULTIPLY_BASE",
+                "amount": 0.6
+            },
+            "optional_equipment_slots": [
+                "MAINHAND",
+                "OFFHAND"
+            ]
+        },
+        {
+            "type": "generic.armor",
+            "modifier": {
+                "name": "tiered:mythic_shield_5",
+                "operation": "ADDITION",
+                "amount": -1.5
+            },
+            "optional_equipment_slots": [
+                "MAINHAND",
+                "OFFHAND"
+            ]
+        }
+    ]
+}

@@ -1,19 +1,8 @@
 {
-    "type": "minecraft:crafting_shaped",
-    "pattern": [
-        "$#",
-        "#$"
-    ],
-    "key": {
-        "#": {
-            "item": "minecraft:popped_chorus_fruit"
-        },
-        "$": {
-            "item": "armageddon_mod:khyros_tear"
-        }
+    "type": "minecraft:stonecutting",
+    "ingredient": {
+        "item": "minecraft:ancient_debris"
     },
-    "result": {
-        "item": "tiered:galena_chunk",
-        "count": 2
-    }
+    "result": "tiered:galena_chunk",
+    "count": 4
 }

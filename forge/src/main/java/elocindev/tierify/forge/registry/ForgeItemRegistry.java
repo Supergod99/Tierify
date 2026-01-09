@@ -23,6 +23,12 @@ public final class ForgeItemRegistry {
             ITEMS.register("galena_chunk", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> CLEANSING_STONE =
             ITEMS.register("cleansing_stone", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> CHAROITE =
+            ITEMS.register("charoite", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> CROWN_TOPAZ =
+            ITEMS.register("crown_topaz", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> PAINITE =
+            ITEMS.register("painite", () -> new Item(new Item.Properties()));
 
     // Optional: put them into a creative tab for testing (safe, removable later)
     @SubscribeEvent
@@ -32,6 +38,9 @@ public final class ForgeItemRegistry {
             e.accept(PYRITE_CHUNK);
             e.accept(GALENA_CHUNK);
             e.accept(CLEANSING_STONE);
+            e.accept(CHAROITE);
+            e.accept(CROWN_TOPAZ);
+            e.accept(PAINITE);
         }
     }
 

@@ -1,0 +1,50 @@
+{
+    "id": "tiered:rare_shield_5",
+    "verifiers": [
+        {
+            "tag": "forge:tools/shields"
+        },
+        {
+            "tag": "forge:tools/shield"
+        },
+        {
+            "tag": "c:tools/shields"
+        },
+        {
+            "tag": "c:tools/shield"
+        },
+        {
+            "tag": "c:shields"
+        }
+    ],
+    "weight": 1,
+    "style": {
+        "color": "blue"
+    },
+    "attributes": [
+        {
+            "type": "tiered:generic.durable",
+            "modifier": {
+                "name": "tiered:rare_shield_5",
+                "operation": "MULTIPLY_BASE",
+                "amount": 0.3
+            },
+            "optional_equipment_slots": [
+                "MAINHAND",
+                "OFFHAND"
+            ]
+        },
+        {
+            "type": "generic.armor",
+            "modifier": {
+                "name": "tiered:rare_shield_5",
+                "operation": "ADDITION",
+                "amount": -0.75
+            },
+            "optional_equipment_slots": [
+                "MAINHAND",
+                "OFFHAND"
+            ]
+        }
+    ]
+}

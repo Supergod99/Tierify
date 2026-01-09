@@ -6,6 +6,8 @@
   "mixins": [
     "ArmorStandEntityMixin",
     "ArmorItemMixin",
+    "EntityEquipmentDropMixin",
+    "EntityLootDropMixin",
     "EnchantmentHelperMixin",
     "ItemFrameEntityMixin",
     "ItemCombinerMenuAccessor",
@@ -18,7 +20,10 @@
     "client.AbstractContainerScreenAccessor",
     "client.ItemBarMixin",
     "compat.TooltipOverhaulFrameMixin",
-    "compat.SkillInfoScreenMixin"
+    "compat.SkillInfoScreenMixin",
+    "compat.ObscureApiAttackSpeedIconMixin",
+    "compat.ObscureApiAttributeIconMathMixin",
+    "compat.ObscureApiIconsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

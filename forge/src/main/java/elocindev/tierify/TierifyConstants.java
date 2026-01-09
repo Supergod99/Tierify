@@ -7,6 +7,7 @@ public final class TierifyConstants {
     public static final String NBT_SUBTAG_KEY = "Tiered";
     public static final String NBT_SUBTAG_DATA_KEY = "Tier";
     public static final String NBT_SUBTAG_TEMPLATE_DATA_KEY = "Template";
+    public static final String NBT_SUBTAG_EXTRA_KEY = "TierifyExtra";
 
     // Copied from Tierify.java (Fabric) so Forge can filter “tier modifiers” reliably.
     public static final UUID[] MODIFIERS = new UUID[] {

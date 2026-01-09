@@ -15,6 +15,7 @@ import elocindev.tierify.forge.network.s2c.ReforgeItemsSyncS2C;
 import elocindev.tierify.forge.reforge.ForgeReforgeData;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -66,6 +67,7 @@ public final class ForgeTieredAttributeSubscriber {
 
     private static final ResourceLocation DURABLE_ID =
             new ResourceLocation(TierifyCommon.MODID, "generic.durable");
+    private static final String STORED_CUSTOM_NAME_KEY = "StoredCustomName";
 
     private ForgeTieredAttributeSubscriber() {}
 
@@ -100,6 +102,98 @@ public final class ForgeTieredAttributeSubscriber {
 
     public static boolean applyTier(ItemStack stack, ResourceLocation tierId, boolean perfect) {
         return RELOADER.applyTier(stack, tierId, perfect);
+    }
+
+    public static boolean applyTierWithCustomWeights(ItemStack stack, int[] weights, RandomSource rand) {
+        if (stack == null || stack.isEmpty()) return false;
+
+        CompoundTag tierTag = stack.getTagElement(TierifyConstants.NBT_SUBTAG_KEY);
+        if (tierTag != null && tierTag.contains(TierifyConstants.NBT_SUBTAG_DATA_KEY)) return false;
+
+        if (weights == null || weights.length != 6) return false;
+        RandomSource rng = (rand != null) ? rand : RandomSource.create();
+
+        int w1 = Math.max(0, weights[0]);
+        int w2 = Math.max(0, weights[1]);
+        int w3 = Math.max(0, weights[2]);
+        int w4 = Math.max(0, weights[3]);
+        int w5 = Math.max(0, weights[4]);
+        int w6 = Math.max(0, weights[5]);
+
+        int total = w1 + w2 + w3 + w4 + w5 + w6;
+        if (total <= 0) return false;
+
+        ResourceLocation chosen = null;
+        for (int attempt = 0; attempt < 10 && chosen == null; attempt++) {
+            List<String> qualities = pickTierQualitiesFromWeights(w1, w2, w3, w4, w5, w6, total, rng);
+            if (qualities == null || qualities.isEmpty()) break;
+            chosen = RELOADER.pickRandomTierNoBonus(stack, qualities, rng);
+        }
+
+        return chosen != null && RELOADER.applyTier(stack, chosen, false);
+    }
+
+    @Nullable
+    public static int[] parseWeightProfile(String profile) {
+        if (profile == null) return null;
+        String p = profile.trim();
+        if (p.isEmpty()) return null;
+
+        String lower = p.toLowerCase(Locale.ROOT);
+        if (lower.equals("overworld")) {
+            return new int[] {
+                    Math.max(0, ForgeTierifyConfig.overworldTier1Weight()),
+                    Math.max(0, ForgeTierifyConfig.overworldTier2Weight()),
+                    Math.max(0, ForgeTierifyConfig.overworldTier3Weight()),
+                    Math.max(0, ForgeTierifyConfig.overworldTier4Weight()),
+                    Math.max(0, ForgeTierifyConfig.overworldTier5Weight()),
+                    Math.max(0, ForgeTierifyConfig.overworldTier6Weight())
+            };
+        }
+        if (lower.equals("nether")) {
+            return new int[] {
+                    Math.max(0, ForgeTierifyConfig.netherTier1Weight()),
+                    Math.max(0, ForgeTierifyConfig.netherTier2Weight()),
+                    Math.max(0, ForgeTierifyConfig.netherTier3Weight()),
+                    Math.max(0, ForgeTierifyConfig.netherTier4Weight()),
+                    Math.max(0, ForgeTierifyConfig.netherTier5Weight()),
+                    Math.max(0, ForgeTierifyConfig.netherTier6Weight())
+            };
+        }
+        if (lower.equals("end")) {
+            return new int[] {
+                    Math.max(0, ForgeTierifyConfig.endTier1Weight()),
+                    Math.max(0, ForgeTierifyConfig.endTier2Weight()),
+                    Math.max(0, ForgeTierifyConfig.endTier3Weight()),
+                    Math.max(0, ForgeTierifyConfig.endTier4Weight()),
+                    Math.max(0, ForgeTierifyConfig.endTier5Weight()),
+                    Math.max(0, ForgeTierifyConfig.endTier6Weight())
+            };
+        }
+        if (lower.equals("global")) {
+            return new int[] {
+                    Math.max(0, ForgeTierifyConfig.entityTier1Weight()),
+                    Math.max(0, ForgeTierifyConfig.entityTier2Weight()),
+                    Math.max(0, ForgeTierifyConfig.entityTier3Weight()),
+                    Math.max(0, ForgeTierifyConfig.entityTier4Weight()),
+                    Math.max(0, ForgeTierifyConfig.entityTier5Weight()),
+                    Math.max(0, ForgeTierifyConfig.entityTier6Weight())
+            };
+        }
+
+        String[] parts = p.split("[,\\s]+");
+        if (parts.length != 6) return null;
+
+        int[] w = new int[6];
+        try {
+            for (int i = 0; i < 6; i++) {
+                w[i] = Math.max(0, Integer.parseInt(parts[i].trim()));
+            }
+        } catch (NumberFormatException e) {
+            return null;
+        }
+
+        return w;
     }
 
     public static void applySyncedAttributes(Map<ResourceLocation, String> jsonById) {
@@ -241,6 +335,71 @@ public final class ForgeTieredAttributeSubscriber {
         String value = String.valueOf(color);
         tag.putString("top", value);
         tag.putString("bottom", value);
+    }
+
+    private static List<String> pickTierQualitiesFromWeights(int w1,
+                                                             int w2,
+                                                             int w3,
+                                                             int w4,
+                                                             int w5,
+                                                             int w6,
+                                                             int total,
+                                                             RandomSource rand) {
+        if (total <= 0) return null;
+
+        int roll = rand.nextInt(total);
+
+        if (roll < w1) return ForgeTierifyConfig.getTierQualities(1);
+        roll -= w1;
+        if (roll < w2) return ForgeTierifyConfig.getTierQualities(2);
+        roll -= w2;
+        if (roll < w3) return ForgeTierifyConfig.getTierQualities(3);
+        roll -= w3;
+        if (roll < w4) return ForgeTierifyConfig.getTierQualities(4);
+        roll -= w4;
+        if (roll < w5) return ForgeTierifyConfig.getTierQualities(5);
+        return ForgeTierifyConfig.getTierQualities(6);
+    }
+
+    public static void stashCustomNameForReforge(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return;
+
+        CompoundTag display = stack.getTagElement("display");
+        if (display == null || !display.contains("Name", Tag.TAG_STRING)) return;
+
+        String nameJson = display.getString("Name");
+        if (nameJson == null || nameJson.isEmpty()) return;
+
+        CompoundTag root = stack.getOrCreateTag();
+        CompoundTag extra = root.contains(TierifyConstants.NBT_SUBTAG_EXTRA_KEY, Tag.TAG_COMPOUND)
+                ? root.getCompound(TierifyConstants.NBT_SUBTAG_EXTRA_KEY)
+                : new CompoundTag();
+        extra.putString(STORED_CUSTOM_NAME_KEY, nameJson);
+        root.put(TierifyConstants.NBT_SUBTAG_EXTRA_KEY, extra);
+
+        display.remove("Name");
+    }
+
+    private static void restoreStoredCustomName(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return;
+        CompoundTag root = stack.getTag();
+        if (root == null) return;
+        if (!root.contains(TierifyConstants.NBT_SUBTAG_EXTRA_KEY, Tag.TAG_COMPOUND)) return;
+
+        CompoundTag extra = root.getCompound(TierifyConstants.NBT_SUBTAG_EXTRA_KEY);
+        if (!extra.contains(STORED_CUSTOM_NAME_KEY, Tag.TAG_STRING)) return;
+
+        CompoundTag display = stack.getOrCreateTagElement("display");
+        if (!display.contains("Name", Tag.TAG_STRING)) {
+            display.putString("Name", extra.getString(STORED_CUSTOM_NAME_KEY));
+        }
+
+        extra.remove(STORED_CUSTOM_NAME_KEY);
+        if (extra.isEmpty()) {
+            root.remove(TierifyConstants.NBT_SUBTAG_EXTRA_KEY);
+        } else {
+            root.put(TierifyConstants.NBT_SUBTAG_EXTRA_KEY, extra);
+        }
     }
 
     private static void sendSync(ServerPlayer player,
@@ -437,6 +596,7 @@ public final class ForgeTieredAttributeSubscriber {
             }
 
             stack.removeTagKey(TierifyConstants.NBT_SUBTAG_KEY);
+            restoreStoredCustomName(stack);
         }
 
         public boolean applyTier(ItemStack stack, ResourceLocation tierId, boolean perfect) {

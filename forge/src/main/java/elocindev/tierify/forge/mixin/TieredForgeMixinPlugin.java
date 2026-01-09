@@ -27,6 +27,9 @@ public class TieredForgeMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.equals("elocindev.tierify.forge.mixin.compat.SkillInfoScreenMixin")) {
             return isModLoaded("levelz");
         }
+        if (mixinClassName.startsWith("elocindev.tierify.forge.mixin.compat.ObscureApi")) {
+            return isModLoaded("obscure_api");
+        }
         return true;
     }
 

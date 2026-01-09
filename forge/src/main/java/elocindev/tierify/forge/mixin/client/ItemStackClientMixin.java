@@ -7,6 +7,7 @@ import elocindev.tierify.forge.config.ForgeTierifyConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -70,6 +71,19 @@ public abstract class ItemStackClientMixin {
         MutableComponent animated = TierGradientAnimatorForge.animate(label, tierIdx);
 
         Component baseName = cir.getReturnValue();
+        CompoundTag extra = self.getTagElement(TierifyConstants.NBT_SUBTAG_EXTRA_KEY);
+        if (extra != null && extra.contains("StoredCustomName", Tag.TAG_STRING)) {
+            String json = extra.getString("StoredCustomName");
+            if (json != null && !json.isEmpty()) {
+                try {
+                    Component parsed = Component.Serializer.fromJson(json);
+                    if (parsed != null) {
+                        baseName = parsed;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
 
         // Prefix: "<animated label> <vanilla name>"
         MutableComponent out = Component.empty()

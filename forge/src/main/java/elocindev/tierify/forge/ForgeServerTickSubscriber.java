@@ -23,7 +23,7 @@ public final class ForgeServerTickSubscriber {
                 server.getPlayerList().getPlayers(),
                 ForgeTierifyConfig::enableArmorSetBonuses,
                 SetBonusLogic::updatePlayerSetBonus,
-                SetBonusLogic::removeSetBonus
+                SetBonusLogic::updatePlayerSetBonus
         );
     }
 }

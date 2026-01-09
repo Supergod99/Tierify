@@ -211,6 +211,8 @@ public class ReforgeMenu extends AbstractContainerMenu {
         }
         if (chosen == null) return;
 
+        ForgeTieredAttributeSubscriber.stashCustomNameForReforge(target);
+
         boolean isPerfect = sp.getRandom().nextDouble() < ForgeTierifyConfig.perfectRollChance();
         ForgeTieredAttributeSubscriber.applyTier(target, chosen, isPerfect);
         ResourceLocation chosenFinal = chosen;

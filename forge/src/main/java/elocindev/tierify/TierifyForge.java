@@ -1,6 +1,7 @@
 package elocindev.tierify;
 
 import elocindev.tierify.forge.config.ForgeTierifyConfig;
+import elocindev.tierify.forge.config.EntityLootDropProfiles;
 import elocindev.tierify.forge.loot.TierifyLootModifier;
 import elocindev.tierify.forge.network.ForgeNetwork;
 import elocindev.tierify.forge.registry.ForgeAttributeRegistry;
@@ -14,6 +15,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.common.loot.IGlobalLootModifier;
 import net.minecraftforge.registries.DeferredRegister;
@@ -44,6 +46,21 @@ public final class TierifyForge {
         LOOT_MODIFIERS.register(modBus);
 
         ForgeNetwork.init();
+
+        modBus.addListener(TierifyForge::onConfigLoad);
+        modBus.addListener(TierifyForge::onConfigReload);
+    }
+
+    private static void onConfigLoad(ModConfigEvent.Loading event) {
+        if (event.getConfig().getSpec() == ForgeTierifyConfig.SPEC) {
+            EntityLootDropProfiles.reload();
+        }
+    }
+
+    private static void onConfigReload(ModConfigEvent.Reloading event) {
+        if (event.getConfig().getSpec() == ForgeTierifyConfig.SPEC) {
+            EntityLootDropProfiles.reload();
+        }
     }
 }
 
