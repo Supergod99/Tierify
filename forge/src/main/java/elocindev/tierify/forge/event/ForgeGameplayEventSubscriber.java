@@ -47,10 +47,12 @@ public final class ForgeGameplayEventSubscriber {
         Mob mob = event.getEntity();
         if (mob == null || mob.level().isClientSide()) return;
 
+        var dimensionId = mob.level().dimension().location();
+
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             ItemStack stack = mob.getItemBySlot(slot);
             if (stack.isEmpty()) continue;
-            ForgeTieredAttributeSubscriber.applyRandomTierIfAbsent(stack);
+            ForgeTieredAttributeSubscriber.applyTierFromEntityWeights(stack, dimensionId, mob.getRandom());
         }
     }
 

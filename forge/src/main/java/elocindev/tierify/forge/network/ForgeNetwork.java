@@ -5,6 +5,7 @@ import elocindev.tierify.forge.network.c2s.OpenAnvilFromReforgeC2S;
 import elocindev.tierify.forge.network.c2s.OpenReforgeFromAnvilC2S;
 import elocindev.tierify.forge.network.c2s.TryReforgeC2S;
 import elocindev.tierify.forge.network.s2c.AttributeSyncS2C;
+import elocindev.tierify.forge.network.s2c.ConfigSyncS2C;
 import elocindev.tierify.forge.network.s2c.ReforgeItemsSyncS2C;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkDirection;
@@ -49,6 +50,12 @@ public final class ForgeNetwork {
                 .encoder(ReforgeItemsSyncS2C::encode)
                 .decoder(ReforgeItemsSyncS2C::decode)
                 .consumerMainThread(ReforgeItemsSyncS2C::handle)
+                .add();
+
+        CHANNEL.messageBuilder(ConfigSyncS2C.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ConfigSyncS2C::encode)
+                .decoder(ConfigSyncS2C::decode)
+                .consumerMainThread(ConfigSyncS2C::handle)
                 .add();
     }
 

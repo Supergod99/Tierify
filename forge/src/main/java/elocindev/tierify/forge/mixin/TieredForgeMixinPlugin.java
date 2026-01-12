@@ -30,6 +30,16 @@ public class TieredForgeMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.startsWith("elocindev.tierify.forge.mixin.compat.ObscureApi")) {
             return isModLoaded("obscure_api");
         }
+        if (mixinClassName.equals("elocindev.tierify.forge.mixin.compat.ArmageddonTreasureBagProceduresMixin")
+                || mixinClassName.equals("elocindev.tierify.forge.mixin.compat.ArmageddonTreasureBagEntityProceduresMixin")) {
+            return isModLoaded("armageddon_mod");
+        }
+        if (mixinClassName.equals("elocindev.tierify.forge.mixin.compat.CuriosBrutalityUuidSaltMixin")) {
+            return isModLoaded("curios");
+        }
+        if (mixinClassName.equals("elocindev.tierify.forge.mixin.compat.LethalityScalingFixMixin")) {
+            return isModLoaded("brutality") || isModLoaded("attributeslib") || isModLoaded("apothic_attributes");
+        }
         return true;
     }
 

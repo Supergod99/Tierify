@@ -15,7 +15,7 @@ import net.minecraft.network.chat.Style;
 public final class PerfectLabelAnimatorForge {
     private PerfectLabelAnimatorForge() {}
 
-    private static final String WORD = "\u30d0_Perfect\u30d0_";
+    private static final String WORD = "\u272fPerfect\u272f";
 
     private static final float TOTAL_PERIOD_MS = 8000.0f;
 

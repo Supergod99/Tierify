@@ -1,54 +1,58 @@
-### This Fork comes with these changes: ###
+# Echelon
 
-**1. Adds in over a hundred reforges, each with a downside, and a custom name for each modifier + tier combination**
-
-**2. Adds 3 more tiers for a total of 6 reforge tiers, which gates each tier to a specific reforge item**
-
-**3. Allows custom modifier names to have spaces or formatting codes in lang**
-
-**4. Adds a "perfect roll" mechanic with a 1% chance, in which a modifier will roll with no downside. It will add "perfect" label below the item and have a unique border**
-
-**5. Adds new, animated gradients to all modifiers, each color representing a different tier**
-
-**6. Adds a "Cleansing Stone" that can remove any reforge**
-
-**7. Changed textures of Pyrite, Limestone, Galena to not infringe on ElocinDev's amazing work.**
-
-The current config has each tier by itself, meaning you will only roll that specific tier. For example, limestone will only ever roll common.
-
-# Tierify
-
-**Tierify** is a flavor of **Tiered** made with the purpose of fitting my own personal vision, and to fix some issues it had. It is a fork of **TieredZ** by **Globox_Z**, which is an MIT licensed **Tiered** fork.
-
-The original mod, Tiered, is inspired by [Quality Tools](https://www.curseforge.com/minecraft/mc-mods/quality-tools). Every tool you make will have a special modifier, as seen below:
-
-<img src="resources/legendary_chestplate.png" width="400">
+**Echelon** is a fork of **Tierify**, by ElocinDev (MIT LICENSED), made originally for Linggango. This mod adds in unique features, mechanics, custom animated gradients, and more. This is my first project, so expect bugs and other inconstistencies. I will try my best to fix them all!
 
 ### Differences
-Tierify expands upon Tiered by changing various things, but keeps its mod id and API packages the same, to make it compatible with preexisting addons.
+Echelon expands upon Tierify's existing system with the following changes
 
-- **Mythic Quality**
-  
-  The "Unique" quality was replaced with a red-themed Mythic quality.
-- **Plates**
-  
-  Qualities may now be displayed with plates, this is a clientside feature and is configurable, comes enabled by default.
+- **Reforges**
+  All reforges now come with an upside and downside, regardles of tier. Each progressive tier increases both said upside and downside, effectively allowing players to specialize into their own ideal build.
+    Ex. A common tier reforge on armor grants:
+      +0.5 Armor, -3% Speed
+    At mythic tier, this reforge would grant:
+      +5 Armor, -8% Speed
+
+  A total of over 100 reforges have been added if you play with all the optional dependencies!
+
+  **Perfect Mechanic**
+  Some of the reforge downsides can really scale up hard, especially at the apex tiers. This is why a new mechanic has been added, the *Perfect Roll*. Everytime an item is reforged, it has a base 2% chance (configurable) to roll as "Perfect" - and you will notice the downside of the item has been removed, as well as a perfect label appended beneath the item and a custom border. 
+
+  **Modifier Names**
+  Instead of the basic "Common" all the way up to "Mythic" names prepended to the item name, each modifier and tier combination now has its very own modifier name, with a custom animated gradient. Each of the 6 reforging tiers each has their own unique gradient, making the reforges feel more alive and exciting.
+
+  **Cleansing Stone**
+  In order to remove a tier from an item, a new craftable item called a Cleansing Stone has been added. To use this new item, put it into the reforge material slot of the reforge screen. Add in the repair material and the item you would like to have untiered, and click the reforge button. 
   
 - **Reforging Tiers**
-  Reforging doesn't require Amethyst anymore, now instead it uses 3 new ores obtainable
+  Reforging has gotten an additional 3 new materials, and each can only roll their respective tier.
   - **Tier 1:** Limestone (Overworld)
-    Allows reforging tools to Common, Uncommon and Rare qualities.
-  - **Tier 2:** Pyrite (Nether)
-    Allows reforging tools to Uncommon, Rare, Epic and Legendary qualities.
-  - **Tier 3:** Galena (End)
-    Allows reforging tools to Rare, Epic, Legendary and Mythic qualities.
+    Allows reforging tools to Common Tier
+  - **Tier 2:** Pyrite (Overworld)
+    Allows reforging tools to Uncommon Tier
+  - **Tier 3:** Galena (Nether)
+    Allows reforging tools to Rare Tier
+  - **Tier 4:** Charoite (Nether)
+    Allows reforging tools to Epic Tier
+  - **Tier 5:** Crown Topaz (End)
+    Allows reforging tools to Legendary Tier
+  - **Tier 6:** Painite (End)
+    Allows reforging tools to Mythic Tier
+
+- **Profile-driven drop reforging**
+  Entity loot-table drops, entity equipment drops, and Armageddon treasure bags can be gated by profile files in the config folder. `entityLootDropProfilesFile` and `treasureBagProfilesFile` accept lines like `modid:entity=0.50|1,3,5,3,1,0` or presets `overworld|nether|end|global`, plus wildcards `*` or `modid:*` for defaults.
+
+- **Dimension-specific tier weights**
+  Tier roll weights can be tuned per dimension with `useDimensionTierWeights` (Overworld/Nether/End weights) and optional `moddedDimensionTierWeightOverrides` entries like `modid:dimension=500,125,20,6,3,1`. When `dimensionTierWeightsZeroMeansNoModifier` is true, all-zero weights disable rolls in that dimension.
+
+- **Extended roll tuning**
+  Additional config switches control loot-container rolls (`lootContainerModifier` + `lootContainerModifierChance`), crafting/merchant rolls, perfect roll chance, and whether damaged items can be reforged (`allowReforgingDamaged`). Reforge weight scaling can be adjusted with the reforge, LevelZ, and luck modifiers.
 
 ### Installation
-Tierify is a mod built for the [Fabric Loader](https://fabricmc.net/). It requires [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api) & [Necronomicon API](https://www.curseforge.com/minecraft/mc-mods/necronomicon) (and [Synitra Connector](https://www.curseforge.com/minecraft/mc-mods/sinytra-connector) if on Forge/NeoForge) to be installed separately; all other dependencies are included inside the mod.
+Echelon is a Forge mod for Minecraft 1.20.1. It requires Forge 47.4.10+ and AttributesLib (Apothic Attributes). Optional compat is detected at runtime for mods like Tooltip Overhaul, Obscure API, Curios, Armageddon Mod, Brutality, and others.
 
-### Customization
+### Customizations
 
-Tierify is entirely data-driven, which means you can add, modify, and remove modifiers as you see fit. The base path for modifiers is `data/modid/item_attributes`, and tiered modifiers are stored under the modid of tiered. Here's an example modifier called "Hasteful," which grants additional dig speed when any of the valid tools are held:
+Echelon is entirely data-driven, which means you can add, modify, and remove modifiers as you see fit. The base path for modifiers is `data/modid/item_attributes`, and tiered modifiers are stored under the modid of tiered. Here's an example modifier called "Hasteful," which grants additional dig speed when any of the valid tools are held:
 ```json
 {
   "id": "tiered:hasteful",
@@ -85,9 +89,9 @@ Tierify is entirely data-driven, which means you can add, modify, and remove mod
 
 #### Attributes
 
-Tiered currently provides 3 custom attributes: Dig Speed, Crit chance and Durability. Dig Speed increases the speed of your block breaking (think: haste), Crit Chance offers an additional random chance to crit when using a tool and Durability increases, who would have thought it, the durability of an item.
+Echelon adds in one more custom attribute that can be utilized on top of the three tiered currently provides: Dig Speed, Crit chance, Durability, and our very own Fortune. Dig Speed increases the speed of your block breaking (think: haste), Crit Chance offers an additional random chance to crit when using a tool and Durability increases, who would have thought it, the durability of an item. Fortune is identical to vanilla fortune, but can be utilized on modifiers now.
 
-Types: `generic.armor`, `generic.armor_toughness`, `generic.dig_speed`, `tiered:generic.durable`, `generic.max_health`, `generic.movement_speed`, `reach-entity-attributes:reach`, `generic.luck`, `generic.attack_damage`, `tiered:generic.crit_chance`, `reach-entity-attributes:attack_range`, `tiered:generic.range_attack_damage`
+Types: `generic.armor`, `generic.armor_toughness`, `generic.dig_speed`, `tiered:generic.durable`, `generic.max_health`, `generic.movement_speed`, `reach-entity-attributes:reach`, `generic.luck`, `generic.attack_damage`, `tiered:generic.crit_chance`, `reach-entity-attributes:attack_range`, `tiered:generic.range_attack_damage`,`tiered:generic.fortune`
 
 #### Verifiers
 
@@ -103,8 +107,7 @@ and a tag can be specified with:
 "tag": "c:helmets"
 ```
 
-Tiered doesn't provide tags but [AutoTag](https://github.com/apace100/autotag) (which is included in this mod) generates several tags which can be found on the repo [README](https://github.com/apace100/autotag#readme).
-Example tags which AutoTag provides: `c:tools`, `c:pickaxes`, `c:axes`, `c:shovels`,`c:hoes`, `c:swords`, `c:armor`, `c:helmets`, `c:chestplates`, `c:leggings`, `c:boots` and several more.
+Tiered doesn't provide tags, so define your own with datapacks or Forge tag conventions. This repo already targets common `c:` and `forge:` tags (ex: `c:tools`, `c:pickaxes`, `forge:tools/swords`, `forge:armor/boots`) and you can extend them as needed.
 
 #### Weight
 
@@ -151,7 +154,7 @@ Example:
 #### Reforge
 
 Reforging items to get other tiers can be done at the anvil. There is a slot which is called "base" on the left and a slot called "addition" on the right.
-The addition slot can only contain items which are stated in each tier item tag (`tiered:reforge_tier_1`, `tiered:reforge_tier_2`, `tiered:reforge_tier_3`). The base slot can contain the reforging item material item if existent, otherwise it can only contain `tiered:reforge_base_item` tag items. The base slot item can get changed via datapack, an example can be found below and has to get put in the `tiered:reforge_items` folder.
+The addition slot can only contain items which are stated in each tier item tag (`tiered:reforge_tier_1`, `tiered:reforge_tier_2`, `tiered:reforge_tier_3`, `tiered:reforge_tier_4`, `tiered:reforge_tier_5`, `tiered:reforge_tier_6`). The base slot can contain the reforging item material item if existent, otherwise it can only contain `tiered:reforge_base_item` tag items. The base slot item can get changed via datapack, an example can be found below and has to get put in the `tiered:reforge_items` folder.
 
 ```json
 {
@@ -167,7 +170,8 @@ The addition slot can only contain items which are stated in each tier item tag 
 ### Credits
 - **Draylar1** for making **Tiered**, the original mod.
 - **Globox_Z** for making **TieredZ**, a fork of Tiered which Tierify is based upon.
+- **ElocinDev** for making **Tierify**, which is based off of Echelon, now a fork of a fork. 
 
 ### License
-Tierify's code is licensed under MIT. You are free to use the code inside this repo as you want as long as you meet the license's conditions.
-Newer assets (Such as Limestone, Pyrite and Galena ores) are All Rights Reserved, and you may not use them without explicit permission.
+Echelon's code is licensed under MIT. You are free to use the code inside this repo as you want as long as you meet the license's conditions.
+Newer assets (Such as Limestone, Pyrite, Galena, Charoite, Crown Topaz, Painite, Cleansing Stone) are All Rights Reserved, and you may not use them without explicit permission.

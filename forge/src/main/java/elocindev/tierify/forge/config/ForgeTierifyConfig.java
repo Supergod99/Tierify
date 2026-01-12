@@ -71,6 +71,68 @@ public final class ForgeTierifyConfig {
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> TIER_5_QUALITIES;
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> TIER_6_QUALITIES;
 
+    public record SyncedConfig(
+            boolean enableArmorSetBonuses,
+            float armorSetBonusMultiplier,
+            float armorSetPerfectBonusPercent,
+            double perfectRollChance,
+            boolean allowReforgingDamaged,
+            boolean lootContainerModifier,
+            float lootContainerModifierChance,
+            boolean treasureBagDropModifier,
+            String treasureBagProfilesFile,
+            boolean entityItemModifier,
+            boolean entityLootDropModifier,
+            String entityLootDropProfilesFile,
+            boolean entityEquipmentDropModifier,
+            int entityTier1Weight,
+            int entityTier2Weight,
+            int entityTier3Weight,
+            int entityTier4Weight,
+            int entityTier5Weight,
+            int entityTier6Weight,
+            boolean useDimensionTierWeights,
+            boolean dimensionTierWeightsZeroMeansNoModifier,
+            int overworldTier1Weight,
+            int overworldTier2Weight,
+            int overworldTier3Weight,
+            int overworldTier4Weight,
+            int overworldTier5Weight,
+            int overworldTier6Weight,
+            int netherTier1Weight,
+            int netherTier2Weight,
+            int netherTier3Weight,
+            int netherTier4Weight,
+            int netherTier5Weight,
+            int netherTier6Weight,
+            int endTier1Weight,
+            int endTier2Weight,
+            int endTier3Weight,
+            int endTier4Weight,
+            int endTier5Weight,
+            int endTier6Weight,
+            List<String> moddedDimensionTierWeightOverrides,
+            boolean craftingModifier,
+            boolean merchantModifier,
+            float reforgeModifier,
+            float levelzReforgeModifier,
+            float luckReforgeModifier,
+            boolean showReforgingTab,
+            int xIconPosition,
+            int yIconPosition,
+            boolean tieredTooltip,
+            boolean showPlatesOnName,
+            boolean centerName,
+            List<String> tier1Qualities,
+            List<String> tier2Qualities,
+            List<String> tier3Qualities,
+            List<String> tier4Qualities,
+            List<String> tier5Qualities,
+            List<String> tier6Qualities
+    ) {}
+
+    private static volatile SyncedConfig syncedConfig;
+
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
@@ -262,212 +324,352 @@ public final class ForgeTierifyConfig {
 
     private ForgeTierifyConfig() {}
 
+    public static void applySyncedConfig(SyncedConfig config) {
+        syncedConfig = config;
+    }
+
+    public static SyncedConfig snapshot() {
+        List<? extends String> moddedOverrides = MODDED_DIMENSION_TIER_WEIGHT_OVERRIDES.get();
+        List<? extends String> tier1 = TIER_1_QUALITIES.get();
+        List<? extends String> tier2 = TIER_2_QUALITIES.get();
+        List<? extends String> tier3 = TIER_3_QUALITIES.get();
+        List<? extends String> tier4 = TIER_4_QUALITIES.get();
+        List<? extends String> tier5 = TIER_5_QUALITIES.get();
+        List<? extends String> tier6 = TIER_6_QUALITIES.get();
+
+        return new SyncedConfig(
+                ENABLE_ARMOR_SET_BONUSES.get(),
+                ARMOR_SET_BONUS_MULTIPLIER.get().floatValue(),
+                ARMOR_SET_PERFECT_BONUS_PERCENT.get().floatValue(),
+                PERFECT_ROLL_CHANCE.get(),
+                ALLOW_REFORGING_DAMAGED.get(),
+                LOOT_CONTAINER_MODIFIER.get(),
+                LOOT_CONTAINER_MODIFIER_CHANCE.get().floatValue(),
+                TREASURE_BAG_DROP_MODIFIER.get(),
+                TREASURE_BAG_PROFILES_FILE.get(),
+                ENTITY_ITEM_MODIFIER.get(),
+                ENTITY_LOOT_DROP_MODIFIER.get(),
+                ENTITY_LOOT_DROP_PROFILES_FILE.get(),
+                ENTITY_EQUIPMENT_DROP_MODIFIER.get(),
+                ENTITY_TIER1_WEIGHT.get(),
+                ENTITY_TIER2_WEIGHT.get(),
+                ENTITY_TIER3_WEIGHT.get(),
+                ENTITY_TIER4_WEIGHT.get(),
+                ENTITY_TIER5_WEIGHT.get(),
+                ENTITY_TIER6_WEIGHT.get(),
+                USE_DIMENSION_TIER_WEIGHTS.get(),
+                DIMENSION_TIER_WEIGHTS_ZERO_MEANS_NO_MODIFIER.get(),
+                OVERWORLD_TIER1_WEIGHT.get(),
+                OVERWORLD_TIER2_WEIGHT.get(),
+                OVERWORLD_TIER3_WEIGHT.get(),
+                OVERWORLD_TIER4_WEIGHT.get(),
+                OVERWORLD_TIER5_WEIGHT.get(),
+                OVERWORLD_TIER6_WEIGHT.get(),
+                NETHER_TIER1_WEIGHT.get(),
+                NETHER_TIER2_WEIGHT.get(),
+                NETHER_TIER3_WEIGHT.get(),
+                NETHER_TIER4_WEIGHT.get(),
+                NETHER_TIER5_WEIGHT.get(),
+                NETHER_TIER6_WEIGHT.get(),
+                END_TIER1_WEIGHT.get(),
+                END_TIER2_WEIGHT.get(),
+                END_TIER3_WEIGHT.get(),
+                END_TIER4_WEIGHT.get(),
+                END_TIER5_WEIGHT.get(),
+                END_TIER6_WEIGHT.get(),
+                moddedOverrides == null ? List.of() : List.copyOf(moddedOverrides),
+                CRAFTING_MODIFIER.get(),
+                MERCHANT_MODIFIER.get(),
+                REFORGE_MODIFIER.get().floatValue(),
+                LEVELZ_REFORGE_MODIFIER.get().floatValue(),
+                LUCK_REFORGE_MODIFIER.get().floatValue(),
+                SHOW_REFORGING_TAB.get(),
+                X_ICON_POSITION.get(),
+                Y_ICON_POSITION.get(),
+                TIERED_TOOLTIP.get(),
+                SHOW_PLATES_ON_NAME.get(),
+                CENTER_NAME.get(),
+                tier1 == null ? List.of() : List.copyOf(tier1),
+                tier2 == null ? List.of() : List.copyOf(tier2),
+                tier3 == null ? List.of() : List.copyOf(tier3),
+                tier4 == null ? List.of() : List.copyOf(tier4),
+                tier5 == null ? List.of() : List.copyOf(tier5),
+                tier6 == null ? List.of() : List.copyOf(tier6)
+        );
+    }
+
     public static boolean enableArmorSetBonuses() {
-        return ENABLE_ARMOR_SET_BONUSES.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.enableArmorSetBonuses() : ENABLE_ARMOR_SET_BONUSES.get();
     }
 
     public static float armorSetBonusMultiplier() {
-        return ARMOR_SET_BONUS_MULTIPLIER.get().floatValue();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.armorSetBonusMultiplier() : ARMOR_SET_BONUS_MULTIPLIER.get().floatValue();
     }
 
     public static float armorSetPerfectBonusPercent() {
-        return ARMOR_SET_PERFECT_BONUS_PERCENT.get().floatValue();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.armorSetPerfectBonusPercent() : ARMOR_SET_PERFECT_BONUS_PERCENT.get().floatValue();
     }
 
     public static double perfectRollChance() {
-        return PERFECT_ROLL_CHANCE.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.perfectRollChance() : PERFECT_ROLL_CHANCE.get();
     }
 
     public static boolean allowReforgingDamaged() {
-        return ALLOW_REFORGING_DAMAGED.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.allowReforgingDamaged() : ALLOW_REFORGING_DAMAGED.get();
     }
 
     public static boolean lootContainerModifier() {
-        return LOOT_CONTAINER_MODIFIER.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.lootContainerModifier() : LOOT_CONTAINER_MODIFIER.get();
     }
 
     public static float lootContainerModifierChance() {
-        return LOOT_CONTAINER_MODIFIER_CHANCE.get().floatValue();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.lootContainerModifierChance() : LOOT_CONTAINER_MODIFIER_CHANCE.get().floatValue();
     }
 
     public static boolean treasureBagDropModifier() {
-        return TREASURE_BAG_DROP_MODIFIER.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.treasureBagDropModifier() : TREASURE_BAG_DROP_MODIFIER.get();
     }
 
     public static String treasureBagProfilesFile() {
-        return TREASURE_BAG_PROFILES_FILE.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.treasureBagProfilesFile() : TREASURE_BAG_PROFILES_FILE.get();
     }
 
     public static boolean entityItemModifier() {
-        return ENTITY_ITEM_MODIFIER.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.entityItemModifier() : ENTITY_ITEM_MODIFIER.get();
     }
 
     public static boolean entityLootDropModifier() {
-        return ENTITY_LOOT_DROP_MODIFIER.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.entityLootDropModifier() : ENTITY_LOOT_DROP_MODIFIER.get();
     }
 
     public static String entityLootDropProfilesFile() {
-        return ENTITY_LOOT_DROP_PROFILES_FILE.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.entityLootDropProfilesFile() : ENTITY_LOOT_DROP_PROFILES_FILE.get();
     }
 
     public static boolean entityEquipmentDropModifier() {
-        return ENTITY_EQUIPMENT_DROP_MODIFIER.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.entityEquipmentDropModifier() : ENTITY_EQUIPMENT_DROP_MODIFIER.get();
     }
 
     public static int entityTier1Weight() {
-        return ENTITY_TIER1_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.entityTier1Weight() : ENTITY_TIER1_WEIGHT.get();
     }
 
     public static int entityTier2Weight() {
-        return ENTITY_TIER2_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.entityTier2Weight() : ENTITY_TIER2_WEIGHT.get();
     }
 
     public static int entityTier3Weight() {
-        return ENTITY_TIER3_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.entityTier3Weight() : ENTITY_TIER3_WEIGHT.get();
     }
 
     public static int entityTier4Weight() {
-        return ENTITY_TIER4_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.entityTier4Weight() : ENTITY_TIER4_WEIGHT.get();
     }
 
     public static int entityTier5Weight() {
-        return ENTITY_TIER5_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.entityTier5Weight() : ENTITY_TIER5_WEIGHT.get();
     }
 
     public static int entityTier6Weight() {
-        return ENTITY_TIER6_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.entityTier6Weight() : ENTITY_TIER6_WEIGHT.get();
     }
 
     public static boolean useDimensionTierWeights() {
-        return USE_DIMENSION_TIER_WEIGHTS.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.useDimensionTierWeights() : USE_DIMENSION_TIER_WEIGHTS.get();
     }
 
     public static boolean dimensionTierWeightsZeroMeansNoModifier() {
-        return DIMENSION_TIER_WEIGHTS_ZERO_MEANS_NO_MODIFIER.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.dimensionTierWeightsZeroMeansNoModifier() : DIMENSION_TIER_WEIGHTS_ZERO_MEANS_NO_MODIFIER.get();
     }
 
     public static int overworldTier1Weight() {
-        return OVERWORLD_TIER1_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.overworldTier1Weight() : OVERWORLD_TIER1_WEIGHT.get();
     }
 
     public static int overworldTier2Weight() {
-        return OVERWORLD_TIER2_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.overworldTier2Weight() : OVERWORLD_TIER2_WEIGHT.get();
     }
 
     public static int overworldTier3Weight() {
-        return OVERWORLD_TIER3_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.overworldTier3Weight() : OVERWORLD_TIER3_WEIGHT.get();
     }
 
     public static int overworldTier4Weight() {
-        return OVERWORLD_TIER4_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.overworldTier4Weight() : OVERWORLD_TIER4_WEIGHT.get();
     }
 
     public static int overworldTier5Weight() {
-        return OVERWORLD_TIER5_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.overworldTier5Weight() : OVERWORLD_TIER5_WEIGHT.get();
     }
 
     public static int overworldTier6Weight() {
-        return OVERWORLD_TIER6_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.overworldTier6Weight() : OVERWORLD_TIER6_WEIGHT.get();
     }
 
     public static int netherTier1Weight() {
-        return NETHER_TIER1_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.netherTier1Weight() : NETHER_TIER1_WEIGHT.get();
     }
 
     public static int netherTier2Weight() {
-        return NETHER_TIER2_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.netherTier2Weight() : NETHER_TIER2_WEIGHT.get();
     }
 
     public static int netherTier3Weight() {
-        return NETHER_TIER3_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.netherTier3Weight() : NETHER_TIER3_WEIGHT.get();
     }
 
     public static int netherTier4Weight() {
-        return NETHER_TIER4_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.netherTier4Weight() : NETHER_TIER4_WEIGHT.get();
     }
 
     public static int netherTier5Weight() {
-        return NETHER_TIER5_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.netherTier5Weight() : NETHER_TIER5_WEIGHT.get();
     }
 
     public static int netherTier6Weight() {
-        return NETHER_TIER6_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.netherTier6Weight() : NETHER_TIER6_WEIGHT.get();
     }
 
     public static int endTier1Weight() {
-        return END_TIER1_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.endTier1Weight() : END_TIER1_WEIGHT.get();
     }
 
     public static int endTier2Weight() {
-        return END_TIER2_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.endTier2Weight() : END_TIER2_WEIGHT.get();
     }
 
     public static int endTier3Weight() {
-        return END_TIER3_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.endTier3Weight() : END_TIER3_WEIGHT.get();
     }
 
     public static int endTier4Weight() {
-        return END_TIER4_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.endTier4Weight() : END_TIER4_WEIGHT.get();
     }
 
     public static int endTier5Weight() {
-        return END_TIER5_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.endTier5Weight() : END_TIER5_WEIGHT.get();
     }
 
     public static int endTier6Weight() {
-        return END_TIER6_WEIGHT.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.endTier6Weight() : END_TIER6_WEIGHT.get();
     }
 
     public static List<String> moddedDimensionTierWeightOverrides() {
+        SyncedConfig sc = syncedConfig;
+        if (sc != null) {
+            return sc.moddedDimensionTierWeightOverrides();
+        }
         List<? extends String> list = MODDED_DIMENSION_TIER_WEIGHT_OVERRIDES.get();
         return list == null ? List.of() : List.copyOf(list);
     }
 
     public static boolean craftingModifier() {
-        return CRAFTING_MODIFIER.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.craftingModifier() : CRAFTING_MODIFIER.get();
     }
 
     public static boolean merchantModifier() {
-        return MERCHANT_MODIFIER.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.merchantModifier() : MERCHANT_MODIFIER.get();
     }
 
     public static float reforgeModifier() {
-        return REFORGE_MODIFIER.get().floatValue();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.reforgeModifier() : REFORGE_MODIFIER.get().floatValue();
     }
 
     public static float levelzReforgeModifier() {
-        return LEVELZ_REFORGE_MODIFIER.get().floatValue();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.levelzReforgeModifier() : LEVELZ_REFORGE_MODIFIER.get().floatValue();
     }
 
     public static float luckReforgeModifier() {
-        return LUCK_REFORGE_MODIFIER.get().floatValue();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.luckReforgeModifier() : LUCK_REFORGE_MODIFIER.get().floatValue();
     }
 
     public static boolean showReforgingTab() {
-        return SHOW_REFORGING_TAB.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.showReforgingTab() : SHOW_REFORGING_TAB.get();
     }
 
     public static int xIconPosition() {
-        return X_ICON_POSITION.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.xIconPosition() : X_ICON_POSITION.get();
     }
 
     public static int yIconPosition() {
-        return Y_ICON_POSITION.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.yIconPosition() : Y_ICON_POSITION.get();
     }
 
     public static boolean tieredTooltip() {
-        return TIERED_TOOLTIP.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.tieredTooltip() : TIERED_TOOLTIP.get();
     }
 
     public static boolean showPlatesOnName() {
-        return SHOW_PLATES_ON_NAME.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.showPlatesOnName() : SHOW_PLATES_ON_NAME.get();
     }
 
     public static boolean centerName() {
-        return CENTER_NAME.get();
+        SyncedConfig sc = syncedConfig;
+        return sc != null ? sc.centerName() : CENTER_NAME.get();
     }
 
     public static List<String> getTierQualities(int tier) {
+        SyncedConfig sc = syncedConfig;
+        if (sc != null) {
+            return switch (tier) {
+                case 1 -> sc.tier1Qualities();
+                case 2 -> sc.tier2Qualities();
+                case 3 -> sc.tier3Qualities();
+                case 4 -> sc.tier4Qualities();
+                case 5 -> sc.tier5Qualities();
+                case 6 -> sc.tier6Qualities();
+                default -> List.of();
+            };
+        }
         List<? extends String> list = switch (tier) {
             case 1 -> TIER_1_QUALITIES.get();
             case 2 -> TIER_2_QUALITIES.get();

@@ -4,12 +4,15 @@ import elocindev.tierify.TierifyConstants;
 import elocindev.tierify.forge.client.PerfectLabelAnimatorForge;
 import elocindev.tierify.forge.client.TierifyTooltipBorderRendererForge;
 import elocindev.tierify.forge.config.ForgeTierifyConfig;
+import elocindev.tierify.forge.item.ReforgeAddition;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
@@ -152,13 +155,26 @@ public final class TooltipOverhaulCompatForge {
         if (stack == null || stack.isEmpty()) return;
 
         CompoundTag tiered = stack.getTagElement(TierifyConstants.NBT_SUBTAG_KEY);
-        if (tiered == null) return;
+        String tierId = null;
+        boolean isPerfect = false;
+        boolean hasTieredTag = false;
+        String lookupKey;
 
-        String tierId = tiered.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY);
-        boolean isPerfect = tiered.getBoolean("Perfect");
-        if ((tierId == null || tierId.isEmpty()) && !isPerfect) return;
+        if (tiered != null && tiered.contains(TierifyConstants.NBT_SUBTAG_DATA_KEY)) {
+            tierId = tiered.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY);
+            isPerfect = tiered.getBoolean("Perfect");
+            if ((tierId == null || tierId.isEmpty()) && !isPerfect) return;
+            lookupKey = isPerfect ? "tiered:perfect" : tierId;
+            hasTieredTag = true;
+        } else if (stack.getItem() instanceof ReforgeAddition) {
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+            if (id == null) return;
+            lookupKey = id.toString();
+        } else {
+            return;
+        }
 
-        TierifyTooltipBorderRendererForge.Template template = TierifyTooltipBorderRendererForge.findTemplate(tierId, isPerfect);
+        TierifyTooltipBorderRendererForge.Template template = TierifyTooltipBorderRendererForge.findTemplate(lookupKey, isPerfect);
         if (template == null) return;
 
         GuiGraphics gg = getGuiGraphics(ctx);
@@ -176,7 +192,7 @@ public final class TooltipOverhaulCompatForge {
         TierifyTooltipBorderRendererForge.renderOverlay(gg, x, y, width, height, template);
         gg.pose().popPose();
 
-        if (fontObj instanceof Font font) {
+        if (fontObj instanceof Font font && hasTieredTag) {
             renderSetBonusLabel(gg, font, x, y, width, stack, tierId, baseZ);
             if (isPerfect) {
                 renderPerfectLabel(gg, font, x, y, width, baseZ);

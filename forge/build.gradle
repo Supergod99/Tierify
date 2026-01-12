@@ -39,11 +39,22 @@ dependencies {
     minecraft "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
     implementation fg.deobf("curse.maven:placebo-283644:6274231")
     implementation fg.deobf("curse.maven:apothic-attributes-898963:5634071")
+    implementation fg.deobf("curse.maven:lionfishapi-1001614:5922047")
+    implementation fg.deobf("curse.maven:clothapi-348521:5729105")
+    implementation fg.deobf("curse.maven:bettercombat-639842:5625757")
+    implementation fg.deobf("curse.maven:citadel-331936:6702068")
     runtimeOnly fg.deobf("curse.maven:curios-309927:6418456")
     runtimeOnly fg.deobf("curse.maven:armageddon-1110642:7142556")
     runtimeOnly fg.deobf("curse.maven:attributefix-280510:4911084")
     runtimeOnly fg.deobf("curse.maven:geckolib-388172:7025129")
     runtimeOnly fg.deobf("curse.maven:tooltipoverhaul-1327508:7096296")
+    runtimeOnly fg.deobf("curse.maven:obscureAPI-638417:7171906")
+    runtimeOnly fg.deobf("curse.maven:playerAnimator-658587:4587214")
+    runtimeOnly fg.deobf("curse.maven:ironsspells-855414:6970299")
+    runtimeOnly fg.deobf("curse.maven:tosmagic-1046916:7185948")
+    runtimeOnly fg.deobf("curse.maven:cataclysm-551586:6906993")
+    runtimeOnly fg.deobf("curse.maven:alexscaves-924854:5848216")
+    runtimeOnly fg.deobf("curse.maven:caelus-308989:5281700")
     compileOnly "org.joml:joml:1.10.5"
     compileOnly "com.mojang:datafixerupper:6.0.8"
     compileOnly "com.mojang:brigadier:1.2.9"

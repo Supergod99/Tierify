@@ -73,7 +73,7 @@ public class ObscureApiAttributeIconMathMixin {
         double multBase = sums[1];
         double multTotal = sums[2];
 
-        double[] delta = computeSetBonusDelta(icon);
+        double[] delta = computeSetBonusDelta(icon, modifiers);
         if (delta != null) {
             add += delta[0];
             multBase += delta[1];
@@ -130,19 +130,22 @@ public class ObscureApiAttributeIconMathMixin {
 
     @Unique
     private static double readModifierAmount(Object mod) {
-        if (mod instanceof AttributeModifier m) return m.getAmount();
-
         Double v = (Double) invokeFirst(mod, "getValue", "getAmount", "m_22218_");
         return v != null ? v : 0.0;
     }
 
     @Unique
     private static int readModifierOperationOrdinal(Object mod) {
-        if (mod instanceof AttributeModifier m) return m.getOperation().ordinal();
-
         Object op = invokeFirst(mod, "getOperation", "m_22217_", "m_22219_");
         if (op instanceof Enum<?> e) return e.ordinal();
         return 0;
+    }
+
+    @Unique
+    private static boolean isTieredModifier(Object mod) {
+        Object name = invokeFirst(mod, "getName", "m_22220_");
+        if (!(name instanceof String s)) return false;
+        return s.contains("tiered:");
     }
 
     @Unique
@@ -181,8 +184,9 @@ public class ObscureApiAttributeIconMathMixin {
     }
 
     @Unique
-    private static double[] computeSetBonusDelta(String icon) {
+    private static double[] computeSetBonusDelta(String icon, Collection<?> modifiers) {
         if (!ForgeTierifyConfig.enableArmorSetBonuses()) return null;
+        if (modifiers == null || modifiers.isEmpty()) return null;
 
         ItemStack hovered = CURRENT_STACK.get();
         if (hovered == null || hovered.isEmpty()) return null;
@@ -197,48 +201,54 @@ public class ObscureApiAttributeIconMathMixin {
 
         ItemStack equippedSameSlot = player.getItemBySlot(armor.getEquipmentSlot());
         if (equippedSameSlot == null || equippedSameSlot.isEmpty()) return null;
-        if (hovered != equippedSameSlot) return null;
+        if (hovered != equippedSameSlot) {
+            UUID hoveredUuid = getTierUuid(hovered);
+            UUID equippedUuid = getTierUuid(equippedSameSlot);
+            if (hoveredUuid != null && equippedUuid != null) {
+                if (!hoveredUuid.equals(equippedUuid)) return null;
+            } else if (!ItemStack.isSameItemSameTags(hovered, equippedSameSlot)) {
+                return null;
+            }
+        }
         if (!hoveredTier.equals(getTierId(equippedSameSlot))) return null;
 
         if (!hasFullTierSetEquipped(player, hoveredTier)) return null;
 
+        double pct = hasPerfectTierSetEquipped(player, hoveredTier)
+                ? ForgeTierifyConfig.armorSetPerfectBonusPercent()
+                : ForgeTierifyConfig.armorSetBonusMultiplier();
+        if (pct <= 0.0) return null;
+
         ensureIconsResolved();
 
-        String attributeId;
         if (iconEquals(icon, ICON_ARMOR)) {
-            attributeId = "minecraft:generic.armor";
+            // ok
         } else if (iconEquals(icon, ICON_TOUGHNESS)) {
-            attributeId = "minecraft:generic.armor_toughness";
+            // ok
         } else if (iconEquals(icon, ICON_KNOCKBACK)) {
-            attributeId = "minecraft:generic.knockback_resistance";
+            // ok
         } else {
             return null;
         }
-
-        ResourceLocation id = ResourceLocation.tryParse(attributeId);
-        Attribute attr = id != null ? ForgeRegistries.ATTRIBUTES.getValue(id) : null;
-        if (attr == null) return null;
-
-        AttributeInstance inst = player.getAttribute(attr);
-        if (inst == null) return null;
-
-        AttributeModifier bonus = inst.getModifier(TIERIFY_SET_BONUS_ID);
-        if (bonus == null) return null;
-
-        double totalAmount = bonus.getAmount();
-        if (totalAmount <= 0.0) return null;
 
         double add = 0.0;
         double multBase = 0.0;
         double multTotalFactor = 1.0;
 
-        switch (bonus.getOperation()) {
-            case ADDITION -> add += (totalAmount / 4.0);
-            case MULTIPLY_BASE -> multBase += (totalAmount / 4.0);
-            case MULTIPLY_TOTAL -> {
-                double totalFactor = 1.0 + totalAmount;
-                if (totalFactor <= 0.0) return null;
-                multTotalFactor *= Math.pow(totalFactor, 0.25);
+        for (Object mod : modifiers) {
+            if (mod == null) continue;
+            if (!isTieredModifier(mod)) continue;
+
+            double amount = readModifierAmount(mod);
+            if (amount <= 0.0) continue;
+
+            int op = readModifierOperationOrdinal(mod);
+            switch (op) {
+                case 0 -> add += (amount * pct);
+                case 1 -> multBase += (amount * pct);
+                case 2 -> multTotalFactor *= (1.0 + (amount * pct));
+                default -> {
+                }
             }
         }
 
@@ -282,6 +292,14 @@ public class ObscureApiAttributeIconMathMixin {
     }
 
     @Unique
+    private static UUID getTierUuid(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return null;
+        CompoundTag nbt = stack.getTagElement(TierifyConstants.NBT_SUBTAG_KEY);
+        if (nbt == null || !nbt.hasUUID("TierUUID")) return null;
+        return nbt.getUUID("TierUUID");
+    }
+
+    @Unique
     private static boolean hasFullTierSetEquipped(Player player, String targetTier) {
         if (player == null || targetTier == null || targetTier.isEmpty()) return false;
 
@@ -291,5 +309,19 @@ public class ObscureApiAttributeIconMathMixin {
             if (targetTier.equals(getTierId(armorPiece))) matchCount++;
         }
         return matchCount >= 4;
+    }
+
+    @Unique
+    private static boolean hasPerfectTierSetEquipped(Player player, String targetTier) {
+        if (!hasFullTierSetEquipped(player, targetTier)) return false;
+
+        for (ItemStack armorPiece : player.getInventory().armor) {
+            if (armorPiece == null || armorPiece.isEmpty()) return false;
+            CompoundTag nbt = armorPiece.getTagElement(TierifyConstants.NBT_SUBTAG_KEY);
+            if (nbt == null) return false;
+            if (!targetTier.equals(nbt.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY))) return false;
+            if (!nbt.getBoolean("Perfect")) return false;
+        }
+        return true;
     }
 }

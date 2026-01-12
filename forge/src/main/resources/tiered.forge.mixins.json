@@ -12,14 +12,21 @@
     "ItemFrameEntityMixin",
     "ItemCombinerMenuAccessor",
     "ItemStackMixin",
-    "MerchantMenuMixin"
+    "LivingEntityMixin",
+    "MerchantMenuMixin",
+    "compat.ArmageddonTreasureBagProceduresMixin",
+    "compat.ArmageddonTreasureBagEntityProceduresMixin",
+    "compat.CuriosBrutalityUuidSaltMixin",
+    "compat.LethalityScalingFixMixin"
   ],
   "client": [
     "client.ItemStackClientMixin",
     "client.GuiGraphicsTooltipBorderMixin",
+    "client.ForgeHooksClientMixin",
     "client.AbstractContainerScreenAccessor",
     "client.ItemBarMixin",
     "compat.TooltipOverhaulFrameMixin",
+    "compat.TooltipOverhaulWrapperMixin",
     "compat.SkillInfoScreenMixin",
     "compat.ObscureApiAttackSpeedIconMixin",
     "compat.ObscureApiAttributeIconMathMixin",

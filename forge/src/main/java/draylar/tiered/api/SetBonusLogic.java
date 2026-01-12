@@ -1,11 +1,14 @@
 package draylar.tiered.api;
 
 import com.google.common.collect.Multimap;
+import elocindev.tierify.TierifyCommon;
 import elocindev.tierify.TierifyConstants;
+import elocindev.tierify.forge.ForgeTieredAttributeSubscriber;
 import elocindev.tierify.forge.config.ForgeTierifyConfig;
 import elocindev.tierify.util.SetBonusUtils;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -14,6 +17,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,6 +26,7 @@ public class SetBonusLogic {
     private static final UUID SET_BONUS_ID = UUID.fromString("98765432-1234-1234-1234-987654321012");
     private static final String BONUS_NAME = "Tierify Set Bonus";
     private static final String DURABLE_SB_KEY = "durable_set_bonus";
+    private static final ResourceLocation DURABLE_ID = new ResourceLocation(TierifyCommon.MODID, "generic.durable");
 
     public static void updatePlayerSetBonus(ServerPlayer player) {
         if (!ForgeTierifyConfig.enableArmorSetBonuses()) {
@@ -36,13 +41,19 @@ public class SetBonusLogic {
         ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
         if (!SetBonusUtils.hasSetBonus(player, chest)) return;
 
+        CompoundTag tierTag = chest.getTagElement(TierifyConstants.NBT_SUBTAG_KEY);
+        if (tierTag == null) return;
+
+        ResourceLocation tierId = ResourceLocation.tryParse(tierTag.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY));
+        if (tierId == null) return;
+
         float pct = SetBonusUtils.hasPerfectSetBonus(player, chest)
                 ? ForgeTierifyConfig.armorSetPerfectBonusPercent()
                 : ForgeTierifyConfig.armorSetBonusMultiplier();
 
         pct = Math.max(0.0f, pct);
 
-        applySetBonusFromEquippedItem(player, chest, EquipmentSlot.CHEST, pct);
+        applySetBonus(player, tierId, pct);
         applyDurableSetBonus(player, pct);
     }
 
@@ -71,6 +82,40 @@ public class SetBonusLogic {
                     BONUS_NAME,
                     bonusAmount,
                     base.getOperation()
+            );
+
+            inst.addTransientModifier(bonus);
+        }
+    }
+
+    private static void applySetBonus(ServerPlayer player, ResourceLocation tierId, float setBonusPercent) {
+        if (tierId == null) return;
+
+        List<ForgeTieredAttributeSubscriber.TierAttributeSnapshot> attributes =
+                ForgeTieredAttributeSubscriber.getTierAttributeSnapshots(tierId);
+        if (attributes.isEmpty()) return;
+
+        var registry = player.server.registryAccess().registryOrThrow(Registries.ATTRIBUTE);
+
+        for (ForgeTieredAttributeSubscriber.TierAttributeSnapshot entry : attributes) {
+            if (DURABLE_ID.equals(entry.attributeId())) continue;
+
+            double baseValue = entry.amount();
+            if (baseValue <= 0.0D) continue;
+
+            Attribute attr = registry.get(entry.attributeId());
+            if (attr == null) continue;
+
+            AttributeInstance inst = player.getAttribute(attr);
+            if (inst == null) continue;
+
+            double bonusAmount = baseValue * (double) setBonusPercent * 4.0D;
+
+            AttributeModifier bonus = new AttributeModifier(
+                    SET_BONUS_ID,
+                    BONUS_NAME,
+                    bonusAmount,
+                    entry.operation()
             );
 
             inst.addTransientModifier(bonus);

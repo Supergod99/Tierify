@@ -3,6 +3,9 @@ package elocindev.tierify.forge.mixin.compat;
 import elocindev.tierify.TierifyConstants;
 import elocindev.tierify.forge.client.TierifyTooltipBorderRendererForge;
 import elocindev.tierify.forge.config.ForgeTierifyConfig;
+import elocindev.tierify.forge.item.ReforgeAddition;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,14 +27,24 @@ public class TooltipOverhaulFrameMixin {
     private static void tierify$injectTieredFrame(ItemStack stack, CallbackInfoReturnable<Optional<?>> cir) {
         if (!ForgeTierifyConfig.tieredTooltip()) return;
 
+        String lookupKey;
+        boolean isPerfect = false;
+
         CompoundTag nbt = stack.getTagElement(TierifyConstants.NBT_SUBTAG_KEY);
-        if (nbt == null) return;
+        if (nbt != null && nbt.contains(TierifyConstants.NBT_SUBTAG_DATA_KEY)) {
+            isPerfect = nbt.getBoolean("Perfect");
+            String tierId = nbt.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY);
+            if ((tierId == null || tierId.isEmpty()) && !isPerfect) return;
+            lookupKey = isPerfect ? "tiered:perfect" : tierId;
+        } else if (stack.getItem() instanceof ReforgeAddition) {
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+            if (id == null) return;
+            lookupKey = id.toString();
+        } else {
+            return;
+        }
 
-        boolean isPerfect = nbt.getBoolean("Perfect");
-        String tierId = nbt.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY);
-        if ((tierId == null || tierId.isEmpty()) && !isPerfect) return;
-
-        TierifyTooltipBorderRendererForge.Template match = TierifyTooltipBorderRendererForge.findTemplate(tierId, isPerfect);
+        TierifyTooltipBorderRendererForge.Template match = TierifyTooltipBorderRendererForge.findTemplate(lookupKey, isPerfect);
         if (match == null) return;
 
         Object frameData = buildFrameData(match, isPerfect);

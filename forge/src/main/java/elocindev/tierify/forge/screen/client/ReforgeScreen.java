@@ -93,12 +93,26 @@ public class ReforgeScreen extends net.minecraft.client.gui.screens.inventory.Ab
                 if (!items.isEmpty()) {
                     baseItems.addAll(items);
                 } else if (target.getItem() instanceof TieredItem tool) {
-                    for (ItemStack stack : tool.getTier().getRepairIngredient().getItems()) {
-                        baseItems.add(stack.getItem());
+                    var ing = tool.getTier().getRepairIngredient();
+                    ItemStack[] matches = (ing == null) ? new ItemStack[0] : ing.getItems();
+                    if (matches.length > 0) {
+                        for (ItemStack stack : matches) {
+                            baseItems.add(stack.getItem());
+                        }
+                    } else {
+                        BuiltInRegistries.ITEM.getTag(TAG_REFORGE_BASE_ITEM)
+                                .ifPresent(tag -> tag.forEach(holder -> baseItems.add(holder.value())));
                     }
-                } else if (target.getItem() instanceof ArmorItem armor && armor.getMaterial().getRepairIngredient() != null) {
-                    for (ItemStack stack : armor.getMaterial().getRepairIngredient().getItems()) {
-                        baseItems.add(stack.getItem());
+                } else if (target.getItem() instanceof ArmorItem armor) {
+                    var ing = armor.getMaterial().getRepairIngredient();
+                    ItemStack[] matches = (ing == null) ? new ItemStack[0] : ing.getItems();
+                    if (matches.length > 0) {
+                        for (ItemStack stack : matches) {
+                            baseItems.add(stack.getItem());
+                        }
+                    } else {
+                        BuiltInRegistries.ITEM.getTag(TAG_REFORGE_BASE_ITEM)
+                                .ifPresent(tag -> tag.forEach(holder -> baseItems.add(holder.value())));
                     }
                 } else {
                     BuiltInRegistries.ITEM.getTag(TAG_REFORGE_BASE_ITEM)
@@ -159,7 +173,7 @@ public class ReforgeScreen extends net.minecraft.client.gui.screens.inventory.Ab
             int u = 176;
             if (disabled) {
                 u += this.width * 2;
-            } else if (this.isHoveredOrFocused()) {
+            } else if (this.isHovered()) {
                 u += this.width;
             }
 

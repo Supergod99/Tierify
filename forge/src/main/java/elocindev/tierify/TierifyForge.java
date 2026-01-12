@@ -2,6 +2,7 @@ package elocindev.tierify;
 
 import elocindev.tierify.forge.config.ForgeTierifyConfig;
 import elocindev.tierify.forge.config.EntityLootDropProfiles;
+import elocindev.tierify.forge.config.TreasureBagProfiles;
 import elocindev.tierify.forge.loot.TierifyLootModifier;
 import elocindev.tierify.forge.network.ForgeNetwork;
 import elocindev.tierify.forge.registry.ForgeAttributeRegistry;
@@ -54,12 +55,14 @@ public final class TierifyForge {
     private static void onConfigLoad(ModConfigEvent.Loading event) {
         if (event.getConfig().getSpec() == ForgeTierifyConfig.SPEC) {
             EntityLootDropProfiles.reload();
+            TreasureBagProfiles.reload();
         }
     }
 
     private static void onConfigReload(ModConfigEvent.Reloading event) {
         if (event.getConfig().getSpec() == ForgeTierifyConfig.SPEC) {
             EntityLootDropProfiles.reload();
+            TreasureBagProfiles.reload();
         }
     }
 }

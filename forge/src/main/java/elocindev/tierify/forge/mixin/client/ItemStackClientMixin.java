@@ -6,11 +6,13 @@ import elocindev.tierify.forge.client.TierGradientAnimatorForge;
 import elocindev.tierify.forge.config.ForgeTierifyConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -56,42 +58,66 @@ public abstract class ItemStackClientMixin {
     private void tierify$prefixModifierLabel(CallbackInfoReturnable<Component> cir) {
         ItemStack self = (ItemStack) (Object) this;
 
-        // Match Fabric behavior: don’t override custom names
+        // Match Fabric behavior: don't override custom names
         if (self.hasCustomHoverName()) return;
 
         CompoundTag tiered = self.getTagElement(TierifyConstants.NBT_SUBTAG_KEY);
-        if (tiered == null) return;
+        if (tiered != null) {
+            String tierId = tiered.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY);
+            if (tierId == null || tierId.isEmpty()) return;
 
-        String tierId = tiered.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY);
-        if (tierId == null || tierId.isEmpty()) return;
+            // The lang keys are of the form "<tierId>.label" (e.g. "tiered:legendary_armor_1.label")
+            MutableComponent label = Component.translatable(tierId + ".label");
+            int tierIdx = TierGradientAnimatorForge.getTierFromId(tierId);
+            MutableComponent animated = TierGradientAnimatorForge.animate(label, tierIdx);
 
-        // The lang keys are of the form "<tierId>.label" (e.g. "tiered:legendary_armor_1.label")
-        MutableComponent label = Component.translatable(tierId + ".label");
-        int tierIdx = TierGradientAnimatorForge.getTierFromId(tierId);
-        MutableComponent animated = TierGradientAnimatorForge.animate(label, tierIdx);
-
-        Component baseName = cir.getReturnValue();
-        CompoundTag extra = self.getTagElement(TierifyConstants.NBT_SUBTAG_EXTRA_KEY);
-        if (extra != null && extra.contains("StoredCustomName", Tag.TAG_STRING)) {
-            String json = extra.getString("StoredCustomName");
-            if (json != null && !json.isEmpty()) {
-                try {
-                    Component parsed = Component.Serializer.fromJson(json);
-                    if (parsed != null) {
-                        baseName = parsed;
+            Component baseName = cir.getReturnValue();
+            CompoundTag extra = self.getTagElement(TierifyConstants.NBT_SUBTAG_EXTRA_KEY);
+            if (extra != null && extra.contains("StoredCustomName", Tag.TAG_STRING)) {
+                String json = extra.getString("StoredCustomName");
+                if (json != null && !json.isEmpty()) {
+                    try {
+                        Component parsed = Component.Serializer.fromJson(json);
+                        if (parsed != null) {
+                            baseName = parsed;
+                        }
+                    } catch (Exception ignored) {
                     }
-                } catch (Exception ignored) {
                 }
+            }
+
+            // Prefix: "<animated label> <vanilla name>"
+            MutableComponent out = Component.empty()
+                    .append(animated)
+                    .append(" ")
+                    .append(baseName.copy());
+
+            cir.setReturnValue(out);
+            return;
+        }
+
+        // Animate reforge material item names (Fabric parity).
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(self.getItem());
+        if (id == null || !"tiered".equals(id.getNamespace())) return;
+
+        int tierIdx;
+        switch (id.getPath()) {
+            case "limestone_chunk" -> tierIdx = 0;
+            case "pyrite_chunk" -> tierIdx = 1;
+            case "galena_chunk" -> tierIdx = 2;
+            case "charoite" -> tierIdx = 3;
+            case "crown_topaz" -> tierIdx = 4;
+            case "painite" -> tierIdx = 5;
+            default -> {
+                return;
             }
         }
 
-        // Prefix: "<animated label> <vanilla name>"
-        MutableComponent out = Component.empty()
-                .append(animated)
-                .append(" ")
-                .append(baseName.copy());
+        Component base = cir.getReturnValue();
+        if (base == null) return;
 
-        cir.setReturnValue(out);
+        MutableComponent animated = TierGradientAnimatorForge.animate(base.copy(), tierIdx);
+        cir.setReturnValue(animated);
     }
 
     /**
@@ -126,8 +152,10 @@ public abstract class ItemStackClientMixin {
         double factor = getSetBonusFactor(player, self);
         if (factor != 1.0D) {
             applySetBonusScalingToAttributeLines(self, tooltip, factor, player, flag);
-            stripDisplayedZeros(tooltip);
         }
+
+        fixRedPlusLines(tooltip);
+        stripDisplayedZeros(tooltip);
 
         cir.setReturnValue(tooltip);
     }
@@ -276,8 +304,8 @@ public abstract class ItemStackClientMixin {
                 String oldString = MODIFIER_FORMAT.format(displayBase);
                 String newString = MODIFIER_FORMAT.format(displayBonus);
 
-                // Replace the numeric token in the tooltip and apply gold to the mutated line
-                updateTooltipRecursive(tooltip, oldString, newString, true);
+                // Replace the numeric token in the matching attribute line and apply gold to the mutated line
+                updateTooltipRecursiveForAttribute(tooltip, attribute, oldString, newString, true);
             }
         }
     }
@@ -474,6 +502,127 @@ public abstract class ItemStackClientMixin {
         }
     }
 
+    private static void updateTooltipRecursiveForAttribute(
+            List<Component> tooltip,
+            Attribute attribute,
+            String target,
+            String replacement,
+            boolean applyGold
+    ) {
+        String attrName = Component.translatable(attribute.getDescriptionId()).getString();
+
+        for (int i = 0; i < tooltip.size(); i++) {
+            Component originalLine = tooltip.get(i);
+            if (originalLine == null) continue;
+
+            String plain = originalLine.getString();
+            if (plain == null) continue;
+
+            // Must match BOTH: the number token and the attribute name
+            if (!plain.contains(target) || !plain.contains(attrName)) continue;
+
+            // Only touch attribute modifier lines
+            String trimmed = plain.trim();
+            if (!(trimmed.startsWith("+") || trimmed.startsWith("-"))) continue;
+
+            MutableComponent newLine = processNodeRecursive(originalLine, target, replacement);
+
+            if (applyGold) {
+                newLine = forceColorRecursive(newLine, ChatFormatting.GOLD);
+            }
+
+            tooltip.set(i, newLine);
+        }
+    }
+
+    private static boolean isRedLike(net.minecraft.network.chat.TextColor color) {
+        if (color == null) return false;
+
+        int rgb = color.getValue();
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+
+        return r >= 0x80 && g <= 0x60 && b <= 0x60;
+    }
+
+    private static boolean hasRedRecursive(Component text,
+                                           net.minecraft.network.chat.TextColor red,
+                                           net.minecraft.network.chat.TextColor darkRed) {
+        if (text == null) return false;
+
+        net.minecraft.network.chat.TextColor color = text.getStyle().getColor();
+        if (color != null) {
+            if (color.equals(red) || color.equals(darkRed)) return true;
+            if (isRedLike(color)) return true;
+        }
+
+        if (text.getContents() instanceof TranslatableContents tc) {
+            for (Object arg : tc.getArgs()) {
+                if (arg instanceof Component c && hasRedRecursive(c, red, darkRed)) return true;
+            }
+        }
+
+        for (Component sib : text.getSiblings()) {
+            if (hasRedRecursive(sib, red, darkRed)) return true;
+        }
+
+        return false;
+    }
+
+    private static Object[] stripLeadingSigns(Object[] args) {
+        Object[] out = new Object[args.length];
+        for (int j = 0; j < args.length; j++) {
+            Object a = args[j];
+            if (a instanceof String s) {
+                out[j] = s.replaceFirst("^[+\\-]", "");
+            } else if (a instanceof Component c) {
+                String s = c.getString();
+                if (s.startsWith("-") || s.startsWith("+")) {
+                    out[j] = Component.literal(s.replaceFirst("^[+\\-]", "")).setStyle(c.getStyle());
+                } else {
+                    out[j] = a;
+                }
+            } else {
+                out[j] = a;
+            }
+        }
+        return out;
+    }
+
+    private static void fixRedPlusLines(List<Component> tooltip) {
+        net.minecraft.network.chat.TextColor red = net.minecraft.network.chat.TextColor.fromLegacyFormat(ChatFormatting.RED);
+        net.minecraft.network.chat.TextColor darkRed = net.minecraft.network.chat.TextColor.fromLegacyFormat(ChatFormatting.DARK_RED);
+
+        for (int i = 0; i < tooltip.size(); i++) {
+            Component line = tooltip.get(i);
+            if (line == null) continue;
+
+            String trimmed = line.getString().trim();
+            if (!trimmed.matches("^\\+\\s*\\d.*")) continue;
+
+            if (!hasRedRecursive(line, red, darkRed)) continue;
+
+            if (line.getContents() instanceof TranslatableContents tc) {
+                String key = tc.getKey();
+                if (key.contains("modifier.plus")) {
+                    String newKey = key.replace("modifier.plus", "modifier.take");
+                    Object[] newArgs = stripLeadingSigns(tc.getArgs());
+
+                    MutableComponent fixed = Component.translatable(newKey, newArgs).setStyle(line.getStyle());
+                    for (Component sibling : line.getSiblings()) fixed.append(sibling);
+                    tooltip.set(i, fixed);
+                    continue;
+                }
+            }
+
+            if (line.getSiblings().isEmpty()) {
+                String fixedString = line.getString().replaceFirst("^\\s*\\+", "-");
+                tooltip.set(i, Component.literal(fixedString).setStyle(line.getStyle()));
+            }
+        }
+    }
+
     private static void stripDisplayedZeros(List<Component> tooltip) {
         tooltip.removeIf(c -> {
             String s = c.getString();
@@ -528,10 +677,33 @@ public abstract class ItemStackClientMixin {
             String text = tooltip.get(i).getString();
             if (text == null) continue;
 
-            if (text.contains("Fast") || text.contains("Slow") || text.contains("Medium")) {
-                tooltip.set(i, Component.literal(label).withStyle(color));
-                break;
-            }
+            String stripped = stripLegacyFormatting(text).trim();
+            if (!isAttackSpeedLabel(stripped)) continue;
+            tooltip.set(i, Component.literal(label).withStyle(color));
+            break;
         }
     }
+
+    private static boolean isAttackSpeedLabel(String text) {
+        return "Very Fast".equals(text)
+                || "Fast".equals(text)
+                || "Medium".equals(text)
+                || "Slow".equals(text)
+                || "Very Slow".equals(text);
+    }
+
+    private static String stripLegacyFormatting(String text) {
+        if (text == null || text.isEmpty()) return "";
+        StringBuilder out = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\u00A7' && i + 1 < text.length()) {
+                i++;
+                continue;
+            }
+            out.append(c);
+        }
+        return out.toString();
+    }
 }
+

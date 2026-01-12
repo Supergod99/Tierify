@@ -10,9 +10,11 @@ import elocindev.tierify.TierifyCommon;
 import elocindev.tierify.TierifyConstants;
 import elocindev.tierify.forge.config.ForgeTierifyConfig;
 import elocindev.tierify.forge.network.ForgeNetwork;
+import elocindev.tierify.forge.network.s2c.ConfigSyncS2C;
 import elocindev.tierify.forge.network.s2c.AttributeSyncS2C;
 import elocindev.tierify.forge.network.s2c.ReforgeItemsSyncS2C;
 import elocindev.tierify.forge.reforge.ForgeReforgeData;
+import elocindev.tierify.util.TagFallbackMatcher;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -32,6 +34,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.ShieldItem;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
@@ -52,6 +55,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.nio.charset.StandardCharsets;
 
 @Mod.EventBusSubscriber(modid = TierifyCommon.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class ForgeTieredAttributeSubscriber {
@@ -104,6 +108,23 @@ public final class ForgeTieredAttributeSubscriber {
         return RELOADER.applyTier(stack, tierId, perfect);
     }
 
+    public record TierAttributeSnapshot(ResourceLocation attributeId,
+                                        double amount,
+                                        AttributeModifier.Operation operation) {
+    }
+
+    public static List<TierAttributeSnapshot> getTierAttributeSnapshots(@Nullable ResourceLocation tierId) {
+        if (tierId == null) return Collections.emptyList();
+        TierData data = RELOADER.getTier(tierId);
+        if (data == null || data.attributes == null || data.attributes.isEmpty()) return Collections.emptyList();
+
+        List<TierAttributeSnapshot> out = new ArrayList<>(data.attributes.size());
+        for (TierAttributeEntry entry : data.attributes) {
+            out.add(new TierAttributeSnapshot(entry.attributeId, entry.amount, entry.operation));
+        }
+        return out;
+    }
+
     public static boolean applyTierWithCustomWeights(ItemStack stack, int[] weights, RandomSource rand) {
         if (stack == null || stack.isEmpty()) return false;
 
@@ -131,6 +152,36 @@ public final class ForgeTieredAttributeSubscriber {
         }
 
         return chosen != null && RELOADER.applyTier(stack, chosen, false);
+    }
+
+    public static void applyTierFromEntityWeights(ItemStack stack,
+                                                  @Nullable ResourceLocation dimensionId,
+                                                  @Nullable RandomSource rand) {
+        if (stack == null || stack.isEmpty()) return;
+        if (stack.getTagElement(TierifyConstants.NBT_SUBTAG_KEY) != null) return;
+
+        int[] weights = resolveEntityWeights(dimensionId);
+        int total = 0;
+        for (int w : weights) total += w;
+
+        if (ForgeTierifyConfig.useDimensionTierWeights()
+                && ForgeTierifyConfig.dimensionTierWeightsZeroMeansNoModifier()
+                && total <= 0) {
+            return;
+        }
+
+        RandomSource rng = (rand != null) ? rand : RandomSource.create();
+        boolean applied = false;
+        if (total > 0) {
+            applied = applyTierWithCustomWeights(stack, weights, rng);
+        }
+
+        if (!applied) {
+            ResourceLocation chosen = RELOADER.pickRandomTierNoBonus(stack, null, rng);
+            if (chosen != null) {
+                RELOADER.applyTier(stack, chosen, false);
+            }
+        }
     }
 
     @Nullable
@@ -196,8 +247,105 @@ public final class ForgeTieredAttributeSubscriber {
         return w;
     }
 
+    private static int[] resolveEntityWeights(@Nullable ResourceLocation dimensionId) {
+        if (ForgeTierifyConfig.useDimensionTierWeights() && dimensionId != null) {
+            if (dimensionId.equals(Level.OVERWORLD.location())) {
+                return new int[] {
+                        Math.max(0, ForgeTierifyConfig.overworldTier1Weight()),
+                        Math.max(0, ForgeTierifyConfig.overworldTier2Weight()),
+                        Math.max(0, ForgeTierifyConfig.overworldTier3Weight()),
+                        Math.max(0, ForgeTierifyConfig.overworldTier4Weight()),
+                        Math.max(0, ForgeTierifyConfig.overworldTier5Weight()),
+                        Math.max(0, ForgeTierifyConfig.overworldTier6Weight())
+                };
+            }
+            if (dimensionId.equals(Level.NETHER.location())) {
+                return new int[] {
+                        Math.max(0, ForgeTierifyConfig.netherTier1Weight()),
+                        Math.max(0, ForgeTierifyConfig.netherTier2Weight()),
+                        Math.max(0, ForgeTierifyConfig.netherTier3Weight()),
+                        Math.max(0, ForgeTierifyConfig.netherTier4Weight()),
+                        Math.max(0, ForgeTierifyConfig.netherTier5Weight()),
+                        Math.max(0, ForgeTierifyConfig.netherTier6Weight())
+                };
+            }
+            if (dimensionId.equals(Level.END.location())) {
+                return new int[] {
+                        Math.max(0, ForgeTierifyConfig.endTier1Weight()),
+                        Math.max(0, ForgeTierifyConfig.endTier2Weight()),
+                        Math.max(0, ForgeTierifyConfig.endTier3Weight()),
+                        Math.max(0, ForgeTierifyConfig.endTier4Weight()),
+                        Math.max(0, ForgeTierifyConfig.endTier5Weight()),
+                        Math.max(0, ForgeTierifyConfig.endTier6Weight())
+                };
+            }
+
+            int[] override = getModdedDimensionOverrideWeights(dimensionId);
+            if (override != null) return override;
+        }
+
+        return new int[] {
+                Math.max(0, ForgeTierifyConfig.entityTier1Weight()),
+                Math.max(0, ForgeTierifyConfig.entityTier2Weight()),
+                Math.max(0, ForgeTierifyConfig.entityTier3Weight()),
+                Math.max(0, ForgeTierifyConfig.entityTier4Weight()),
+                Math.max(0, ForgeTierifyConfig.entityTier5Weight()),
+                Math.max(0, ForgeTierifyConfig.entityTier6Weight())
+        };
+    }
+
+    @Nullable
+    private static int[] getModdedDimensionOverrideWeights(ResourceLocation dimensionId) {
+        if (dimensionId == null) return null;
+
+        List<String> entries = ForgeTierifyConfig.moddedDimensionTierWeightOverrides();
+        if (entries == null || entries.isEmpty()) return null;
+
+        String dimId = dimensionId.toString();
+        String namespace = dimensionId.getNamespace();
+
+        int[] wildcard = null;
+        int[] namespaceWildcard = null;
+
+        for (String raw : entries) {
+            if (raw == null) continue;
+            String s = raw.trim();
+            if (s.isEmpty()) continue;
+            if (s.startsWith("#") || s.startsWith("//")) continue;
+
+            int eq = s.indexOf('=');
+            if (eq <= 0) continue;
+
+            String left = s.substring(0, eq).trim();
+            String right = s.substring(eq + 1).trim();
+            if (left.isEmpty() || right.isEmpty()) continue;
+
+            if (left.equals(dimId)) {
+                return parseWeightProfile(right);
+            }
+
+            if (left.endsWith(":*")) {
+                String ns = left.substring(0, left.length() - 2);
+                if (ns.equals(namespace)) {
+                    namespaceWildcard = parseWeightProfile(right);
+                }
+                continue;
+            }
+
+            if (left.equals("*")) {
+                wildcard = parseWeightProfile(right);
+            }
+        }
+
+        return (namespaceWildcard != null) ? namespaceWildcard : wildcard;
+    }
+
     public static void applySyncedAttributes(Map<ResourceLocation, String> jsonById) {
         RELOADER.applySyncedAttributes(jsonById);
+    }
+
+    public static List<ResourceLocation> findTierIdsForCommand(ItemStack stack, String tierName) {
+        return RELOADER.findTierIdsForCommand(stack, tierName);
     }
 
     public static void updateItemStackNbt(ServerPlayer player) {
@@ -214,6 +362,10 @@ public final class ForgeTieredAttributeSubscriber {
 
             CompoundTag tierTag = stack.getTagElement(TierifyConstants.NBT_SUBTAG_KEY);
             if (tierTag == null) continue;
+
+            if (!tierTag.hasUUID("TierUUID")) {
+                tierTag.putUUID("TierUUID", UUID.randomUUID());
+            }
 
             ResourceLocation tierId = ResourceLocation.tryParse(tierTag.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY));
             TierData data = tierId == null ? null : RELOADER.getTier(tierId);
@@ -281,8 +433,9 @@ public final class ForgeTieredAttributeSubscriber {
         if (tier == null) return;
 
         boolean isPerfect = tierTag.getBoolean("Perfect");
-
-        UUID tierUuid = TierifyConstants.MODIFIERS[armorStandSlotId(slot)];
+        String salt = tierTag.hasUUID("TierUUID")
+                ? tierTag.getUUID("TierUUID").toString()
+                : stack.getDescriptionId();
 
         for (TierAttributeEntry entry : tier.attributes) {
             if (!entry.appliesTo(stack, slot)) continue;
@@ -291,6 +444,8 @@ public final class ForgeTieredAttributeSubscriber {
             Attribute attr = ForgeRegistries.ATTRIBUTES.getValue(entry.attributeId);
             if (attr == null) continue;
 
+            UUID tierUuid = UUID.nameUUIDFromBytes(
+                    (entry.attributeId + "_" + slot.getName() + "_" + salt).getBytes(StandardCharsets.UTF_8));
             AttributeModifier mod = new AttributeModifier(
                     tierUuid,
                     entry.name,
@@ -410,6 +565,8 @@ public final class ForgeTieredAttributeSubscriber {
                 new AttributeSyncS2C(attributes));
         ForgeNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
                 new ReforgeItemsSyncS2C(reforge));
+        ForgeNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                new ConfigSyncS2C(ForgeTierifyConfig.snapshot()));
     }
 
     private static final class TierAttributesReloader extends SimpleJsonResourceReloadListener {
@@ -470,6 +627,27 @@ public final class ForgeTieredAttributeSubscriber {
                     rawById.put(e.getKey(), root);
                 }
             }
+        }
+
+        public List<ResourceLocation> findTierIdsForCommand(ItemStack stack, String tierName) {
+            if (stack == null || stack.isEmpty()) return Collections.emptyList();
+            if (tierName == null || tierName.isBlank()) return Collections.emptyList();
+
+            String needle = tierName.toLowerCase(Locale.ROOT);
+            List<ResourceLocation> out = new ArrayList<>();
+
+            for (Map.Entry<ResourceLocation, TierData> e : byId.entrySet()) {
+                TierData data = e.getValue();
+                if (!data.isValidFor(stack)) continue;
+
+                String path = e.getKey().getPath().toLowerCase(Locale.ROOT);
+                if (!path.contains(needle)) continue;
+                if ("common".equals(needle) && path.contains("uncommon")) continue;
+
+                out.add(e.getKey());
+            }
+
+            return out;
         }
 
         @Nullable
@@ -607,6 +785,7 @@ public final class ForgeTieredAttributeSubscriber {
 
             CompoundTag tierTag = stack.getOrCreateTagElement(TierifyConstants.NBT_SUBTAG_KEY);
             tierTag.putString(TierifyConstants.NBT_SUBTAG_DATA_KEY, tierId.toString());
+            tierTag.putUUID("TierUUID", UUID.randomUUID());
             if (perfect) {
                 tierTag.putBoolean("Perfect", true);
             } else {
@@ -940,7 +1119,10 @@ public final class ForgeTieredAttributeSubscriber {
 
         boolean matches(ItemStack stack) {
             if (item != null) return stack.getItem() == item;
-            if (tag != null) return stack.is(tag);
+            if (tag != null) {
+                if (stack.is(tag)) return true;
+                return TagFallbackMatcher.matches(tag.location(), stack);
+            }
             return false;
         }
     }

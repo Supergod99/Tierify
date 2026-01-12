@@ -271,6 +271,14 @@ public class ReforgeMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public void removed(Player player) {
+        super.removed(player);
+        if (!player.level().isClientSide) {
+            this.clearContainer(player, this.inputs);
+        }
+    }
+
+    @Override
     public boolean stillValid(Player player) {
         return stillValid(access, player, Blocks.ANVIL);
     }

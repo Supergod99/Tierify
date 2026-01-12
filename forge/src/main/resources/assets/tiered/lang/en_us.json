@@ -179,13 +179,13 @@
   "tiered:legendary_armor_17.label": "Essence of the Stars",
   "tiered:legendary_armor_18.label": "Trailblaze of Storms",
   "tiered:legendary_armor_19.label": "Heart of the World",
-  "tiered:legendary_armor_20.label": "Warden's Convenant",
+  "tiered:legendary_armor_20.label": "Warlord's Covenant",
 
   "tiered:legendary_shield_1.label": "Wall of Eternity",
   "tiered:legendary_shield_2.label": "Ancient Pulse",
   "tiered:legendary_shield_3.label": "Eclipse Runner",
   "tiered:legendary_shield_4.label": "Trailblaze of Storms",
-  "tiered:legendary_shield_5.label": "Warden's Convenant",
+  "tiered:legendary_shield_5.label": "Warlord's Convenant",
 
   "tiered:mythic_melee_1.label": "Wrath of Creation",
   "tiered:mythic_melee_2.label": "Judgement of Extinction",
@@ -365,10 +365,10 @@
   "commands.tiered.tiering_failed": "Nothing changed. %s from %s has no given tier",
   "commands.tiered.tier": "Tiered %s from %s",
 
+  "item.tiered.cleansing_stone": "Cleansing Stone",
   "item.tiered.limestone_chunk": "Limestone Chunk",
   "item.tiered.pyrite_chunk": "Pyrite Chunk",
   "item.tiered.galena_chunk": "Galena Chunk",
-  "item.tiered.cleansing_stone": "Cleansing Stone",
   "item.tiered.charoite": "Charoite",
   "item.tiered.crown_topaz": "Crown Topaz",
   "item.tiered.painite": "Painite"

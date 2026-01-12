@@ -7,7 +7,9 @@ import elocindev.tierify.forge.network.ForgeNetwork;
 import elocindev.tierify.forge.network.c2s.OpenAnvilFromReforgeC2S;
 import elocindev.tierify.forge.network.c2s.OpenReforgeFromAnvilC2S;
 import elocindev.tierify.forge.screen.client.ReforgeScreen;
-import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.AnvilScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -23,72 +25,133 @@ public final class ForgeScreenTabs {
             ResourceLocation.fromNamespaceAndPath(TierifyCommon.MODID, "textures/gui/anvil_tab_icon.png");
     private static final ResourceLocation REFORGE_ICON =
             ResourceLocation.fromNamespaceAndPath(TierifyCommon.MODID, "textures/gui/reforge_tab_icon.png");
+    private static final ResourceLocation TAB_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath("libz", "textures/gui/icons.png");
 
-    // Placement: “just outside” the top-left of the container background
-    private static int tabX(int leftPos) { return leftPos - 26 + ForgeTierifyConfig.xIconPosition(); }
-    private static int anvilTabY(int topPos) { return topPos + 4 + ForgeTierifyConfig.yIconPosition(); }
-    private static int reforgeTabY(int topPos) { return topPos + 26 + ForgeTierifyConfig.yIconPosition(); }
+    private static final int TAB_WIDTH = 24;
+    private static final int TAB_HEIGHT_SELECTED = 27;
+    private static final int TAB_HEIGHT_FIRST = 25;
+    private static final int TAB_HEIGHT_OTHER = 21;
+    private static final int TAB_SPACING = 25;
+    private static final int ICON_SIZE = 14;
 
     @SubscribeEvent
-    public static void onInit(ScreenEvent.Init.Post e) {
-        if (!(e.getScreen() instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> acs)) return;
-        if (e.getScreen().getClass().getName().contains("ReforgeTabInjected")) return;
+    public static void onRender(ScreenEvent.Render.Post e) {
+        if (!(e.getScreen() instanceof AbstractContainerScreen<?> acs)) return;
 
-
-        var acc = (AbstractContainerScreenAccessor) acs;
-        int left = acc.tierify$getLeftPos();
-        int top  = acc.tierify$getTopPos();
-        boolean showReforgeTab = ForgeTierifyConfig.showReforgingTab();
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null || mc.player == null) return;
 
         boolean isAnvil = e.getScreen() instanceof AnvilScreen || isModAnvilScreen(e.getScreen());
+        boolean isReforge = e.getScreen() instanceof ReforgeScreen;
+        if (!isAnvil && !isReforge) return;
 
-        // In Anvil: show both tabs, Reforge tab is clickable
-        if (isAnvil) {
-            ImageButton anvilTab = new ImageButton(
-                    tabX(left), anvilTabY(top), 20, 20,
-                    0, 0, 20,
-                    ANVIL_ICON, 20, 20,
-                    b -> {},
-                    Component.translatable("container.repair")
-            );
-            anvilTab.active = false;
-            e.addListener(anvilTab);
+        boolean showReforgeTab = ForgeTierifyConfig.showReforgingTab();
+        var acc = (AbstractContainerScreenAccessor) acs;
+        int left = acc.tierify$getLeftPos();
+        int top = acc.tierify$getTopPos();
 
-            if (showReforgeTab) {
-                ImageButton reforgeTab = new ImageButton(
-                        tabX(left), reforgeTabY(top), 20, 20,
-                        0, 0, 20,
-                        REFORGE_ICON, 20, 20,
-                        b -> ForgeNetwork.CHANNEL.sendToServer(new OpenReforgeFromAnvilC2S()),
-                        Component.translatable("container.reforge")
-                );
-                e.addListener(reforgeTab);
-            }
+        int x = left;
+        Component hoverTitle = null;
+
+        hoverTitle = renderTab(e.getGuiGraphics(), left, top, x, true, isAnvil,
+                ANVIL_ICON, Component.translatable("container.repair"), e.getMouseX(), e.getMouseY(), hoverTitle);
+        x += TAB_SPACING;
+
+        if (showReforgeTab) {
+            hoverTitle = renderTab(e.getGuiGraphics(), left, top, x, false, isReforge,
+                    REFORGE_ICON, Component.translatable("screen.tiered.reforging_screen"), e.getMouseX(), e.getMouseY(), hoverTitle);
         }
 
-        // In Reforge: show both tabs, Anvil tab is clickable
-        if (e.getScreen() instanceof ReforgeScreen) {
-            ImageButton anvilTab = new ImageButton(
-                    tabX(left), anvilTabY(top), 20, 20,
-                    0, 0, 20,
-                    ANVIL_ICON, 20, 20,
-                    b -> ForgeNetwork.CHANNEL.sendToServer(new OpenAnvilFromReforgeC2S()),
-                    Component.translatable("container.repair")
-            );
-            e.addListener(anvilTab);
-
-            if (showReforgeTab) {
-                ImageButton reforgeTab = new ImageButton(
-                        tabX(left), reforgeTabY(top), 20, 20,
-                        0, 0, 20,
-                        REFORGE_ICON, 20, 20,
-                        b -> {},
-                        Component.translatable("container.reforge")
-                );
-                reforgeTab.active = false;
-                e.addListener(reforgeTab);
-            }
+        if (hoverTitle != null) {
+            e.getGuiGraphics().renderTooltip(mc.font, hoverTitle, e.getMouseX(), e.getMouseY());
         }
+    }
+
+    @SubscribeEvent
+    public static void onMouseClicked(ScreenEvent.MouseButtonPressed.Pre e) {
+        if (!(e.getScreen() instanceof AbstractContainerScreen<?> acs)) return;
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null || mc.player == null) return;
+
+        boolean isAnvil = e.getScreen() instanceof AnvilScreen || isModAnvilScreen(e.getScreen());
+        boolean isReforge = e.getScreen() instanceof ReforgeScreen;
+        if (!isAnvil && !isReforge) return;
+
+        boolean showReforgeTab = ForgeTierifyConfig.showReforgingTab();
+        var acc = (AbstractContainerScreenAccessor) acs;
+        int left = acc.tierify$getLeftPos();
+        int top = acc.tierify$getTopPos();
+
+        int x = left;
+        boolean clicked = false;
+
+        if (!isAnvil && isPointWithinBounds(left, top, x - left + 1, -20, 22, 19, e.getMouseX(), e.getMouseY())) {
+            ForgeNetwork.CHANNEL.sendToServer(new OpenAnvilFromReforgeC2S());
+            clicked = true;
+        }
+        x += TAB_SPACING;
+
+        if (showReforgeTab && !isReforge
+                && isPointWithinBounds(left, top, x - left + 1, -20, 22, 19, e.getMouseX(), e.getMouseY())) {
+            ForgeNetwork.CHANNEL.sendToServer(new OpenReforgeFromAnvilC2S());
+            clicked = true;
+        }
+
+        if (clicked) {
+            e.setCanceled(true);
+        }
+    }
+
+    private static Component renderTab(
+            GuiGraphics gg,
+            int left,
+            int top,
+            int x,
+            boolean first,
+            boolean selected,
+            ResourceLocation icon,
+            Component title,
+            double mouseX,
+            double mouseY,
+            Component hoverTitle
+    ) {
+        int u = first ? 24 : 72;
+        if (selected) {
+            u -= 24;
+        }
+
+        int drawY = selected ? (top - 23) : (top - 21);
+        int height = selected ? TAB_HEIGHT_SELECTED : (first ? TAB_HEIGHT_FIRST : TAB_HEIGHT_OTHER);
+
+        gg.blit(TAB_TEXTURE, x, drawY, u, 0, TAB_WIDTH, height, 256, 256);
+        gg.blit(icon, x + 5, top - 16, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
+
+        if (!selected && hoverTitle == null
+                && isPointWithinBounds(left, top, x - left + 1, -20, 22, 19, mouseX, mouseY)) {
+            return title;
+        }
+
+        return hoverTitle;
+    }
+
+    private static boolean isPointWithinBounds(
+            int left,
+            int top,
+            int x,
+            int y,
+            int width,
+            int height,
+            double mouseX,
+            double mouseY
+    ) {
+        int leftEdge = left + x;
+        int topEdge = top + y;
+        return mouseX >= (double) leftEdge
+                && mouseX < (double) (leftEdge + width)
+                && mouseY >= (double) topEdge
+                && mouseY < (double) (topEdge + height);
     }
 
     private static boolean isModAnvilScreen(Object screen) {

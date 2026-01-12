@@ -28,7 +28,9 @@ bin/
 
 *.DS_Store
 
-# fabric
+# runtime
 
 run/
 reference/
+latest.log
+FABRIC_SNAPSHOT_BACKLOG.md

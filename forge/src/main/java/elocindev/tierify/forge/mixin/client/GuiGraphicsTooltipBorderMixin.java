@@ -6,6 +6,9 @@ import elocindev.tierify.forge.client.TierGradientAnimatorForge;
 import elocindev.tierify.forge.client.TierifyTooltipBorderRendererForge;
 import elocindev.tierify.forge.compat.TooltipOverhaulCompatForge;
 import elocindev.tierify.forge.config.ForgeTierifyConfig;
+import elocindev.tierify.forge.item.ReforgeAddition;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -55,14 +58,19 @@ public abstract class GuiGraphicsTooltipBorderMixin {
     @Shadow private ItemStack tooltipStack;
 
     @Unique private static final float TIERIFY_LABEL_SCALE = 0.65f;
+    @Unique private static final float SET_BONUS_LABEL_NUDGE_Y = -1.0f;
 
-    @Unique private static final int TIERIFY_SETBONUS_SPACER_PX = 7; // tuned to match Fabric's tighter header spacing at 0.65 scale
-    @Unique private static final int TIERIFY_PERFECT_SPACER_PX = 7;
+    @Unique private static final int TIERIFY_BASE_SPACER_PX = 2; // +2 from vanilla's first-line gap yields 4px top padding like Fabric
+    @Unique private static final int TIERIFY_SETBONUS_EXTRA_PX = 6; // Extra header band height for Set Bonus label
+    @Unique private static final int TIERIFY_PERFECT_SPACER_PX = 6;
 
     @Unique private int tierify$textRenderIndex;
     @Unique private int tierify$tooltipX;
     @Unique private int tierify$tooltipWidth;
     @Unique private int tierify$centerTitleIndex = -1;
+    @Unique private int tierify$titleComponentIndex = -1;
+    @Unique private int tierify$titleTextY = Integer.MIN_VALUE;
+    @Unique private int tierify$titleLineCount = 1;
 
     /**
      * Lightweight tooltip component used only to reserve a small amount of vertical space.
@@ -87,6 +95,32 @@ public abstract class GuiGraphicsTooltipBorderMixin {
         }
     }
 
+    @Unique
+    private static final class TierifyWidthComponent implements ClientTooltipComponent {
+        private final int width;
+
+        private TierifyWidthComponent(int width) {
+            this.width = Math.max(0, width);
+        }
+
+        @Override
+        public int getHeight() {
+            return 0;
+        }
+
+        @Override
+        public int getWidth(Font font) {
+            return width;
+        }
+
+        @Override
+        public void renderText(Font font, int x, int y, Matrix4f matrix, MultiBufferSource.BufferSource buffer) {
+        }
+
+        @Override
+        public void renderImage(Font font, int x, int y, GuiGraphics graphics) {
+        }
+    }
 
     /**
      * Ensure tooltip components list is mutable, and inject a spacer after the title if Perfect.
@@ -99,7 +133,7 @@ public abstract class GuiGraphicsTooltipBorderMixin {
             at = @At("HEAD"),
             argsOnly = true
     )
-        private List<ClientTooltipComponent> tierify$makeComponentsMutable(List<ClientTooltipComponent> components) {
+    private List<ClientTooltipComponent> tierify$makeComponentsMutable(List<ClientTooltipComponent> components) {
         if (!ForgeTierifyConfig.tieredTooltip()) return components;
         if (components == null || components.isEmpty()) return components;
 
@@ -109,28 +143,56 @@ public abstract class GuiGraphicsTooltipBorderMixin {
         CompoundTag tiered = stack.getTagElement(TierifyConstants.NBT_SUBTAG_KEY);
         if (tiered == null) return components;
 
-        String tierId = tiered.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY);
-        boolean allowSetBonusSpacer = !TooltipOverhaulCompatForge.isLoaded();
-        boolean hasSetBonusLabel = allowSetBonusSpacer && buildSetBonusLabel(stack, tierId) != null;
         boolean isPerfect = tiered.getBoolean("Perfect");
 
-        // Only allocate/copy if we actually need to mutate the list.
-        if (!hasSetBonusLabel && !isPerfect) return components;
+        if (TooltipOverhaulCompatForge.isLoaded()) {
+            if (!isPerfect) return components;
+            for (ClientTooltipComponent c : components) {
+                if (c instanceof TierifySpacerComponent) {
+                    return components;
+                }
+            }
+            Font font = Minecraft.getInstance().font;
+            int baseLine = (font != null) ? font.lineHeight : 9;
+            int spacerHeight = (int) (baseLine * TIERIFY_LABEL_SCALE) + 4;
+
+            List<ClientTooltipComponent> copy = new ArrayList<>(components);
+            int insertAt = Math.min(1, copy.size());
+            copy.add(insertAt, new TierifySpacerComponent(spacerHeight));
+            return copy;
+        }
+
+        String tierId = tiered.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY);
+        boolean hasSetBonusLabel = buildSetBonusLabel(stack, tierId) != null;
+
+        Font font = Minecraft.getInstance().font;
+        int maxWidth = 0;
+        if (font != null) {
+            for (ClientTooltipComponent c : components) {
+                maxWidth = Math.max(maxWidth, c.getWidth(font));
+            }
+        }
+        int titleLineCount = computeTitleLineCount(font, components, stack);
 
         List<ClientTooltipComponent> copy = new ArrayList<>(components);
 
-        // 1) If Set Bonus label is going to render, reserve a full line ABOVE the title.
-        //    This matches Fabric behavior (label is inside the tooltip box, not floating above it).
-        if (hasSetBonusLabel) {
-            copy.add(0, new TierifySpacerComponent(TIERIFY_SETBONUS_SPACER_PX));
+        // 1) Reserve Fabric-style top padding; add the Set Bonus header band when needed.
+        int topSpacerHeight = TIERIFY_BASE_SPACER_PX + (hasSetBonusLabel ? TIERIFY_SETBONUS_EXTRA_PX : 0);
+        if (topSpacerHeight > 0) {
+            copy.add(0, new TierifySpacerComponent(topSpacerHeight));
         }
 
         // 2) If Perfect label is going to render, reserve a full line AFTER the title.
         //    Title is at index 0 normally, or index 1 if we inserted Set Bonus spacer.
         if (isPerfect) {
             int titleIndex = hasSetBonusLabel ? 1 : 0;
-            int insertAt = Math.min(titleIndex + 1, copy.size());
+            int insertAt = Math.min(titleIndex + Math.max(1, titleLineCount), copy.size());
             copy.add(insertAt, new TierifySpacerComponent(TIERIFY_PERFECT_SPACER_PX));
+        }
+
+        // 3) Add Fabric-style horizontal padding by widening the tooltip background.
+        if (maxWidth > 0) {
+            copy.add(new TierifyWidthComponent(maxWidth + 8));
         }
 
         return copy;
@@ -148,8 +210,10 @@ public abstract class GuiGraphicsTooltipBorderMixin {
                                                CallbackInfo ci) {
         tierify$textRenderIndex = 0;
         tierify$centerTitleIndex = -1;
+        tierify$titleComponentIndex = -1;
+        tierify$titleTextY = Integer.MIN_VALUE;
+        tierify$titleLineCount = 1;
 
-        if (!ForgeTierifyConfig.centerName()) return;
         if (!ForgeTierifyConfig.tieredTooltip() || TooltipOverhaulCompatForge.isLoaded()) return;
         if (components == null || components.isEmpty()) return;
 
@@ -165,6 +229,11 @@ public abstract class GuiGraphicsTooltipBorderMixin {
 
         int titleIndex = (components.get(0) instanceof TierifySpacerComponent) ? 1 : 0;
         if (titleIndex >= components.size()) return;
+
+        tierify$titleComponentIndex = titleIndex;
+        tierify$titleLineCount = computeTitleLineCount(font, components, stack);
+
+        if (!ForgeTierifyConfig.centerName()) return;
 
         int w = 0;
         int h = (components.size() == 1) ? -2 : 0;
@@ -197,7 +266,12 @@ public abstract class GuiGraphicsTooltipBorderMixin {
                                          Matrix4f matrix,
                                          MultiBufferSource.BufferSource buffer) {
         int index = tierify$textRenderIndex++;
-        if (index == tierify$centerTitleIndex && tierify$centerTitleIndex >= 0) {
+        if (index == tierify$titleComponentIndex && tierify$titleComponentIndex >= 0) {
+            tierify$titleTextY = y;
+        }
+        if (tierify$centerTitleIndex >= 0
+                && index >= tierify$titleComponentIndex
+                && index < tierify$titleComponentIndex + Math.max(1, tierify$titleLineCount)) {
             int textW = component.getWidth(font);
             int centeredX = tierify$tooltipX + (tierify$tooltipWidth - textW) / 2;
             component.renderText(font, centeredX, y, matrix, buffer);
@@ -227,12 +301,23 @@ public abstract class GuiGraphicsTooltipBorderMixin {
         if (stack == null || stack.isEmpty()) return;
 
         CompoundTag tiered = stack.getTagElement(TierifyConstants.NBT_SUBTAG_KEY);
-        if (tiered == null) return;
+        boolean hasTieredTag = tiered != null;
+        String tierId = null;
+        boolean isPerfect = false;
+        String lookupKey;
 
-        String tierId = tiered.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY);
-        boolean isPerfect = tiered.getBoolean("Perfect");
-
-        if ((tierId == null || tierId.isEmpty()) && !isPerfect) return;
+        if (tiered != null) {
+            tierId = tiered.getString(TierifyConstants.NBT_SUBTAG_DATA_KEY);
+            isPerfect = tiered.getBoolean("Perfect");
+            if ((tierId == null || tierId.isEmpty()) && !isPerfect) return;
+            lookupKey = isPerfect ? "tiered:perfect" : tierId;
+        } else if (stack.getItem() instanceof ReforgeAddition) {
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+            if (id == null) return;
+            lookupKey = id.toString();
+        } else {
+            return;
+        }
 
         // Compute tooltip bounds (mirrors the vanilla logic used for positioning).
         int w = 0;
@@ -256,7 +341,7 @@ public abstract class GuiGraphicsTooltipBorderMixin {
         GuiGraphics gg = (GuiGraphics) (Object) this;
 
         // 1) Border overlay
-        int tierIndex = TierGradientAnimatorForge.getTierFromId(tierId);
+        int tierIndex = (tierId != null && !tierId.isEmpty()) ? TierGradientAnimatorForge.getTierFromId(tierId) : 0;
         gg.pose().pushPose();
         gg.pose().translate(0.0F, 0.0F, 400.0F);
         try {
@@ -264,7 +349,7 @@ public abstract class GuiGraphicsTooltipBorderMixin {
                     gg,
                     x, y,
                     w, h,
-                    tierId,
+                    lookupKey,
                     tierIndex,
                     isPerfect
             );
@@ -272,9 +357,11 @@ public abstract class GuiGraphicsTooltipBorderMixin {
             gg.pose().popPose();
         }
 
-        // 2) Overlay labels (scaled/centered).
-        renderSetBonusLabel(gg, font, x, y, w, components, stack, tierId);
-        renderPerfectLabel(gg, font, x, y, w, components, stack, tierId);
+        if (hasTieredTag && tierId != null && !tierId.isEmpty()) {
+            // 2) Overlay labels (scaled/centered).
+            renderSetBonusLabel(gg, font, x, y, w, components, stack, tierId, tierify$titleTextY);
+            renderPerfectLabel(gg, font, x, y, w, components, stack, tierId);
+        }
     }
 
 
@@ -282,21 +369,17 @@ public abstract class GuiGraphicsTooltipBorderMixin {
     private static float textTopYForIndex(int tooltipTopY, List<ClientTooltipComponent> components, int index) {
         if (components == null || components.isEmpty()) return tooltipTopY + 4.0f;
 
-        // Vanilla inserts an extra +2px gap after the *title* component (the first real text line).
-        // If we inject a Tierify spacer above the title, the title becomes index 1.
-        int titleIndex = (components.get(0) instanceof TierifySpacerComponent) ? 1 : 0;
-
         int clamped = Math.max(0, Math.min(index, components.size()));
-        float y = tooltipTopY + 4.0f;
+        float y = tooltipTopY;
         for (int i = 0; i < clamped; i++) {
             y += components.get(i).getHeight();
-            if (i == titleIndex) y += 2.0f;
+            if (i == 0) y += 2.0f;
         }
         return y;
     }
 
 
-    private static void renderSetBonusLabel(GuiGraphics gg, Font font, int x, int y, int w, List<ClientTooltipComponent> components, ItemStack stack, String tierId) {
+    private static void renderSetBonusLabel(GuiGraphics gg, Font font, int x, int y, int w, List<ClientTooltipComponent> components, ItemStack stack, String tierId, int titleTextY) {
         Component label = buildSetBonusLabel(stack, tierId);
         if (label == null) return;
 
@@ -309,11 +392,16 @@ public abstract class GuiGraphicsTooltipBorderMixin {
         float lineH = font.lineHeight;
         float scaledH = lineH * scale;
 
-        // Center within our injected spacer height (not a full vanilla text line).
-        int spacerH = (components.get(0) instanceof TierifySpacerComponent s) ? s.getHeight() : font.lineHeight;
-
-        float lineTopY = textTopYForIndex(y, components, 0);
-        float yPos = lineTopY + (spacerH - scaledH) / 2.0f - 3.0f; // nudge up 2px (slightly more breathing room from title)
+        // Center within the actual top padding band up to the title line (Fabric parity, GUI-scale safe).
+        int titleIndex = (components.get(0) instanceof TierifySpacerComponent) ? 1 : 0;
+        float titleTop = (titleTextY >= y) ? titleTextY : textTopYForIndex(y, components, titleIndex);
+        int topPadding = Math.max(4, Math.round(titleTop - y));
+        float gapTop = y;
+        float gapBottom = y + topPadding;
+        float yPos = gapTop + ((gapBottom - gapTop) - scaledH) / 2.0f;
+        float yOffset = (lineH - scaledH) / 2.0f;
+        yPos += yOffset;
+        yPos += SET_BONUS_LABEL_NUDGE_Y;
 
         gg.pose().pushPose();
         gg.pose().translate(xPos, yPos, 450.0f);
@@ -329,7 +417,8 @@ public abstract class GuiGraphicsTooltipBorderMixin {
 
         boolean hasSetBonusLabel = buildSetBonusLabel(stack, tierId) != null;
         int titleIndex = hasSetBonusLabel ? 1 : 0;
-        int perfectSpacerIndex = titleIndex + 1;
+        int titleLineCount = computeTitleLineCount(font, components, stack);
+        int perfectSpacerIndex = titleIndex + Math.max(1, titleLineCount);
 
         // Render centered within the spacer line injected after the title.
         float scale = TIERIFY_LABEL_SCALE;
@@ -349,7 +438,7 @@ public abstract class GuiGraphicsTooltipBorderMixin {
                 : font.lineHeight;
 
         float lineTopY = textTopYForIndex(y, components, perfectSpacerIndex);
-        float yPos = lineTopY + (spacerH - scaledH) / 2.0f - 2.0f; // nudge up 2px (closer to title)
+        float yPos = lineTopY + (spacerH - scaledH) / 2.0f - 1.0f;
 
         gg.pose().pushPose();
         gg.pose().translate(xPos, yPos, 450.0f);
@@ -418,5 +507,25 @@ public abstract class GuiGraphicsTooltipBorderMixin {
         }
 
         return true;
+    }
+
+    @Unique
+    private static int computeTitleLineCount(Font font, List<ClientTooltipComponent> components, ItemStack stack) {
+        if (font == null || components == null || components.isEmpty()) return 1;
+        if (stack == null || stack.isEmpty()) return 1;
+
+        Component title = stack.getHoverName();
+        if (title == null) return 1;
+
+        int maxTextWidth = 0;
+        for (ClientTooltipComponent c : components) {
+            if (c instanceof TierifySpacerComponent || c instanceof TierifyWidthComponent) continue;
+            maxTextWidth = Math.max(maxTextWidth, c.getWidth(font));
+        }
+        if (maxTextWidth <= 0) {
+            maxTextWidth = Math.max(1, font.width(title));
+        }
+
+        return Math.max(1, font.split(title, maxTextWidth).size());
     }
 }
