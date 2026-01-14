@@ -28,6 +28,7 @@ public class ForgeHooksClientMixin {
 
     @Inject(
             method = "gatherTooltipComponentsFromElements",
+            remap = false,
             at = @At("HEAD"),
             cancellable = true
     )

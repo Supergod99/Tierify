@@ -15,10 +15,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mixin(targets = "dev.xylonity.tooltipoverhaul.client.wrap.TooltipWrapper")
+@Mixin(targets = "dev.xylonity.tooltipoverhaul.client.wrap.TooltipWrapper", remap = false)
 public class TooltipOverhaulWrapperMixin {
 
-    @Inject(method = "wrap", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "wrap", at = @At("HEAD"), cancellable = true, remap = false)
     private static void tierify$skipWrap(Font font,
                                          List<ClientTooltipComponent> orig,
                                          int screenWidth,
@@ -30,7 +30,7 @@ public class TooltipOverhaulWrapperMixin {
         }
     }
 
-    @Inject(method = "wrapHalf", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "wrapHalf", at = @At("HEAD"), cancellable = true, remap = false)
     private static void tierify$skipWrapHalf(Font font,
                                              List<ClientTooltipComponent> orig,
                                              int screenWidth,
@@ -104,7 +104,7 @@ public class TooltipOverhaulWrapperMixin {
         return out;
     }
 
-    @Invoker("wrapInternal")
+    @Invoker(value = "wrapInternal", remap = false)
     private static List<ClientTooltipComponent> tierify$wrapInternal(Font font,
                                                                      List<ClientTooltipComponent> orig,
                                                                      int screenWidth,

@@ -54,6 +54,8 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:geckolib-388172:7025129")
     runtimeOnly fg.deobf("curse.maven:tooltipoverhaul-1327508:7096296")
     runtimeOnly fg.deobf("curse.maven:obscureAPI-638417:7171906")
+    compileOnly fg.deobf("curse.maven:tooltipoverhaul-1327508:7096296")
+    compileOnly fg.deobf("curse.maven:obscureAPI-638417:7171906")
     runtimeOnly fg.deobf("curse.maven:playerAnimator-658587:4587214")
     runtimeOnly fg.deobf("curse.maven:ironsspells-855414:6970299")
     runtimeOnly fg.deobf("curse.maven:tosmagic-1046916:7185948")
@@ -63,6 +65,7 @@ dependencies {
     compileOnly "org.joml:joml:1.10.5"
     compileOnly "com.mojang:datafixerupper:6.0.8"
     compileOnly "com.mojang:brigadier:1.2.9"
+    annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 }
 
 tasks.named("jar", Jar).configure {
