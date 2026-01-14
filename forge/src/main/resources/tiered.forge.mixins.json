@@ -1,6 +1,7 @@
 {
   "required": true,
   "package": "elocindev.tierify.forge.mixin",
+  "refmap": "tiered.refmap.json",
   "plugin": "elocindev.tierify.forge.mixin.TieredForgeMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [

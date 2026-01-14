@@ -7,16 +7,19 @@ tasks.withType(JavaCompile).configureEach {
 buildscript {
     repositories {
         maven { url = "https://maven.minecraftforge.net/" }
+        maven { url = "https://repo.spongepowered.org/repository/maven-public/" }
         mavenCentral()
         gradlePluginPortal()
     }
     dependencies {
         classpath "net.minecraftforge.gradle:ForgeGradle:6.0.46"
+        classpath "org.spongepowered:mixingradle:0.7-SNAPSHOT"
     }
 }
 
 apply plugin: "java"
 apply plugin: "net.minecraftforge.gradle"
+apply plugin: "org.spongepowered.mixin"
 
 java {
     toolchain {
@@ -71,6 +74,10 @@ tasks.named("jar", Jar).configure {
     }
 }
 
+mixin {
+    add sourceSets.main, "tiered.refmap.json"
+    config "tiered.forge.mixins.json"
+}
 
 minecraft {
     mappings channel: "official", version: rootProject.minecraft_version
