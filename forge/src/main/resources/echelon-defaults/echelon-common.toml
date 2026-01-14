@@ -1,0 +1,133 @@
+
+[tierify]
+	#Enable/disable the entire armor set bonus system
+	enableArmorSetBonuses = true
+	#Armor set bonus multiplier for a full 4-piece set. 0.01 = 1%, 1.0 = 100%
+	#Range: 0.0 ~ 10.0
+	armorSetBonusMultiplier = 0.2
+	#Armor set bonus percent when wearing 4 matching armor pieces AND all 4 are Perfect. 0.01 = 1%, 1.0 = 100%
+	#Range: 0.0 ~ 10.0
+	armorSetPerfectBonusPercent = 1.0
+	#The chance for a reforge to be 'Perfect' (no negative attributes). 0.01 = 1%, 1.0 = 100%
+	#Range: 0.0 ~ 1.0
+	perfectRollChance = 0.02
+	#If true, items can be reforged even if they are damaged.
+	allowReforgingDamaged = true
+	#Items in for example mineshaft chests get modifiers
+	lootContainerModifier = true
+	#Chance for loot-container items to receive a modifier when lootContainerModifier is true.
+	#0.0 = never, 0.5 = 50%, 1.0 = always.
+	#Range: 0.0 ~ 1.0
+	lootContainerModifierChance = 0.1
+	#Armageddon treasure bags gear can get modifiers
+	treasureBagDropModifier = true
+	#Treasure bag profiles file (in the config folder).
+	treasureBagProfilesFile = "echelon-treasure-bag-profiles.txt"
+	#If true, loot containers can include reforge materials based on a dimension profile file.
+	reforgeMaterialLootModifier = false
+	#Chance to add a reforge material to a loot container when reforgeMaterialLootModifier is true.
+	#0.0 = never, 0.5 = 50%, 1.0 = always.
+	#Range: 0.0 ~ 1.0
+	reforgeMaterialLootChance = 0.1
+	#Reforge material profiles file (in the config folder).
+	#Format: 'modid:dimension=500,125,20,6,3,1' or presets overworld|nether|end|global.
+	reforgeMaterialLootProfilesFile = "echelon-reforge-material-profiles.txt"
+	#Equipped items on entities get modifiers
+	entityItemModifier = false
+	#If true, entity loot-table drops can receive modifiers based on a whitelist profile file.
+	#This affects loot generated from an entity's loot table (e.g., bosses), not only worn equipment.
+	entityLootDropModifier = false
+	#Whitelist profile file (in the config folder) for entity loot-table drop reforging.
+	#Format per line: 'modid:entity=0.50|0,0,5,10,5,2' or 'modid:entity=0.50|overworld' (presets: overworld|nether|end|global).
+	#You can also use '*=...' as a global default and 'modid:*=...' as a namespace wildcard.
+	entityLootDropProfilesFile = "echelon-entity-drop-profiles.txt"
+	#If true, items dropped from entity equipment slots (dropEquipment path) can be reforged using the entity loot-drop profiles file.
+	#Whitelist behavior: only entities with a matching profile entry (or wildcard entry) will affect equipment drops.
+	entityEquipmentDropModifier = true
+	#Tier weights for mob-equipped items/chests when entityItemModifier=true OR lootContainerModifier=true. Higher = more common. These are relative weights, not %.
+	#Set all to 0 to disable weighting and fall back to the old fully-random behavior.
+	#Range: > 0
+	entityTier1Weight = 2000
+	#Range: > 0
+	entityTier2Weight = 200
+	#Range: > 0
+	entityTier3Weight = 27
+	#Range: > 0
+	entityTier4Weight = 9
+	#Range: > 0
+	entityTier5Weight = 3
+	#Range: > 0
+	entityTier6Weight = 1
+	#If true, use dimension-specific tier weights for mob-equipped items and loot container rolls.
+	useDimensionTierWeights = true
+	#When useDimensionTierWeights=true and the selected dimension profile has ALL weights set to 0, no modifier is applied (instead of falling back to random).
+	dimensionTierWeightsZeroMeansNoModifier = true
+	#Overworld tier weights (1=Common ... 6=Mythic). Set a tier weight to 0 to disable that tier in the Overworld.
+	#Range: > 0
+	overworldTier1Weight = 100
+	#Range: > 0
+	overworldTier2Weight = 10
+	#Range: > 0
+	overworldTier3Weight = 1
+	#Range: > 0
+	overworldTier4Weight = 0
+	#Range: > 0
+	overworldTier5Weight = 0
+	#Range: > 0
+	overworldTier6Weight = 0
+	#Nether tier weights (1=Common ... 6=Mythic).
+	#Range: > 0
+	netherTier1Weight = 10
+	#Range: > 0
+	netherTier2Weight = 100
+	#Range: > 0
+	netherTier3Weight = 10
+	#Range: > 0
+	netherTier4Weight = 1
+	#Range: > 0
+	netherTier5Weight = 0
+	#Range: > 0
+	netherTier6Weight = 0
+	#End tier weights (1=Common ... 6=Mythic).
+	#Range: > 0
+	endTier1Weight = 10
+	#Range: > 0
+	endTier2Weight = 100
+	#Range: > 0
+	endTier3Weight = 1000
+	#Range: > 0
+	endTier4Weight = 100
+	#Range: > 0
+	endTier5Weight = 10
+	#Range: > 0
+	endTier6Weight = 1
+	#Optional overrides for modded dimensions when useDimensionTierWeights=true.
+	#Format: 'modid:dimension=500,125,20,6,3,1' (6 ints = Common..Mythic).
+	#You can also use '*=overworld|nether|end|global' as a wildcard default for any modded dimension.
+	#And you can use 'modid:*=...' to target all dimensions from a given namespace.
+	moddedDimensionTierWeightOverrides = []
+	#Crafted items get modifiers
+	craftingModifier = false
+	#Merchant items get modifiers
+	merchantModifier = false
+	#Decreases the biggest weights by this modifier
+	#Range: 0.0 ~ 10.0
+	reforgeModifier = 0.0
+	#Modify the biggest weights by this modifier per smithing level
+	#Range: 0.0 ~ 10.0
+	levelzReforgeModifier = 0.0
+	#Modify the biggest weights by this modifier per luck
+	#Range: 0.0 ~ 10.0
+	luckReforgeModifier = 0.0
+	#Tier 1 of Reforging (Limestone)
+	tier1Qualities = ["Common"]
+	#Tier 2 of Reforging (Pyrite)
+	tier2Qualities = ["Uncomon"]
+	#Tier 3 of Reforging (Galena)
+	tier3Qualities = ["Rare"]
+	#Tier 4 of Reforging (Charoite)
+	tier4Qualities = ["Epic"]
+	#Tier 5 of Reforging (Crown Topaz)
+	tier5Qualities = ["Legendary"]
+	#Tier 6 of Reforging (Painite)
+	tier6Qualities = ["Mythic"]

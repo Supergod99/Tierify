@@ -1,0 +1,6 @@
+# Echelon entity drop profiles
+# entity_id=chance|weights
+# weights: 6 ints (Common..Mythic) OR preset overworld|nether|end|global
+# Wildcards:
+#   *=chance|weights
+#   modid:*=chance|weights

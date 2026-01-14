@@ -12,23 +12,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class EntityLootDropProfiles {
+public final class ReforgeMaterialLootProfiles {
 
-    public record Entry(float chance, int[] weights) {}
+    public record Entry(int[] weights) {}
 
     private static final Map<ResourceLocation, Entry> EXACT = new HashMap<>();
     private static final Map<String, Entry> NAMESPACE_WILDCARD = new HashMap<>();
     private static Entry GLOBAL_WILDCARD = null;
 
-    private EntityLootDropProfiles() {}
+    private ReforgeMaterialLootProfiles() {}
 
     public static void reload() {
         EXACT.clear();
         NAMESPACE_WILDCARD.clear();
         GLOBAL_WILDCARD = null;
 
-        String fileName = ForgeTierifyConfig.entityLootDropProfilesFile();
-        if (fileName == null || fileName.isBlank()) fileName = "echelon-entity-drop-profiles.txt";
+        String fileName = ForgeTierifyConfig.reforgeMaterialLootProfilesFile();
+        if (fileName == null || fileName.isBlank()) {
+            fileName = "echelon-reforge-material-profiles.txt";
+        }
 
         Path path = FMLPaths.CONFIGDIR.get().resolve(fileName);
         ensureExists(path);
@@ -50,14 +52,10 @@ public final class EntityLootDropProfiles {
             String left = line.substring(0, eq).trim();
             String right = line.substring(eq + 1).trim();
 
-            String[] parts = right.split("\\|", 2);
-            if (parts.length != 2) continue;
+            int[] weights = ForgeTieredAttributeSubscriber.parseWeightProfile(right);
+            if (weights == null || weights.length != 6) continue;
 
-            Float chance = parseChance(parts[0].trim());
-            int[] weights = ForgeTieredAttributeSubscriber.parseWeightProfile(parts[1].trim());
-            if (chance == null || weights == null) continue;
-
-            Entry entry = new Entry(chance, weights);
+            Entry entry = new Entry(weights);
 
             if (left.equals("*")) {
                 GLOBAL_WILDCARD = entry;
@@ -77,13 +75,13 @@ public final class EntityLootDropProfiles {
         }
     }
 
-    public static Entry get(ResourceLocation entityId) {
-        if (entityId == null) return null;
+    public static Entry get(ResourceLocation dimensionId) {
+        if (dimensionId == null) return null;
 
-        Entry exact = EXACT.get(entityId);
+        Entry exact = EXACT.get(dimensionId);
         if (exact != null) return exact;
 
-        Entry ns = NAMESPACE_WILDCARD.get(entityId.getNamespace());
+        Entry ns = NAMESPACE_WILDCARD.get(dimensionId.getNamespace());
         if (ns != null) return ns;
 
         return GLOBAL_WILDCARD;
@@ -96,12 +94,15 @@ public final class EntityLootDropProfiles {
             Files.createDirectories(path.getParent());
             Files.writeString(
                     path,
-                    "# Echelon entity drop profiles\n" +
-                    "# entity_id=chance|weights\n" +
+                    "# Echelon reforge material loot profiles\n" +
+                    "# dimension_id=weights\n" +
                     "# weights: 6 ints (Common..Mythic) OR preset overworld|nether|end|global\n" +
                     "# Wildcards:\n" +
-                    "#   *=chance|weights\n" +
-                    "#   modid:*=chance|weights\n",
+                    "#   *=weights\n" +
+                    "#   modid:*=weights\n\n" +
+                    "minecraft:overworld=100,10,1,0,0,0\n" +
+                    "minecraft:the_nether=10,100,10,3,1,0\n" +
+                    "minecraft:the_end=0,10,100,10,3,1\n",
                     StandardCharsets.UTF_8
             );
         } catch (IOException ignored) {
@@ -117,16 +118,5 @@ public final class EntityLootDropProfiles {
         if (slashes >= 0) cut = (cut < 0) ? slashes : Math.min(cut, slashes);
 
         return (cut >= 0) ? s.substring(0, cut) : s;
-    }
-
-    private static Float parseChance(String s) {
-        try {
-            float v = Float.parseFloat(s);
-            if (v < 0.0f) v = 0.0f;
-            if (v > 1.0f) v = 1.0f;
-            return v;
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

@@ -1,0 +1,10 @@
+# Echelon reforge material loot profiles
+# dimension_id=weights
+# weights: 6 ints (Common..Mythic) OR preset overworld|nether|end|global
+# Wildcards:
+#   *=weights
+#   modid:*=weights
+
+minecraft:overworld=100,10,1,0,0,0
+minecraft:the_nether=10,100,10,3,1,0
+minecraft:the_end=0,10,100,10,3,1

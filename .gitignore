@@ -30,6 +30,7 @@ bin/
 
 # runtime
 
+
 run/
 reference/
 latest.log
@@ -43,3 +44,4 @@ crash-reports/
 .cache/
 .run/
 FABRIC_SNAPSHOT_BACKLOG.md
+bundle_echelon_context.py

@@ -6,6 +6,7 @@ import java.util.List;
 
 public final class ForgeTierifyConfig {
     public static final ForgeConfigSpec SPEC;
+    public static final ForgeConfigSpec CLIENT_SPEC;
 
     public static final ForgeConfigSpec.BooleanValue ENABLE_ARMOR_SET_BONUSES;
     public static final ForgeConfigSpec.DoubleValue ARMOR_SET_BONUS_MULTIPLIER;
@@ -18,6 +19,9 @@ public final class ForgeTierifyConfig {
     public static final ForgeConfigSpec.DoubleValue LOOT_CONTAINER_MODIFIER_CHANCE;
     public static final ForgeConfigSpec.BooleanValue TREASURE_BAG_DROP_MODIFIER;
     public static final ForgeConfigSpec.ConfigValue<String> TREASURE_BAG_PROFILES_FILE;
+    public static final ForgeConfigSpec.BooleanValue REFORGE_MATERIAL_LOOT_MODIFIER;
+    public static final ForgeConfigSpec.DoubleValue REFORGE_MATERIAL_LOOT_CHANCE;
+    public static final ForgeConfigSpec.ConfigValue<String> REFORGE_MATERIAL_LOOT_PROFILES_FILE;
     public static final ForgeConfigSpec.BooleanValue ENTITY_ITEM_MODIFIER;
     public static final ForgeConfigSpec.BooleanValue ENTITY_LOOT_DROP_MODIFIER;
     public static final ForgeConfigSpec.ConfigValue<String> ENTITY_LOOT_DROP_PROFILES_FILE;
@@ -117,12 +121,6 @@ public final class ForgeTierifyConfig {
             float reforgeModifier,
             float levelzReforgeModifier,
             float luckReforgeModifier,
-            boolean showReforgingTab,
-            int xIconPosition,
-            int yIconPosition,
-            boolean tieredTooltip,
-            boolean showPlatesOnName,
-            boolean centerName,
             List<String> tier1Qualities,
             List<String> tier2Qualities,
             List<String> tier3Qualities,
@@ -174,6 +172,20 @@ public final class ForgeTierifyConfig {
         TREASURE_BAG_PROFILES_FILE = builder
                 .comment("Treasure bag profiles file (in the config folder).")
                 .define("treasureBagProfilesFile", "echelon-treasure-bag-profiles.txt");
+
+        REFORGE_MATERIAL_LOOT_MODIFIER = builder
+                .comment("If true, loot containers can include reforge materials based on a dimension profile file.")
+                .define("reforgeMaterialLootModifier", false);
+
+        REFORGE_MATERIAL_LOOT_CHANCE = builder
+                .comment("Chance to add a reforge material to a loot container when reforgeMaterialLootModifier is true.")
+                .comment("0.0 = never, 0.5 = 50%, 1.0 = always.")
+                .defineInRange("reforgeMaterialLootChance", 0.1d, 0.0d, 1.0d);
+
+        REFORGE_MATERIAL_LOOT_PROFILES_FILE = builder
+                .comment("Reforge material profiles file (in the config folder).")
+                .comment("Format: 'modid:dimension=500,125,20,6,3,1' or presets overworld|nether|end|global.")
+                .define("reforgeMaterialLootProfilesFile", "echelon-reforge-material-profiles.txt");
 
         ENTITY_ITEM_MODIFIER = builder
                 .comment("Equipped items on entities get modifiers")
@@ -267,32 +279,6 @@ public final class ForgeTierifyConfig {
                 .comment("Modify the biggest weights by this modifier per luck")
                 .defineInRange("luckReforgeModifier", 0.0d, 0.0d, 10.0d);
 
-        builder.push("client_settings");
-
-        SHOW_REFORGING_TAB = builder
-                .comment("Whether or not to show the reforging tab in the anvil screen.")
-                .define("showReforgingTab", true);
-
-        X_ICON_POSITION = builder
-                .defineInRange("xIconPosition", 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
-
-        Y_ICON_POSITION = builder
-                .defineInRange("yIconPosition", 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
-
-        TIERED_TOOLTIP = builder
-                .comment("Enable Tierify tooltip borders/labels.")
-                .define("tieredTooltip", true);
-
-        SHOW_PLATES_ON_NAME = builder
-                .comment("Swaps the text with a plate displayed on the item's name.")
-                .define("showPlatesOnName", false);
-
-        CENTER_NAME = builder
-                .comment("Centers the item name in the tooltip.")
-                .define("centerName", true);
-
-        builder.pop();
-
         TIER_1_QUALITIES = builder
                 .comment("Tier 1 of Reforging (Limestone)")
                 .defineList("tier1Qualities", List.of("Common"), ForgeTierifyConfig::isString);
@@ -320,6 +306,34 @@ public final class ForgeTierifyConfig {
         builder.pop();
 
         SPEC = builder.build();
+
+        ForgeConfigSpec.Builder clientBuilder = new ForgeConfigSpec.Builder();
+        clientBuilder.push("client_settings");
+
+        SHOW_REFORGING_TAB = clientBuilder
+                .comment("Whether or not to show the reforging tab in the anvil screen.")
+                .define("showReforgingTab", true);
+
+        X_ICON_POSITION = clientBuilder
+                .defineInRange("xIconPosition", 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
+
+        Y_ICON_POSITION = clientBuilder
+                .defineInRange("yIconPosition", 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
+
+        TIERED_TOOLTIP = clientBuilder
+                .comment("Enable Tierify tooltip borders/labels.")
+                .define("tieredTooltip", true);
+
+        SHOW_PLATES_ON_NAME = clientBuilder
+                .comment("Swaps the text with a plate displayed on the item's name.")
+                .define("showPlatesOnName", false);
+
+        CENTER_NAME = clientBuilder
+                .comment("Centers the item name in the tooltip.")
+                .define("centerName", true);
+
+        clientBuilder.pop();
+        CLIENT_SPEC = clientBuilder.build();
     }
 
     private ForgeTierifyConfig() {}
@@ -383,12 +397,6 @@ public final class ForgeTierifyConfig {
                 REFORGE_MODIFIER.get().floatValue(),
                 LEVELZ_REFORGE_MODIFIER.get().floatValue(),
                 LUCK_REFORGE_MODIFIER.get().floatValue(),
-                SHOW_REFORGING_TAB.get(),
-                X_ICON_POSITION.get(),
-                Y_ICON_POSITION.get(),
-                TIERED_TOOLTIP.get(),
-                SHOW_PLATES_ON_NAME.get(),
-                CENTER_NAME.get(),
                 tier1 == null ? List.of() : List.copyOf(tier1),
                 tier2 == null ? List.of() : List.copyOf(tier2),
                 tier3 == null ? List.of() : List.copyOf(tier3),
@@ -441,6 +449,18 @@ public final class ForgeTierifyConfig {
     public static String treasureBagProfilesFile() {
         SyncedConfig sc = syncedConfig;
         return sc != null ? sc.treasureBagProfilesFile() : TREASURE_BAG_PROFILES_FILE.get();
+    }
+
+    public static boolean reforgeMaterialLootModifier() {
+        return REFORGE_MATERIAL_LOOT_MODIFIER.get();
+    }
+
+    public static float reforgeMaterialLootChance() {
+        return REFORGE_MATERIAL_LOOT_CHANCE.get().floatValue();
+    }
+
+    public static String reforgeMaterialLootProfilesFile() {
+        return REFORGE_MATERIAL_LOOT_PROFILES_FILE.get();
     }
 
     public static boolean entityItemModifier() {
@@ -628,33 +648,27 @@ public final class ForgeTierifyConfig {
     }
 
     public static boolean showReforgingTab() {
-        SyncedConfig sc = syncedConfig;
-        return sc != null ? sc.showReforgingTab() : SHOW_REFORGING_TAB.get();
+        return SHOW_REFORGING_TAB.get();
     }
 
     public static int xIconPosition() {
-        SyncedConfig sc = syncedConfig;
-        return sc != null ? sc.xIconPosition() : X_ICON_POSITION.get();
+        return X_ICON_POSITION.get();
     }
 
     public static int yIconPosition() {
-        SyncedConfig sc = syncedConfig;
-        return sc != null ? sc.yIconPosition() : Y_ICON_POSITION.get();
+        return Y_ICON_POSITION.get();
     }
 
     public static boolean tieredTooltip() {
-        SyncedConfig sc = syncedConfig;
-        return sc != null ? sc.tieredTooltip() : TIERED_TOOLTIP.get();
+        return TIERED_TOOLTIP.get();
     }
 
     public static boolean showPlatesOnName() {
-        SyncedConfig sc = syncedConfig;
-        return sc != null ? sc.showPlatesOnName() : SHOW_PLATES_ON_NAME.get();
+        return SHOW_PLATES_ON_NAME.get();
     }
 
     public static boolean centerName() {
-        SyncedConfig sc = syncedConfig;
-        return sc != null ? sc.centerName() : CENTER_NAME.get();
+        return CENTER_NAME.get();
     }
 
     public static List<String> getTierQualities(int tier) {

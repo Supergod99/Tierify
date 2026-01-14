@@ -1,0 +1,14 @@
+
+[client_settings]
+	#Whether or not to show the reforging tab in the anvil screen.
+	showReforgingTab = true
+	#Range: > -2147483648
+	xIconPosition = 0
+	#Range: > -2147483648
+	yIconPosition = 0
+	#Enable Tierify tooltip borders/labels.
+	tieredTooltip = true
+	#Swaps the text with a plate displayed on the item's name.
+	showPlatesOnName = false
+	#Centers the item name in the tooltip.
+	centerName = true

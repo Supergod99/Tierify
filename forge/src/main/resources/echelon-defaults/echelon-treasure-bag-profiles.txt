@@ -1,0 +1,16 @@
+# Echelon treasure bag profiles
+# item_id=chance|weights
+# weights: 6 ints (Common..Mythic) OR preset overworld|nether|end|global
+# Wildcards:
+#   *=chance|weights
+#   modid:*=chance|weights
+
+armageddon_mod:iron_colossus_treasure_bag=1.0|5,1,0,0,0,0
+armageddon_mod:arion_treasurebag=1.0|5,1,0,0,0,0
+armageddon_mod:eldorath_treasure_bag=1.0|5,1,0,0,0,0
+armageddon_mod:zoranth_treasure_bag=1.0|3,5,1,0,0,0
+armageddon_mod:ender_dragon_treasurebag=0.5|3,5,3,1,0,0
+armageddon_mod:elvenite_paladin_treasure_bag=1.0|1,3,5,3,1,0
+armageddon_mod:vaedric_treasure_bag=1.0|1,3,5,3,1,0
+armageddon_mod:zoranth_newborn_of_the_zenith_treasure_bag=1.0|1,3,5,3,1,0
+armageddon_mod:nyxaris_the_veil_of_oblivion_treasure_bag=1.0|3,5,7,5,3,1

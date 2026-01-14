@@ -57,12 +57,6 @@ public record ConfigSyncS2C(ForgeTierifyConfig.SyncedConfig config) {
         buf.writeFloat(c.reforgeModifier());
         buf.writeFloat(c.levelzReforgeModifier());
         buf.writeFloat(c.luckReforgeModifier());
-        buf.writeBoolean(c.showReforgingTab());
-        buf.writeVarInt(c.xIconPosition());
-        buf.writeVarInt(c.yIconPosition());
-        buf.writeBoolean(c.tieredTooltip());
-        buf.writeBoolean(c.showPlatesOnName());
-        buf.writeBoolean(c.centerName());
         writeStringList(buf, c.tier1Qualities());
         writeStringList(buf, c.tier2Qualities());
         writeStringList(buf, c.tier3Qualities());
@@ -117,12 +111,6 @@ public record ConfigSyncS2C(ForgeTierifyConfig.SyncedConfig config) {
         float reforgeModifier = buf.readFloat();
         float levelzReforgeModifier = buf.readFloat();
         float luckReforgeModifier = buf.readFloat();
-        boolean showReforgingTab = buf.readBoolean();
-        int xIconPosition = buf.readVarInt();
-        int yIconPosition = buf.readVarInt();
-        boolean tieredTooltip = buf.readBoolean();
-        boolean showPlatesOnName = buf.readBoolean();
-        boolean centerName = buf.readBoolean();
         List<String> tier1Qualities = readStringList(buf);
         List<String> tier2Qualities = readStringList(buf);
         List<String> tier3Qualities = readStringList(buf);
@@ -176,12 +164,6 @@ public record ConfigSyncS2C(ForgeTierifyConfig.SyncedConfig config) {
                 reforgeModifier,
                 levelzReforgeModifier,
                 luckReforgeModifier,
-                showReforgingTab,
-                xIconPosition,
-                yIconPosition,
-                tieredTooltip,
-                showPlatesOnName,
-                centerName,
                 tier1Qualities,
                 tier2Qualities,
                 tier3Qualities,

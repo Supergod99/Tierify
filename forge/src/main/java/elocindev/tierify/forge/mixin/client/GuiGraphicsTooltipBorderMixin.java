@@ -51,9 +51,6 @@ import java.util.List;
 @Mixin(GuiGraphics.class)
 public abstract class GuiGraphicsTooltipBorderMixin {
 
-    @Shadow public abstract int guiWidth();
-    @Shadow public abstract int guiHeight();
-
     // Added by Forge patch on 1.20.x; used to track which ItemStack the tooltip belongs to.
     @Shadow private ItemStack tooltipStack;
 
@@ -246,7 +243,9 @@ public abstract class GuiGraphicsTooltipBorderMixin {
         w = Math.max(w, 64);
         h = Math.max(h, 16);
 
-        Vector2ic pos = positioner.positionTooltip(guiWidth(), guiHeight(), mouseX, mouseY, w, h);
+        int screenW = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        int screenH = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+        Vector2ic pos = positioner.positionTooltip(screenW, screenH, mouseX, mouseY, w, h);
         tierify$tooltipX = pos.x();
         tierify$tooltipWidth = w;
         tierify$centerTitleIndex = titleIndex;
@@ -334,7 +333,9 @@ public abstract class GuiGraphicsTooltipBorderMixin {
         w = Math.max(w, 64);
         h = Math.max(h, 16);
 
-        Vector2ic pos = positioner.positionTooltip(guiWidth(), guiHeight(), mouseX, mouseY, w, h);
+        int screenW = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        int screenH = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+        Vector2ic pos = positioner.positionTooltip(screenW, screenH, mouseX, mouseY, w, h);
         int x = pos.x();
         int y = pos.y();
 
