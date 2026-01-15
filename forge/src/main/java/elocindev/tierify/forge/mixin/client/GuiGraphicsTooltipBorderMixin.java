@@ -64,6 +64,10 @@ public abstract class GuiGraphicsTooltipBorderMixin {
     @Unique private int tierify$textRenderIndex;
     @Unique private int tierify$tooltipX;
     @Unique private int tierify$tooltipWidth;
+    @Unique private int tierify$renderX;
+    @Unique private int tierify$renderY;
+    @Unique private int tierify$renderW;
+    @Unique private int tierify$renderH;
     @Unique private int tierify$centerTitleIndex = -1;
     @Unique private int tierify$titleComponentIndex = -1;
     @Unique private int tierify$titleTextY = Integer.MIN_VALUE;
@@ -210,6 +214,10 @@ public abstract class GuiGraphicsTooltipBorderMixin {
         tierify$titleComponentIndex = -1;
         tierify$titleTextY = Integer.MIN_VALUE;
         tierify$titleLineCount = 1;
+        tierify$renderX = 0;
+        tierify$renderY = 0;
+        tierify$renderW = 0;
+        tierify$renderH = 0;
 
         if (!ForgeTierifyConfig.tieredTooltip() || TooltipOverhaulCompatForge.isLoaded()) return;
         if (components == null || components.isEmpty()) return;
@@ -249,6 +257,28 @@ public abstract class GuiGraphicsTooltipBorderMixin {
         tierify$tooltipX = pos.x();
         tierify$tooltipWidth = w;
         tierify$centerTitleIndex = titleIndex;
+    }
+
+    @Redirect(
+            method = "renderTooltipInternal(Lnet/minecraft/client/gui/Font;Ljava/util/List;IILnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipPositioner;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/screens/inventory/tooltip/ClientTooltipPositioner;positionTooltip(IIIIII)Lorg/joml/Vector2ic;"
+            )
+    )
+    private Vector2ic tierify$cacheTooltipRenderPos(ClientTooltipPositioner positioner,
+                                                    int screenWidth,
+                                                    int screenHeight,
+                                                    int mouseX,
+                                                    int mouseY,
+                                                    int width,
+                                                    int height) {
+        Vector2ic pos = positioner.positionTooltip(screenWidth, screenHeight, mouseX, mouseY, width, height);
+        tierify$renderX = pos.x();
+        tierify$renderY = pos.y();
+        tierify$renderW = width;
+        tierify$renderH = height;
+        return pos;
     }
 
     @Redirect(
@@ -318,26 +348,32 @@ public abstract class GuiGraphicsTooltipBorderMixin {
             return;
         }
 
-        // Compute tooltip bounds (mirrors the vanilla logic used for positioning).
-        int w = 0;
-        int h = (components.size() == 1) ? -2 : 0;
+        // Use the same tooltip bounds/position that vanilla already computed.
+        int x = tierify$renderX;
+        int y = tierify$renderY;
+        int w = tierify$renderW;
+        int h = tierify$renderH;
 
-        for (int i = 0; i < components.size(); i++) {
-            ClientTooltipComponent c = components.get(i);
-            w = Math.max(w, c.getWidth(font));
-            h += c.getHeight();
-            if (i == 0) h += 2;
+        if (w <= 0 || h <= 0) {
+            int widthFallback = 0;
+            int heightFallback = (components.size() == 1) ? -2 : 0;
+
+            for (int i = 0; i < components.size(); i++) {
+                ClientTooltipComponent c = components.get(i);
+                widthFallback = Math.max(widthFallback, c.getWidth(font));
+                heightFallback += c.getHeight();
+                if (i == 0) heightFallback += 2;
+            }
+
+            w = Math.max(widthFallback, 64);
+            h = Math.max(heightFallback, 16);
+
+            int screenW = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+            int screenH = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+            Vector2ic pos = positioner.positionTooltip(screenW, screenH, mouseX, mouseY, w, h);
+            x = pos.x();
+            y = pos.y();
         }
-
-        // Vanilla minimums (keeps consistent positioner behavior).
-        w = Math.max(w, 64);
-        h = Math.max(h, 16);
-
-        int screenW = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-        int screenH = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-        Vector2ic pos = positioner.positionTooltip(screenW, screenH, mouseX, mouseY, w, h);
-        int x = pos.x();
-        int y = pos.y();
 
         GuiGraphics gg = (GuiGraphics) (Object) this;
 

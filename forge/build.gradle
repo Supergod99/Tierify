@@ -21,6 +21,13 @@ apply plugin: "java"
 apply plugin: "net.minecraftforge.gradle"
 apply plugin: "org.spongepowered.mixin"
 
+group = project.maven_group
+version = project.mod_version
+
+base {
+    archivesName.set(project.archives_base_name)
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)

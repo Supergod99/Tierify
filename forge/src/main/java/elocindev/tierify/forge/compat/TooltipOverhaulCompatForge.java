@@ -180,8 +180,8 @@ public final class TooltipOverhaulCompatForge {
         GuiGraphics gg = getGuiGraphics(ctx);
         if (gg == null) return;
 
-        int x = (int) Math.floor(readNumber(pos, "x", "getX"));
-        int y = (int) Math.floor(readNumber(pos, "y", "getY"));
+        int x = (int) Math.floor(readNumber(pos, "x", "getX", "field_1343"));
+        int y = (int) Math.floor(readNumber(pos, "y", "getY", "field_1342"));
         int width = readPointValue(size, "x", "getX");
         int height = readPointValue(size, "y", "getY");
 

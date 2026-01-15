@@ -9,4 +9,4 @@ pluginManagement {
 
 
 rootProject.name = "Echelon"
-include("forge")
+rootProject.projectDir = file("forge")
