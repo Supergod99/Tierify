@@ -147,9 +147,12 @@ public final class TooltipOverhaulCompatForge {
         if (!ForgeTierifyConfig.tieredTooltip()) return;
 
         Object ctx = args[0];
-        Object pos = args[1];
-        Object size = args[2];
-        Object fontObj = args[5];
+        Object size = findSizeArg(args);
+        Object pos = findPosArg(args, size);
+        Object fontObj = (args.length > 5) ? args[5] : null;
+        if (!(fontObj instanceof Font)) {
+            fontObj = findFontArg(args);
+        }
 
         ItemStack stack = getItemStack(ctx);
         if (stack == null || stack.isEmpty()) return;
@@ -180,10 +183,26 @@ public final class TooltipOverhaulCompatForge {
         GuiGraphics gg = getGuiGraphics(ctx);
         if (gg == null) return;
 
-        int x = (int) Math.floor(readNumber(pos, "x", "getX", "field_1343"));
-        int y = (int) Math.floor(readNumber(pos, "y", "getY", "field_1342"));
-        int width = readPointValue(size, "x", "getX");
-        int height = readPointValue(size, "y", "getY");
+        int width = readPointValue(size, "x", "getX", "field_1343", "width", "getWidth");
+        int height = readPointValue(size, "y", "getY", "field_1342", "height", "getHeight");
+
+        Float posX = tryReadNumber(pos, "x", "getX", "field_1343");
+        Float posY = tryReadNumber(pos, "y", "getY", "field_1342");
+        int x;
+        int y;
+        if (posX != null && posY != null) {
+            x = Math.round(posX);
+            y = Math.round(posY);
+        } else {
+            int[] fallback = fallbackPosFromContext(ctx, width, height);
+            if (fallback == null) return;
+            x = fallback[0];
+            y = fallback[1];
+        }
+
+        if (width <= 0 || height <= 0) {
+            return;
+        }
 
         float baseZ = resolveLayerDepthZ();
 
@@ -239,7 +258,13 @@ public final class TooltipOverhaulCompatForge {
     }
 
     private static float readNumber(Object target, String... names) {
-        if (target == null) return 0.0f;
+        Float value = tryReadNumber(target, names);
+        if (value != null) return value;
+        return 0.0f;
+    }
+
+    private static Float tryReadNumber(Object target, String... names) {
+        if (target == null) return null;
         for (String name : names) {
             Object value = readField(target, name);
             if (value instanceof Number number) return number.floatValue();
@@ -251,15 +276,76 @@ public final class TooltipOverhaulCompatForge {
             } catch (Throwable ignored) {
             }
         }
-        return 0.0f;
+        return null;
     }
 
     private static int readPointValue(Object target, String... names) {
         if (target instanceof Point point) {
-            return "y".equalsIgnoreCase(names[0]) ? point.y : point.x;
+            if (names.length > 0 && ("y".equalsIgnoreCase(names[0]) || "height".equalsIgnoreCase(names[0]))) {
+                return point.y;
+            }
+            return point.x;
         }
-        float out = readNumber(target, names);
-        return Math.round(out);
+        Float out = tryReadNumber(target, names);
+        return (out != null) ? Math.round(out) : 0;
+    }
+
+    private static Object findSizeArg(Object[] args) {
+        if (args == null) return null;
+        for (Object arg : args) {
+            if (arg instanceof Point) return arg;
+        }
+        return (args.length > 2) ? args[2] : null;
+    }
+
+    private static Object findPosArg(Object[] args, Object sizeArg) {
+        if (args == null) return null;
+        for (Object arg : args) {
+            if (arg == null || arg == sizeArg || arg instanceof Point) continue;
+            String name = arg.getClass().getName();
+            if (name.contains("Vec2") || name.contains("Vector2")) {
+                return arg;
+            }
+        }
+        for (Object arg : args) {
+            if (arg == null || arg == sizeArg || arg instanceof Point) continue;
+            if (tryReadNumber(arg, "x", "getX", "field_1343") != null
+                    && tryReadNumber(arg, "y", "getY", "field_1342") != null) {
+                return arg;
+            }
+        }
+        return (args.length > 1) ? args[1] : null;
+    }
+
+    private static Object findFontArg(Object[] args) {
+        if (args == null) return null;
+        for (Object arg : args) {
+            if (arg instanceof Font) return arg;
+        }
+        return null;
+    }
+
+    private static int[] fallbackPosFromContext(Object ctx, int width, int height) {
+        if (ctx == null) return null;
+        Float mouseX = tryReadNumber(ctx, "mouseX", "getMouseX");
+        Float mouseY = tryReadNumber(ctx, "mouseY", "getMouseY");
+        Float screenW = tryReadNumber(ctx, "width", "getWidth", "screenW", "getScreenW");
+        Float screenH = tryReadNumber(ctx, "height", "getHeight", "screenH", "getScreenH");
+        if (mouseX == null || mouseY == null || screenW == null || screenH == null) return null;
+
+        int margin = 4;
+        int xRight = Math.round(mouseX) + 12;
+        int xLeft = Math.round(mouseX) - 16 - width;
+        int maxX = Math.max(margin, Math.round(screenW) - margin - width);
+        int x = (xRight + width <= Math.round(screenW) - margin)
+                ? xRight
+                : (xLeft >= margin ? xLeft : maxX);
+
+        int clampedHeight = Math.min(height, Math.max(0, Math.round(screenH) - 8));
+        int maxY = Math.max(margin, Math.round(screenH) - clampedHeight - margin);
+        int y = Math.max(margin, Math.min(Math.round(mouseY) - 12, maxY));
+
+        return new int[]{x, y};
     }
 
     private static void renderSetBonusLabel(GuiGraphics gg, Font font, int bgX, int bgY, int bgWidth, ItemStack stack, String tierId, float baseZ) {
